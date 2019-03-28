@@ -1,0 +1,10 @@
+sh run_periodA_gdata16.sh
+sh run_periodB_gdata16.sh
+sh run_periodC_gdata16.sh
+sh run_periodD_gdata16.sh
+sh run_periodE_gdata16.sh
+sh run_periodF_gdata16.sh
+sh run_periodG_gdata16.sh
+sh run_periodI_gdata16.sh
+sh run_periodK_gdata16.sh
+sh run_periodL_gdata16.sh
