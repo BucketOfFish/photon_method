@@ -14,7 +14,7 @@ std::string oldSmearingPath = "/eos/atlas/atlascerngroupdisk/phys-susy/strong2L/
 std::string plotsPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/plots/";
 
 string photon_tag = "";
-int event_interval = 1;
+int event_interval = 1; // use every nth event
 bool useMETtrig = false;
 
 double leading_lep_pt_cut = 25.;

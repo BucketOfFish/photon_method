@@ -298,9 +298,9 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 	TH1::SetDefaultSumw2();
 
 	string outfilename;
-	if (isData==1) outfilename = TString(TString(outputPath)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
+	if (isData==1) outfilename = TString(TString(smearingPath)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
 	if (isData==0){
-	  outfilename = TString(TString(outputPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
+	  outfilename = TString(TString(smearingPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
 
 	}
 	TFile*  f              = new TFile(outfilename.c_str(),"recreate");          
