@@ -1,10 +1,12 @@
 Authors: Ruo-Yu Shang, Johny Echevers, Matt Zhang
 
-1. "source setup.sh" to prepare the environment on lxplus.
+"source run_all.sh" to run everything.
 
-2. "cd NtupleMaker; source make_ntuples.sh; cd .." to produce skimmed ntuples for photon/Z data/MC.
+1. First, we prepare the environment on lxplus.
 
-4. "cd PhotonSmearing; source smear_photons.sh; cd .." to produce smeared photon data/MC ntuples.
+2. Next, we produce skimmed ntuples for photon/Z data/MC.
+
+3. Then we produce smeared photon data/MC ntuples.
 
     There are 4 different modes of smearing:
         smearing_method = 0; # no smearing
@@ -19,7 +21,7 @@ Authors: Ruo-Yu Shang, Johny Echevers, Matt Zhang
     Mll modeling is also done in GetPhotonSmearing.C in line 113: GetMllHistogram(ch).
     After Mll, we compute the two lepton kinematics in line 538: GetIndividualLeptonInfo(z_4vec).
 
-5. "cd Reweighting; source reweight.sh; cd .." to reweight photon data/MC.
+4. After this we reweight photon data/MC.
 
     The reweighting binning is defined in BasicSetting.C (pt_bin).
     The reweighting histograms are sampled in GetReweightingHistogram.C.
@@ -27,14 +29,14 @@ Authors: Ruo-Yu Shang, Johny Echevers, Matt Zhang
     However, you can also define dedicated selection for your own analysis regions. For example, look for hist_ht200_*, which is the reweighting factor that we used for strong 2L SR with HT>200 GeV. 
     Keep in mind that you shouldn't have MET cuts or Delta Phi cuts in the selection of reweighting factors.
 
-6. "cd Plotting; source draw_all.sh; cd .." to examine results of smearing and reweighting.
+5. Now we examine results of smearing and reweighting.
 
     The photon MET distribution (red) is compared with the Z+jets MET distribution (blue).
     If the 1-jet region closure is bad in a pT range, it is often due to the poor statistics in that range.
     We need good statistics to make a shape of MET parallel for deconvolution.
     If a bin does not have enough stats, go to BasicSetting.C and change the binning of sm_pt_bin. 
 
-7. Making plots in the Strong2L 2017 paper
+6. Making plots in the Strong2L 2017 paper
     cd MakeHistogram
     root -l
     .L MakeSelectionHistogram_Strong2LPaper2017.C++
