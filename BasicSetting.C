@@ -8,10 +8,10 @@
 //double lumi = 3200.;
 double lumi = 36100.;
 
-std::string outputPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/";
-std::string smearingPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/";
+std::string outputPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/Ntuples/";
+std::string smearingPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/SmearedNtuples/";
 std::string oldSmearingPath = "/eos/atlas/atlascerngroupdisk/phys-susy/strong2L/v02-04/Ruo/PhotonMethodOutput/OutputNtuples_EWK2L/";
-std::string plotsPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/plots/";
+std::string plotsPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/Plots/";
 
 string photon_tag = "";
 int event_interval = 1; // use every nth event
