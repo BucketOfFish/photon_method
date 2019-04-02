@@ -1,3 +1,4 @@
+#include "PhotonVariables.C"
 
 int W_j0 = 0;
 int W_j1 = 0;
@@ -77,44 +78,6 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec) {
 	}
 	Wmin_j0 = 0;	
 	Wmin_j1 = 0;
-	//if (jet_pT->size()>1) {
-	//	double min_dPhi = 0;
-	//	isr_4vec.SetPtEtaPhiM(jet_pT->at(0),jet_eta->at(0),jet_phi->at(0),jet_m->at(0));
-	//	for (int j0=1;j0<jet_pT->size();j0++) {
-	//		jet0_4vec.SetPtEtaPhiM(jet_pT->at(j0),jet_eta->at(j0),jet_phi->at(j0),jet_m->at(j0));
-	//		if (min_dPhi<abs(jet0_4vec.DeltaPhi(isr_4vec))) {
-	//			min_dPhi = abs(jet0_4vec.DeltaPhi(isr_4vec));
-	//			Wmin_j0 = j0;
-	//		}
-	//	}
-	//	min_dPhi = 0;
-	//	for (int j1=0;j1<jet_pT->size();j1++) {
-	//		jet1_4vec.SetPtEtaPhiM(jet_pT->at(j1),jet_eta->at(j1),jet_phi->at(j1),jet_m->at(j1));
-	//		if (min_dPhi<abs(jet1_4vec.DeltaPhi(isr_4vec))) {
-	//			if (j1!=Wmin_j0) {
-	//				min_dPhi = abs(jet1_4vec.DeltaPhi(isr_4vec));
-	//				Wmin_j1 = j1;
-	//			}
-	//		}
-	//	}
-	//	jet0_4vec.SetPtEtaPhiM(jet_pT->at(Wmin_j0),jet_eta->at(Wmin_j0),jet_phi->at(Wmin_j0),jet_m->at(Wmin_j0));
-	//	jet1_4vec.SetPtEtaPhiM(jet_pT->at(Wmin_j1),jet_eta->at(Wmin_j1),jet_phi->at(Wmin_j1),jet_m->at(Wmin_j1));
-	//	dijet_4vec = jet0_4vec + jet1_4vec;
-	//	mWmin = dijet_4vec.M();
-	//	Wmin_pt = dijet_4vec.Pt();
-	//	Wmin_eta = dijet_4vec.Eta();
-	//	DPhi_METWmin = fabs(met_4vec.DeltaPhi(dijet_4vec));
-	//	DPhi_WminZ = fabs(z_4vec.DeltaPhi(dijet_4vec));
-	//	DR_Wmin2Jet = jet0_4vec.DeltaR(jet1_4vec);
-	//	//if (abs(m80jj-80.)<10.) {
-	//	//	Wmin_j0 = W_j0;
-	//	//	Wmin_j1 = W_j1;
-	//	//	mWmin = m80jj;
-	//	//	Wmin_pt = W80_pt;
-	//	//	DPhi_METWmin = DPhi_METW80;
-	//	//	DPhi_WminZ = DPhi_W80Z;
-	//	//}
-	//}
 	if (jet_pT->size()>1) {
 		double min_dPhi = 1000;
 		for (unsigned int j0=0;j0<jet_pT->size();j0++) {

@@ -34,374 +34,681 @@
 #include "TObject.h"
 
 #include "../BasicSetting.C"
-#include "InputVariables.C"
-#include "OutputVariables.C"
 #include "../PhotonSmearing/GetDijetVariables.C"
 float beta_limit = 10.;
 
 using namespace std;
 
-bool doTruthJetMatch = false;
-bool doJigsaw = false;
-
 void RebinHistogram(TH1D* hist) {
-	float negative_yield = 0.;
-	float positive_yield = 0.;
-	for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-		if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-		else negative_yield += hist->GetBinContent(bin);
-	}
-	while (abs(negative_yield/positive_yield)>0.05) {
-		hist->Rebin(2);
-		negative_yield = 0.;
-		positive_yield = 0.;
-		for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-			if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-			else negative_yield += hist->GetBinContent(bin);
-		}
-	}
+    float negative_yield = 0.;
+    float positive_yield = 0.;
+    for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+        if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+        else negative_yield += hist->GetBinContent(bin);
+    }
+    while (abs(negative_yield/positive_yield)>0.05) {
+        hist->Rebin(2);
+        negative_yield = 0.;
+        positive_yield = 0.;
+        for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+            if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+            else negative_yield += hist->GetBinContent(bin);
+        }
+    }
 }
+
 void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, bool isData, string treename = "outputTree" ) {
 
-        //if (isData) doTruthJetMatch = false;
-	doTruthJetMatch = false;
-	
-	//---------------------------------------------
-	// open file, get Tree and EventCountHist
-	//---------------------------------------------
+    //---------------------------------------------
+    // open file, get Tree and EventCountHist
+    //---------------------------------------------
 
-	TH1::SetDefaultSumw2();
+    TH1::SetDefaultSumw2();
 
-	TH1D* hist_EventCount = new TH1D("hist_EventCount","",3,0,3);
-	float N_passMET100 = 0.;
-	string  filename       = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
-	TFile*  inputFile      = TFile::Open(filename.c_str());
-	Float_t _nGenEvents = 1.;
-	if (!isData) {
-	        //TH1D*   EventCountHist = (TH1D*) inputFile->Get("EventCountHist");
-		//_nGenEvents    = EventCountHist->GetBinContent(2);
-		//hist_EventCount->SetBinContent(1,EventCountHist->GetBinContent(1));
+    TH1D* hist_EventCount = new TH1D("hist_EventCount","",3,0,3);
+    float N_passMET100 = 0.;
+    string  filename       = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
+    TFile*  inputFile      = TFile::Open(filename.c_str());
+    Float_t _nGenEvents = 1.;
+    if (!isData) {
+        cout << "Setting _nGenEvents = 1 for now NEED TO FIX" << endl;
+        _nGenEvents    = 1.0;
+        hist_EventCount->SetBinContent(1,1.0);
+    }
+    TTree*  inputTree              = (TTree*)inputFile->Get( treename.c_str() );
 
-		cout << "Setting _nGenEvents = 1 for now NEED TO FIX" << endl;
-		_nGenEvents    = 1.0;
-		hist_EventCount->SetBinContent(1,1.0);
-}
-	TTree*  inputTree              = (TTree*)inputFile->Get( treename.c_str() );
+    std::cout << inputTree << std::endl;
+    cout << endl;
+    cout << "Opening file           : " << filename        << endl;
+    cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
+    if (!isData) {
+        cout << "Total generated events : " << _nGenEvents     << endl;
+    }
 
-	std::cout << inputTree << std::endl;
-	cout << endl;
-	cout << "Opening file           : " << filename        << endl;
-	cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
-	if (!isData) {
-		cout << "Total generated events : " << _nGenEvents     << endl;
-	}
-	
-	//-----------------------------
-	// access existing branches
-	//-----------------------------
-        //std::cout << "testing1" << std::endl; 
-	GetBranches(inputTree, isData);
-	//std::cout << "testing2" << std::endl;
-	//-- see code for branches, cut and pasted below
-	
-	//-----------------------------
-	// add new branches
-	//-----------------------------
+    //-----------------------------
+    // access existing branches
+    //-----------------------------
+    bool trigMatch_1L2LTrig;
+    ULong64_t EventNumber;
+    Int_t RunNumber;
+    Float_t Mu;
+    Int_t nVtx;
+    Float_t mll;
+    float MET;
+    float MET_phi;
+    float MET_softTerm;
+    float MET_softPhi;
+    //Variables for 2019 RJR analysis
+    Bool_t trigMatch_2LTrigOR;
+    float MET_loose;   
+    float MET_tight;
+    float MET_tighter;  
+    float MET_tenacious; 
+    Bool_t is2Lep2Jet;
+    Bool_t is2L2JInt;
+    int nBJet20_MV2c10_FixedCutBEff_77;
+    float mjj;
+    Double_t mll_RJ;
+    Double_t R_minH2P_minH3P;
+    Double_t RPT_HT5PP;
+    Double_t dphiVP;
+    Double_t H2PP; 
+    Double_t H5PP;
+    int nJet20;
+    Double_t minDphi; 
+    Double_t MZ;
+    Double_t NjS;
+    Double_t NjISR;
+    Double_t dphiISRI; 
+    Double_t RISR;
+    Double_t PTISR;
+    Double_t PTI;
+    Double_t PTCM;
+    Double_t MJ;
+    Bool_t is3Lep3Jet;
+    Bool_t is4Lep3Jet;
+    Double_t lept1sign_VR;
+    Double_t lept2sign_VR;
+    Double_t lept1Pt_VR;
+    Double_t lept2Pt_VR;
+    Double_t MZ_VR;
+    Double_t MJ_VR;
+    Double_t RISR_VR;
+    Double_t PTISR_VR;
+    Double_t PTI_VR;
+    Double_t PTCM_VR;
+    Double_t dphiISRI_VR;
+    //-----------------------------
+    float DPhi_METJetLeading; //might need to change back to Float_t
+    float DPhi_METJetSecond; //might need to change back to Float_t
+    float HT;
+    Float_t Z_pt;
+    Int_t jet_n;
+    Int_t bjet_n;
+    Int_t nLep_signal;
+    Int_t nLep_base;
+    std::vector<int>*    lepFlavor = new std::vector<int>(10);
+    std::vector<int>*    lepCharge = new std::vector<int>(10);
+    std::vector<int>*    lepSignal = new std::vector<int>(10);
+    std::vector<float>* lep_pT = new std::vector<float>(10);
+    std::vector<float>* lep_eta = new std::vector<float>(10);
+    std::vector<float>* lep_phi = new std::vector<float>(10);
+    std::vector<float>* jet_pT = new std::vector<float>(10);
+    std::vector<float>* jet_eta = new std::vector<float>(10);
+    std::vector<float>* jet_phi = new std::vector<float>(10);
+    std::vector<float>* jet_m = new std::vector<float>(10);
+    Double_t genWeight;
+    Double_t eventWeight;
+    Double_t leptonWeight;
+    Double_t jvtWeight;
+    Double_t bTagWeight;
+    Double_t pileupWeight;
+    Double_t FFWeight;
 
-	string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
-	cout << "Writing to : " << outfilename << endl;
-	
-	TFile   outputFile( outfilename.c_str() , "recreate" );
+    inputTree->SetBranchStatus("*", 0);
+    inputTree->SetBranchStatus("EventNumber"            ,1);
+    inputTree->SetBranchStatus("trigMatch_1L2LTrig"     ,1);
+    inputTree->SetBranchStatus("RunNumber"              ,1);
+    inputTree->SetBranchStatus("mu"                     ,1);
+    inputTree->SetBranchStatus("nVtx"                   ,1);
+    inputTree->SetBranchStatus("mll"                    ,1);
+    inputTree->SetBranchStatus("met_Et"                 ,1);
+    inputTree->SetBranchStatus("met_Et_loose"           ,1);
+    inputTree->SetBranchStatus("met_Et_tight"           ,1);
+    inputTree->SetBranchStatus("met_Et_tighter"         ,1);
+    inputTree->SetBranchStatus("met_Et_tenacious"       ,1);
+    // 2019 RJR analysis variables -------------------------
+    inputTree->SetBranchStatus("is2Lep2Jet"       ,1);
+    inputTree->SetBranchStatus("is2L2JInt"       ,1);
+    inputTree->SetBranchStatus("nBJet20_MV2c10_FixedCutBEff_77"       ,1);
+    inputTree->SetBranchStatus("mjj"       ,1);
+    inputTree->SetBranchStatus("mll_RJ"       ,1);
+    inputTree->SetBranchStatus("R_minH2P_minH3P"       ,1);
+    inputTree->SetBranchStatus("RPT_HT5PP"       ,1);
+    inputTree->SetBranchStatus("dphiVP"       ,1);
+    inputTree->SetBranchStatus("H2PP"       ,1);
+    inputTree->SetBranchStatus("H5PP"       ,1);
+    inputTree->SetBranchStatus("nJet20"       ,1);
+    inputTree->SetBranchStatus("minDphi"       ,1);
+    inputTree->SetBranchStatus("MZ"       ,1);
+    inputTree->SetBranchStatus("NjS"       ,1);
+    inputTree->SetBranchStatus("NjISR"       ,1);
+    inputTree->SetBranchStatus("dphiISRI"       ,1);
+    inputTree->SetBranchStatus("RISR"       ,1);
+    inputTree->SetBranchStatus("PTISR"       ,1);
+    inputTree->SetBranchStatus("PTI"       ,1);
+    inputTree->SetBranchStatus("PTCM"       ,1);
+    inputTree->SetBranchStatus("MJ"       ,1);
+    inputTree->SetBranchStatus("is3Lep3Jet"       ,1);
+    inputTree->SetBranchStatus("is4Lep3Jet"       ,1);
+    inputTree->SetBranchStatus("lept1sign_VR"       ,1);
+    inputTree->SetBranchStatus("lept2sign_VR"       ,1);
+    inputTree->SetBranchStatus("lept1Pt_VR"       ,1);
+    inputTree->SetBranchStatus("lept2Pt_VR"       ,1);
+    inputTree->SetBranchStatus("MZ_VR"       ,1);
+    inputTree->SetBranchStatus("MJ_VR"       ,1);
+    inputTree->SetBranchStatus("RISR_VR"       ,1);
+    inputTree->SetBranchStatus("PTISR_VR"       ,1);
+    inputTree->SetBranchStatus("PTI_VR"       ,1);
+    inputTree->SetBranchStatus("PTCM_VR"       ,1);
+    inputTree->SetBranchStatus("dphiISRI_VR"       ,1);
+    //------------------------------------------------------
+    inputTree->SetBranchStatus("met_Phi"                ,1);
+    inputTree->SetBranchStatus("TST_Et"                 ,1); 
+    inputTree->SetBranchStatus("TST_Phi"                ,1); 
+    inputTree->SetBranchStatus("DPhiJ1Met"              ,1);
+    inputTree->SetBranchStatus("DPhiJ2Met"              ,1);
+    inputTree->SetBranchStatus("Ht30"                   ,1);
+    inputTree->SetBranchStatus("Ptll"                   ,1);
+    inputTree->SetBranchStatus("nBJet30_MV2c10_FixedCutBEff_77"        ,1);
+    inputTree->SetBranchStatus("nLep_signal"            ,1);
+    inputTree->SetBranchStatus("nLep_base"              ,1);
+    inputTree->SetBranchStatus("lepSignal"              ,1);
+    inputTree->SetBranchStatus("lepFlavor"              ,1);
+    inputTree->SetBranchStatus("lepCharge"              ,1);
+    inputTree->SetBranchStatus("lepPt"                  ,1);
+    inputTree->SetBranchStatus("lepEta"                 ,1);
+    inputTree->SetBranchStatus("lepPhi"                 ,1);
+    inputTree->SetBranchStatus("nJet30"                 ,1);
+    inputTree->SetBranchStatus("jetPt"                  ,1);
+    inputTree->SetBranchStatus("jetEta"                 ,1);
+    inputTree->SetBranchStatus("jetPhi"                 ,1);
+    inputTree->SetBranchStatus("jetM"                   ,1);
 
-	TTree* BaselineTree;
-	BaselineTree = new TTree("BaselineTree","baseline tree");
-	AddBranches(BaselineTree, isData);
+    if (!isData) {
+        inputTree->SetBranchStatus("genWeight"          ,1);
+        inputTree->SetBranchStatus("eventWeight"        ,1);
+        inputTree->SetBranchStatus("leptonWeight"       ,1);
+        inputTree->SetBranchStatus("jvtWeight"          ,1);
+        inputTree->SetBranchStatus("bTagWeight"         ,1);
+        inputTree->SetBranchStatus("pileupWeight"       ,1);
+        inputTree->SetBranchStatus("FFWeight"           ,1);
+    }
 
-	Float_t MT2_max= 0;
-	TBranch *b_MT2_max = BaselineTree->Branch("MT2_max",&MT2_max,"MT2_max/F");
-	Float_t boost_phi= 0;
-	TBranch *b_boost_phi = BaselineTree->Branch("boost_phi",&boost_phi,"boost_phi/F");
-	Float_t boost_eta= 0;
-	TBranch *b_boost_eta = BaselineTree->Branch("boost_eta",&boost_eta,"boost_eta/F");
-	Float_t boost_pt= 0;
-	TBranch *b_boost_pt = BaselineTree->Branch("boost_pt",&boost_pt,"boost_pt/F");
-	//Float_t MT2_truth= 0;
-	//TBranch *b_MT2_truth = BaselineTree->Branch("MT2_truth",&MT2_truth,"MT2_truth/Float_t");
-	
-	//-----------------------------
-	// these variables do not go to output
-	//-----------------------------
-	float n_3jet = 0;
-	float Wtruth_corr = 0;
-	float Wmin_corr = 0;
-	float W12_corr = 0;
-	float W80_corr = 0;
-	float W01_corr = 0;
-	float Wjigsaw_corr = 0;
+    inputTree->SetBranchAddress("trigMatch_1L2LTrig"    ,&trigMatch_1L2LTrig      );
+    inputTree->SetBranchAddress("EventNumber"           ,&EventNumber             );
+    inputTree->SetBranchAddress("RunNumber"             ,&RunNumber               );
+    inputTree->SetBranchAddress("mu"                    ,&Mu                      );
+    inputTree->SetBranchAddress("nVtx"                  ,&nVtx                    );
+    inputTree->SetBranchAddress("mll"                   ,&mll                     );
+    // 2019 RJR analysis variables -------------------------
+    inputTree->SetBranchAddress("met_Et"                ,&MET                     );
+    inputTree->SetBranchAddress("met_Et_loose"          ,&MET_loose               );
+    inputTree->SetBranchAddress("met_Et_tight"          ,&MET_tight               );
+    inputTree->SetBranchAddress("met_Et_tighter"        ,&MET_tighter             );
+    inputTree->SetBranchAddress("met_Et_tenacious"      ,&MET_tenacious           );
+    inputTree->SetBranchAddress("trigMatch_2LTrigOR"         ,&trigMatch_2LTrigOR          );
+    inputTree->SetBranchAddress("is2Lep2Jet"         ,&is2Lep2Jet         );
+    inputTree->SetBranchAddress("is2L2JInt"         ,&is2L2JInt         );
+    inputTree->SetBranchAddress("nBJet20_MV2c10_FixedCutBEff_77"  ,&nBJet20_MV2c10_FixedCutBEff_77 );
+    inputTree->SetBranchAddress("mjj"         ,&mjj          );
+    inputTree->SetBranchAddress("mll_RJ"          ,&mll_RJ          );
+    inputTree->SetBranchAddress("R_minH2P_minH3P"          ,&R_minH2P_minH3P           );
+    inputTree->SetBranchAddress("RPT_HT5PP"              ,&RPT_HT5PP               );
+    inputTree->SetBranchAddress("dphiVP"          ,&dphiVP            );
+    inputTree->SetBranchAddress("H2PP"           ,&H2PP           );
+    inputTree->SetBranchAddress("H5PP"           ,&H5PP           );
+    inputTree->SetBranchAddress("nJet20"             ,&nJet20            );
+    inputTree->SetBranchAddress("minDphi"          ,&minDphi           );
+    inputTree->SetBranchAddress("MZ"         ,&MZ          );
+    inputTree->SetBranchAddress("NjS"         ,&NjS        );
+    inputTree->SetBranchAddress("NjISR"           ,&NjISR           );
+    inputTree->SetBranchAddress("dphiISRI"           ,&dphiISRI           );
+    inputTree->SetBranchAddress("RISR"          ,&RISR           );
+    inputTree->SetBranchAddress("PTISR"          ,&PTISR           );
+    inputTree->SetBranchAddress("PTI"         ,&PTI          );
+    inputTree->SetBranchAddress("PTCM"         ,&PTCM          );
+    inputTree->SetBranchAddress("MJ",            &MJ   );
+    inputTree->SetBranchAddress("is3Lep3Jet",           &is3Lep3Jet  );
+    inputTree->SetBranchAddress("is4Lep3Jet",           &is4Lep3Jet  );
+    inputTree->SetBranchAddress("lept1sign_VR",           &lept1sign_VR  );
+    inputTree->SetBranchAddress("lept2sign_VR",           &lept2sign_VR   );
+    inputTree->SetBranchAddress("lept1Pt_VR",           &lept1Pt_VR );
+    inputTree->SetBranchAddress("lept2Pt_VR",            &lept2Pt_VR );
+    inputTree->SetBranchAddress("MZ_VR",                  &MZ_VR );
+    inputTree->SetBranchAddress("MJ_VR",                 &MJ_VR );
+    inputTree->SetBranchAddress("RISR_VR",           &RISR_VR  );
+    inputTree->SetBranchAddress("PTISR_VR",           &PTISR_VR  );
+    inputTree->SetBranchAddress("PTI_VR",           &PTI_VR  );
+    inputTree->SetBranchAddress("PTCM_VR",           &PTCM_VR   );
+    inputTree->SetBranchAddress("dphiISRI_VR",           &dphiISRI_VR );
+    //------------------------------------------------------
+    inputTree->SetBranchAddress("met_Phi"               ,&MET_phi                 );
+    inputTree->SetBranchAddress("TST_Et"                ,&MET_softTerm            );
+    inputTree->SetBranchAddress("TST_Phi"               ,&MET_softPhi             );
+    inputTree->SetBranchAddress("DPhiJ1Met"             ,&DPhi_METJetLeading      );
+    inputTree->SetBranchAddress("DPhiJ2Met"             ,&DPhi_METJetSecond       );
+    inputTree->SetBranchAddress("Ht30"                  ,&HT                      );
+    inputTree->SetBranchAddress("Ptll"                  ,&Z_pt                    );
+    inputTree->SetBranchAddress("nBJet30_MV2c10_FixedCutBEff_77" ,&bjet_n                  );
+    inputTree->SetBranchAddress("nLep_signal"           ,&nLep_signal             );
+    inputTree->SetBranchAddress("nLep_base"             ,&nLep_base               );
+    inputTree->SetBranchAddress("lepPt"                 ,&lep_pT                  );
+    inputTree->SetBranchAddress("lepFlavor"             ,&lepFlavor               );
+    inputTree->SetBranchAddress("lepCharge"             ,&lepCharge               );
+    inputTree->SetBranchAddress("lepEta"                ,&lep_eta                 );
+    inputTree->SetBranchAddress("lepPhi"                ,&lep_phi                 );
+    inputTree->SetBranchAddress("nJet30"                ,&jet_n                   );
+    inputTree->SetBranchAddress("jetPt"                 ,&jet_pT                  );
+    inputTree->SetBranchAddress("jetEta"                ,&jet_eta                 );
+    inputTree->SetBranchAddress("jetPhi"                ,&jet_phi                 );
+    inputTree->SetBranchAddress("jetM"                  ,&jet_m                   );
 
-	//-----------------------------
-	// loop over events
-	//-----------------------------
+    if (!isData) {
+        inputTree->SetBranchAddress("genWeight"         ,&genWeight     );
+        inputTree->SetBranchAddress("eventWeight"       ,&eventWeight   );
+        inputTree->SetBranchAddress("leptonWeight"      ,&leptonWeight  );
+        inputTree->SetBranchAddress("jvtWeight"         ,&jvtWeight     );
+        inputTree->SetBranchAddress("bTagWeight"        ,&bTagWeight    );
+        inputTree->SetBranchAddress("pileupWeight"      ,&pileupWeight  );
+        inputTree->SetBranchAddress("FFWeight"          ,&FFWeight      );
+    }
 
-	Long64_t nentries = inputTree->GetEntries();
+    //-----------------------------
+    // add new branches
+    //-----------------------------
 
-	//nentries = 1000;
-	for (Long64_t i=0;i<nentries;i+=event_interval) {
+    string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
+    cout << "Writing to : " << outfilename << endl;
 
-		if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
-		//std::cout << i << " events processed." << std::endl;
-		inputTree->GetEntry(i);
+    TFile   outputFile( outfilename.c_str() , "recreate" );
 
-		if (MET>100) N_passMET100 += 1; 
-		if (jet_n>=3 && MET>150) n_3jet += 1;
+    TTree* BaselineTree;
+    BaselineTree = new TTree("BaselineTree","baseline tree");
 
-		//if (MET<100) continue;
-		//if (isData && MET>150) continue;
-		
-		if ( nLep_signal  != 2                 ) continue; // exactly 2 signal leptons
-		if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
-		if ( lep_pT->at(0) < leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
-		if ( lep_pT->at(1) < second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
+    int    channel = 0;
+    int    is_OS   = 0;
+    float  Z_eta   = 0.0;
+    float  Z_phi   = 0.0;
+    int    el_n    = 0;
+    int    mu_n    = 0;
+    float MET_rel = 0.;
+    float METl = 0.;
+    float METt = 0.;
+    float DPhi_2Lep = 0.;
+    float DR_2Lep = 0.;
+    float DR_W80jj = 0.;
+    float DR_Wmin2Jet = 0.;
+    float DR_J0J1 = 0.;
+    float DR_J1J2 = 0.;
+    float DPhi_METPhoton = 0.;
+    float DPhi_METLepLeading = 0.;
+    float DPhi_METLepSecond = 0.;
+    float DPhi_METLepMin = 0.;
+    float DPhi_TSTLepLeading = 0.;
+    float DPhi_TSTLepSecond = 0.;
+    float DPhi_TSTLepMin = 0.;
+    float MinDR_Lep0Jet = 0.;
+    float MinDR_Lep1Jet = 0.;
+    float MinDR_PhotonJet = 0.;
+    float MinDPhi_PhotonJet = 0.;
+    float mj0j1 = 0.;
+    float mj1j2 = 0.;
+    float m80jj = 0.;
+    float W80_pt = 0.;
+    float DPhi_METW80 = 0.;
+    float DPhi_W80Z = 0.;
+    float mWmin = 0.;
+    float Wmin_pt = 0.;
+    float Wmin_eta = 0.;
+    float DPhi_METWmin = 0.;
+    float DPhi_WminZ = 0.;
+    float W01_pt = 0.;
+    float DPhi_METW01 = 0.;
+    float DPhi_W01Z = 0.;
+    double totalWeight = 0.;
+    float FS_ee_weight = 0.;
+    float FS_mm_weight = 0.;
+    std::vector<int>* jet_isPrompt = new std::vector<int>(10);
+    // following are variables from Jigsaw
+    std::vector<int>* lep_MetHsph = new std::vector<int>(10);
+    std::vector<int>* jet_MetHsph = new std::vector<int>(10);
+    float DPhi_METISR = 0.;
+    float ISR_pT = 0.;
+    float ISR_eta = 0.;
+    float ISR_phi = 0.;
+    float Jigsaw_ZMass = 0.;
+    float Jigsaw_WMass = 0.;
+    float DPhi_METJigsawW = 0.;
+    // following are variables from dijet pair
+    std::vector<int>* jet_isW80 = new std::vector<int>(10);
+    std::vector<int>* jet_isW01 = new std::vector<int>(10);
+    std::vector<int>* jet_isW12 = new std::vector<int>(10);
+    std::vector<int>* jet_isWmin = new std::vector<int>(10);
+    std::vector<int>* jet_isWminJ0 = new std::vector<int>(10);
+    std::vector<int>* jet_isWminJ1 = new std::vector<int>(10);
+    float DPhi_METNonWJet = 0.;
+    float NonWJet_pT = 0.;
+    float DPhi_METNonW12Jet = 0.;
+    float NonW12Jet_pT = 0.;
+    float DPhi_METNonWminJet = 0.;
+    float NonWminJet_pT = 0.;
 
-		//--- evaluate weight
-		totalWeight = 1;
-		//if (!isData) totalWeight = (sampleWeight*eventWeight*lep_weight->at(0)*lep_weight->at(1)*emtrigweight*eetrigweight*mmtrigweight)/_nGenEvents;
-		//if (!isData) totalWeight = (sampleWeight*eventWeight*lep_weight->at(0)*lep_weight->at(1)*trig_sf)/_nGenEvents;
-		//if (!isData) totalWeight = (sampleWeight*eventWeight)/_nGenEvents;
-		if (!isData) totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+    TH1D* hist_cutflow_raw = new TH1D("hist_cutflow_raw","",8,0,8);
+    TH1D* hist_cutflow_weight = new TH1D("hist_cutflow_weight","",8,0,8);
 
-		//--- determine channel
-		channel = -1;
-		if( ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 1 ) && trigMatch_1L2LTrig  ) channel = 1; // ee
-		if( ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 2 ) && trigMatch_1L2LTrig  ) channel = 0; // mumu
-		if( ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 2 ) && trigMatch_1L2LTrig  ) channel = 2; // em
-		if( ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 1 ) && trigMatch_1L2LTrig  ) channel = 3; // me
+    TH1D* hist_dPt_Pt[bin_size];
+    TH1D* hist_dPhi_Pt[bin_size];
+    TH1D* hist_METl_Pt[bin_size];
+    TH1D* hist_METt_Pt[bin_size];
+    TH1D* hist_JetMETl_Pt[bin_size];
+    TH1D* hist_2LPt_Pt[bin_size];
+    TH1D* hist_Mll_dPt[dpt_bin_size];
+    TH1D* hist_fsee_METl_Pt[bin_size];
+    TH1D* hist_fsmm_METl_Pt[bin_size];
 
-		//--- determine OS / SS
-		is_OS = -1;
-		if( lepCharge->at(0) != lepCharge->at(1) ) is_OS = 1;
-		if( lepCharge->at(0) == lepCharge->at(1) ) is_OS = 0;
+    Float_t MT2_max= 0;
+    TBranch *b_MT2_max = BaselineTree->Branch("MT2_max",&MT2_max,"MT2_max/F");
+    Float_t boost_phi= 0;
+    TBranch *b_boost_phi = BaselineTree->Branch("boost_phi",&boost_phi,"boost_phi/F");
+    Float_t boost_eta= 0;
+    TBranch *b_boost_eta = BaselineTree->Branch("boost_eta",&boost_eta,"boost_eta/F");
+    Float_t boost_pt= 0;
+    TBranch *b_boost_pt = BaselineTree->Branch("boost_pt",&boost_pt,"boost_pt/F");
 
-		//hist_cutflow_raw->Fill(0.);
-		//hist_cutflow_weight->Fill(0.,totalWeight);
+    BaselineTree->Branch("DPhi_METNonWJet",&DPhi_METNonWJet,"DPhi_METNonWJet/F");
+    BaselineTree->Branch("NonWJet_pT",&NonWJet_pT,"NonWJet_pT/F");
+    BaselineTree->Branch("DPhi_METNonWminJet",&DPhi_METNonWminJet,"DPhi_METNonWminJet/F");
+    BaselineTree->Branch("NonWminJet_pT",&NonWminJet_pT,"NonWminJet_pT/F");
+    BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
+    BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
+    BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
+    BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
+    BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
+    BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
+    BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
+    BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
+    BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
+    BaselineTree->Branch("Mu",&Mu,"Mu/F");
+    BaselineTree->Branch("nVtx",&nVtx,"nVtx/I");
+    BaselineTree->Branch("mll",&mll,"mll/F");
+    BaselineTree->Branch("MET",&MET,"MET/F");
+    // 2019 RJR analysis variables -------------------------
+    BaselineTree->Branch("MET_loose",&MET_loose,"MET_loose/F");
+    BaselineTree->Branch("MET_tight",&MET_tight,"MET_tight/F");
+    BaselineTree->Branch("MET_tighter",&MET_tighter,"MET_tighter/F");
+    BaselineTree->Branch("MET_tenacious",&MET_tenacious,"MET_tenacious/F");
+    BaselineTree->Branch("trigMatch_2LTrigOR",&trigMatch_2LTrigOR,"trigMatch_2LTrigOR/I");
+    BaselineTree->Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
+    BaselineTree->Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
+    BaselineTree->Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
+    BaselineTree->Branch("mjj",&mjj,"mjj/F");
+    BaselineTree->Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
+    BaselineTree->Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
+    BaselineTree->Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
+    BaselineTree->Branch("dphiVP",&dphiVP,"dphiVP/F");
+    BaselineTree->Branch("H2PP",&H2PP,"H2PP/F");
+    BaselineTree->Branch("H5PP",&H5PP,"H5PP/F");
+    BaselineTree->Branch("nJet20",&nJet20,"nJet20/I");
+    BaselineTree->Branch("minDphi",&minDphi,"minDphi/F");
+    BaselineTree->Branch("MZ",&MZ,"MZ/F");
+    BaselineTree->Branch("NjS",&NjS,"NjS/I");
+    BaselineTree->Branch("NjISR",&NjISR,"NjISR/I");
+    BaselineTree->Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
+    BaselineTree->Branch("RISR",&RISR,"RISR/F");
+    BaselineTree->Branch("PTISR",&PTISR,"PTISR/F");
+    BaselineTree->Branch("PTI",&PTI,"PTI/F");
+    BaselineTree->Branch("PTCM",&PTCM,"PTCM/F");
+    BaselineTree->Branch("MJ",&MJ,"MJ/F");
+    BaselineTree->Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
+    BaselineTree->Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
+    BaselineTree->Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
+    BaselineTree->Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
+    BaselineTree->Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
+    BaselineTree->Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
+    BaselineTree->Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
+    BaselineTree->Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
+    BaselineTree->Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
+    BaselineTree->Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
+    BaselineTree->Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
+    BaselineTree->Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
+    BaselineTree->Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
+    BaselineTree->Branch("METl",&METl,"METl/F");
+    BaselineTree->Branch("METt",&METt,"METt/F");
+    BaselineTree->Branch("MET_phi",&MET_phi,"MET_phi/F");
+    BaselineTree->Branch("MET_softTerm",&MET_softTerm,"MET_softTerm/F");
+    BaselineTree->Branch("MET_softPhi",&MET_softPhi,"MET_softPhi/F");
+    BaselineTree->Branch("DPhi_2Lep",&DPhi_2Lep,"DPhi_2Lep/F");
+    BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
+    BaselineTree->Branch("DR_Wmin2Jet",&DR_Wmin2Jet,"DR_Wmin2Jet/F");
+    BaselineTree->Branch("DR_J0J1",&DR_J0J1,"DR_J0J1/F");
+    BaselineTree->Branch("DPhi_METJetLeading",&DPhi_METJetLeading,"DPhi_METJetLeading/F");
+    BaselineTree->Branch("DPhi_METJetSecond",&DPhi_METJetSecond,"DPhi_METJetSecond/F");
+    BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton,"DPhi_METPhoton/F");
+    BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading,"DPhi_METLepLeading/F");
+    BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond,"DPhi_METLepSecond/F");
+    BaselineTree->Branch("DPhi_METLepMin",&DPhi_METLepMin,"DPhi_METLepMin/F");
+    BaselineTree->Branch("MinDPhi_PhotonJet",&MinDPhi_PhotonJet,"MinDPhi_PhotonJet/F");
+    BaselineTree->Branch("HT",&HT,"HT/F");
+    BaselineTree->Branch("Z_pt",&Z_pt,"Z_pt/F");
+    BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
+    BaselineTree->Branch("channel",&channel,"channel/I");
+    BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
+    BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
+    BaselineTree->Branch("Z_phi",&Z_phi,"Z_phi/F");
+    BaselineTree->Branch("bjet_n",&bjet_n,"bjet_n/I");
+    BaselineTree->Branch("jet_n",&jet_n,"jet_n/I");
+    BaselineTree->Branch("mj0j1",&mj0j1,"mj0j1/F");
+    BaselineTree->Branch("W01_pt",&W01_pt,"W01_pt/F");
+    BaselineTree->Branch("DPhi_METW01",&DPhi_METW01,"DPhi_METW01/F");
+    BaselineTree->Branch("DPhi_W01Z",&DPhi_W01Z,"DPhi_W01Z/F");
+    BaselineTree->Branch("mWmin",&mWmin,"mWmin/F");
+    BaselineTree->Branch("Wmin_pt",&Wmin_pt,"Wmin_pt/F");
+    BaselineTree->Branch("Wmin_eta",&Wmin_eta,"Wmin_eta/F");
+    BaselineTree->Branch("DPhi_METWmin",&DPhi_METWmin,"DPhi_METWmin/F");
+    BaselineTree->Branch("DPhi_WminZ",&DPhi_WminZ,"DPhi_WminZ/F");
+    BaselineTree->Branch("EventNumber",&EventNumber,"EventNumber/I");
+    BaselineTree->Branch("RunNumber",&RunNumber,"RunNumber/I");
+    BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
 
-		if( channel < 0 ) continue; // require exactly 2 signal leptons and corresponding triggers
-		if( is_OS != 1  ) continue; // require opposite-sign
-		if( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
-		
-		//if (ch=="ee" && channel!=1) continue;
-		//if (ch=="mm" && channel!=0) continue;
-		//if (ch=="em" && (channel!=2 && channel!=3)) continue;
+    hist_cutflow_raw->SetStats(0);
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(1, "2lep");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(2, "flavor");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(3, "trigger");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(4, "OS");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(5, "lep pT");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(6, "njet");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(7, "mll");
+    hist_cutflow_raw->GetXaxis()->SetBinLabel(8, "prompt");
 
-		/*
-		//--- commenting out for now
-		  
-		hist_cutflow_raw->Fill(1.);
-		hist_cutflow_weight->Fill(1.,totalWeight);
+    hist_cutflow_weight->SetStats(0);
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(1, "2lep");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(2, "flavor");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(3, "trigger");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(4, "OS");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(5, "lep pT");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(6, "njet");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(7, "mll");
+    hist_cutflow_weight->GetXaxis()->SetBinLabel(8, "prompt");
 
-		if (!useMETtrig) {
-			if (ch=="ee" && eetrig!=1) continue;
-			if (ch=="mm" && mmtrig!=1) continue;
-			if (ch=="em" && emtrig!=1) continue;
-		}
-		else {
-			if (pass_trig_MET->at(0)!=1) continue;
-		}
-		
-		hist_cutflow_raw->Fill(2.);
-		hist_cutflow_weight->Fill(2.,totalWeight);
-		if (is_OS!=1) continue;
-		//if (is_OS==1) continue;
-		hist_cutflow_raw->Fill(3.);
-		hist_cutflow_weight->Fill(3.,totalWeight);
-		if (jet_n==0) continue;
-		hist_cutflow_raw->Fill(4.);
-		hist_cutflow_weight->Fill(4.,totalWeight);
-		if (mll<12.) continue;
-		hist_cutflow_raw->Fill(5.);
-		hist_cutflow_weight->Fill(5.,totalWeight);
-		//if (!isData) {if (lep_isPrompt->at(0)==0 || lep_isPrompt->at(1)==0) continue;}
-		hist_cutflow_raw->Fill(6.);
-		hist_cutflow_weight->Fill(6.,totalWeight);
-		*/
-		
-		int njet = hist_low_njet->FindBin(jet_n)-1;
-		if (jet_n>njet_bin[bin_size]) njet = bin_size-1;
-		int nbjet = hist_low_nbjet->FindBin(bjet_n)-1;
-		if (bjet_n>njet_bin[bin_size]) nbjet = bin_size-1;
-		int pt = hist_low_pt->FindBin(Z_pt)-1;
-		int smpt = hist_sm_pt->FindBin(Z_pt)-1;
-		if (Z_pt>pt_bin[bin_size]) pt = bin_size-1;
-		int ht = hist_low_ht->FindBin(HT)-1;
-		if (HT>ht_bin[bin_size]) ht = bin_size-1;
+    for (int bin=0;bin<bin_size;bin++) {
+        hist_METl_Pt[bin] = new TH1D(TString("hist_METl_Pt_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_METl_Pt[bin]->SetStats(0);
+        hist_METt_Pt[bin] = new TH1D(TString("hist_METt_Pt_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_METt_Pt[bin]->SetStats(0);
+    }
 
-		/*
-		totalWeight = 1.;
+    TH1D* hist_low_njet = new TH1D("hist_low_njet","",bin_size,njet_bin);
+    TH1D* hist_low_nbjet = new TH1D("hist_low_nbjet","",bin_size,njet_bin);
+    TH1D* hist_low_pt = new TH1D("hist_low_pt","",bin_size,pt_bin);
+    TH1D* hist_sm_pt = new TH1D("hist_sm_pt","",bin_size,sm_pt_bin);
+    TH1D* hist_low_ht = new TH1D("hist_low_ht","",bin_size,ht_bin);
 
-		if (fmod(i,1e5)==0) std::cout << i << " process MC info." << std::endl;
+    //-----------------------------
+    // these variables do not go to output
+    //-----------------------------
+    float n_3jet = 0;
+    float Wtruth_corr = 0;
+    float Wmin_corr = 0;
+    float W12_corr = 0;
+    float W80_corr = 0;
+    float W01_corr = 0;
+    float Wjigsaw_corr = 0;
 
-		float Z_truthPt_dilep = 0;
-		if (!isData) {
+    //-----------------------------
+    // loop over events
+    //-----------------------------
 
-			// here we compute truth Z pT and adjust MC weights
+    Long64_t nentries = inputTree->GetEntries();
 
-			//totalWeight = (sampleWeight*eventWeight*lep_weight->at(0)*lep_weight->at(1)*emtrigweight*eetrigweight*mmtrigweight)/_nGenEvents;
-			//totalWeight = (sampleWeight*eventWeight*lep_weight->at(0)*lep_weight->at(1)*trig_sf)/_nGenEvents;
-			totalWeight = (sampleWeight*eventWeight)/_nGenEvents;
-			if (totalWeight!=totalWeight) totalWeight = 0.;
-			if (sampleID.find("361381")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361382")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361383")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361384")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361385")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361386")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361387")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361388")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361389")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361390")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361391")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361392")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361393")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361394")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361395")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361405")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361406")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361407")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361408")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361409")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361410")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361411")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361412")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361413")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361414")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361415")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361416")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361417")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361418")!=std::string::npos) totalWeight = totalWeight*1.1;
-			if (sampleID.find("361419")!=std::string::npos) totalWeight = totalWeight*1.1;
+    //nentries = 1000;
+    for (Long64_t i=0;i<nentries;i+=event_interval) {
 
-			TLorentzVector lep0_truth4vec;
-			lep0_truthPt = lep_truthPt->at(0);
-			lep0_truthEta = lep_truthEta->at(0);
-			lep0_truthPhi = lep_truthPhi->at(0);
-			lep0_truth4vec.SetPtEtaPhiM(lep_truthPt->at(0),lep_truthEta->at(0),lep_truthPhi->at(0),0);
-			TLorentzVector lep1_truth4vec;
-			lep1_truthPt = lep_truthPt->at(1);
-			lep1_truthEta = lep_truthEta->at(1);
-			lep1_truthPhi = lep_truthPhi->at(1);
-			lep1_truth4vec.SetPtEtaPhiM(lep_truthPt->at(1),lep_truthEta->at(1),lep_truthPhi->at(1),0);
-			TLorentzVector dilep_truth4vec;
-			dilep_truth4vec = lep0_truth4vec + lep1_truth4vec;
-			Z_truthPt       = dilep_truth4vec.Pt();
-			Z_truthPt_dilep = dilep_truth4vec.Pt();
-			Z_truthEta = dilep_truth4vec.Eta();
-			Z_truthPhi = dilep_truth4vec.Phi();
-			lep0_truthGammaPt = lep_truthGammaPt->at(0);
-			lep1_truthGammaPt = lep_truthGammaPt->at(1);
-			if (ch=="ee") Z_truthPt = truth_ZpT/1e3;  // for Sherpa ee channel, Z truth pT includes vertex photon radiation
-			//if (ch=="ee") Z_truthPhi = truth_Zphi;  // for Sherpa ee channel, Z truth pT includes vertex photon radiation
+        if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
+        inputTree->GetEntry(i);
 
-		}
-		totalWeight = totalWeight*event_interval;
-		*/
-		
-		//---------------------------------------------
-		// here we compute the MET parallel and perpendicular components
-		// and DR between photon and nearby jet
-		// and Oslo's MET_rel
-		//---------------------------------------------
+        if (MET>100) N_passMET100 += 1; 
+        if (jet_n>=3 && MET>150) n_3jet += 1;
 
-		TLorentzVector lep0vec;
-		TLorentzVector lep1vec;
-		
-		lep0vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
-		lep1vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
+        if ( nLep_signal  != 2                 ) continue; // exactly 2 signal leptons
+        if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
+        if ( lep_pT->at(0) < leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
+        if ( lep_pT->at(1) < second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
 
-		Z_eta = ( lep0vec + lep1vec ).Eta();
-		Z_phi = ( lep0vec + lep1vec ).Phi();
-		
-		//if (fmod(i,1e5)==0) std::cout << i << " compute the MET parallel" << std::endl;
+        //--- evaluate weight
+        totalWeight = 1;
+        if (!isData) totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
 
-		METt = MET*TMath::Sin(MET_phi-Z_phi);
-		METl = MET*TMath::Cos(MET_phi-Z_phi);
-		TLorentzVector met_4vec;
-		met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
-		TLorentzVector z_4vec;
-		z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
-		DPhi_METPhoton = fabs(met_4vec.DeltaPhi(z_4vec));
-		TLorentzVector lep0_4vec;
-		lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
-		TLorentzVector lep1_4vec;
-		lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
-		DPhi_2Lep = fabs(lep0_4vec.DeltaPhi(lep1_4vec));
-		DR_2Lep = lep0_4vec.DeltaR(lep1_4vec);
-		DPhi_METLepLeading = fabs(met_4vec.DeltaPhi(lep0_4vec));
-		DPhi_METLepSecond = fabs(met_4vec.DeltaPhi(lep1_4vec));
-		DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
-		TLorentzVector tst_4vec;
-		tst_4vec.SetPtEtaPhiM(MET_softTerm,0,MET_softPhi,0);
-		DPhi_TSTLepLeading = fabs(tst_4vec.DeltaPhi(lep0_4vec));
-		DPhi_TSTLepSecond = fabs(tst_4vec.DeltaPhi(lep1_4vec));
-		DPhi_TSTLepMin = min(DPhi_TSTLepLeading,DPhi_TSTLepSecond);
-		MinDR_Lep0Jet = 1000.;
-		MinDR_Lep1Jet = 1000.;
-		MinDR_PhotonJet = 1000.;
-		MinDPhi_PhotonJet = 1000.;
-		TLorentzVector jet_4vec;
-		for (unsigned int j=0;j<jet_pT->size();j++) {
-			jet_4vec.SetPtEtaPhiM(jet_pT->at(j),jet_eta->at(j),jet_phi->at(j),jet_m->at(j));
-			float DR_Lep0Jet = jet_4vec.DeltaR(lep0_4vec);
-			float DR_Lep1Jet = jet_4vec.DeltaR(lep1_4vec);
-			if (MinDR_Lep0Jet>DR_Lep0Jet) MinDR_Lep0Jet = DR_Lep0Jet;
-			if (MinDR_Lep1Jet>DR_Lep1Jet) MinDR_Lep1Jet = DR_Lep1Jet;
-			float DR_PhotonJet = jet_4vec.DeltaR(z_4vec);
-			float DPhi_PhotonJet = jet_4vec.DeltaPhi(z_4vec);
-			if (MinDR_PhotonJet>DR_PhotonJet) MinDR_PhotonJet = DR_PhotonJet;
-			if (MinDPhi_PhotonJet>DPhi_PhotonJet) MinDPhi_PhotonJet = DPhi_PhotonJet;
-		}
-		float min_DPhi_MET_LepJet = 1000.;
-		float DPhi_MET_LepJet = 1000.;
-		for (unsigned int j=0;j<jet_pT->size();j++) {
-			jet_4vec.SetPtEtaPhiM(jet_pT->at(j),jet_eta->at(j),jet_phi->at(j),jet_m->at(j));
-			DPhi_MET_LepJet = jet_4vec.DeltaR(met_4vec);
-			if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
-		}
-		DPhi_MET_LepJet = lep0_4vec.DeltaR(met_4vec);
-		if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
-		DPhi_MET_LepJet = lep1_4vec.DeltaR(met_4vec);
-		if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
-		MET_rel = MET;
-		if (min_DPhi_MET_LepJet<TMath::Pi()/2.) MET_rel = MET*TMath::Sin(min_DPhi_MET_LepJet);
+        //--- determine channel
+        channel = -1;
+        if( ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 1 ) && trigMatch_1L2LTrig  ) channel = 1; // ee
+        if( ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 2 ) && trigMatch_1L2LTrig  ) channel = 0; // mumu
+        if( ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 2 ) && trigMatch_1L2LTrig  ) channel = 2; // em
+        if( ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 1 ) && trigMatch_1L2LTrig  ) channel = 3; // me
 
-		//---------------------------------------------
-		// compute dijet system variables, m80jj, W pT, DR(2jet), etc.
-		//---------------------------------------------
-		z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
-		met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
-		GetDijetVariables(z_4vec,met_4vec);
+        //--- determine OS / SS
+        is_OS = -1;
+        if( lepCharge->at(0) != lepCharge->at(1) ) is_OS = 1;
+        if( lepCharge->at(0) == lepCharge->at(1) ) is_OS = 0;
 
-		BaselineTree->Fill();     
+        if( channel < 0 ) continue; // require exactly 2 signal leptons and corresponding triggers
+        if( is_OS != 1  ) continue; // require opposite-sign
+        if( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
 
-	}
+        int njet = hist_low_njet->FindBin(jet_n)-1;
+        if (jet_n>njet_bin[bin_size]) njet = bin_size-1;
+        int nbjet = hist_low_nbjet->FindBin(bjet_n)-1;
+        if (bjet_n>njet_bin[bin_size]) nbjet = bin_size-1;
+        int pt = hist_low_pt->FindBin(Z_pt)-1;
+        int smpt = hist_sm_pt->FindBin(Z_pt)-1;
+        if (Z_pt>pt_bin[bin_size]) pt = bin_size-1;
+        int ht = hist_low_ht->FindBin(HT)-1;
+        if (HT>ht_bin[bin_size]) ht = bin_size-1;
 
-	std::cout << "write output..." << std::endl;
-	BaselineTree->Write();
+        //---------------------------------------------
+        // here we compute the MET parallel and perpendicular components
+        // and DR between photon and nearby jet
+        // and Oslo's MET_rel
+        //---------------------------------------------
 
-	hist_cutflow_raw->Write();
-	hist_cutflow_weight->Write();
-	for (int bin=0;bin<bin_size;bin++) {
-		hist_METl_Pt[bin]->Write();
-		hist_METt_Pt[bin]->Write();
-	}
-	if (!isData) {
-		hist_EventCount->SetBinContent(2,nentries);
-		hist_EventCount->SetBinContent(3,N_passMET100);
-		hist_EventCount->Write();
-	}
+        TLorentzVector lep0vec;
+        TLorentzVector lep1vec;
 
-	std::cout << "done." << std::endl;
-	outputFile.Close();
-	delete inputFile;
+        lep0vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
+        lep1vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
 
+        Z_eta = ( lep0vec + lep1vec ).Eta();
+        Z_phi = ( lep0vec + lep1vec ).Phi();
+
+        METt = MET*TMath::Sin(MET_phi-Z_phi);
+        METl = MET*TMath::Cos(MET_phi-Z_phi);
+        TLorentzVector met_4vec;
+        met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
+        TLorentzVector z_4vec;
+        z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
+        DPhi_METPhoton = fabs(met_4vec.DeltaPhi(z_4vec));
+        TLorentzVector lep0_4vec;
+        lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
+        TLorentzVector lep1_4vec;
+        lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
+        DPhi_2Lep = fabs(lep0_4vec.DeltaPhi(lep1_4vec));
+        DR_2Lep = lep0_4vec.DeltaR(lep1_4vec);
+        DPhi_METLepLeading = fabs(met_4vec.DeltaPhi(lep0_4vec));
+        DPhi_METLepSecond = fabs(met_4vec.DeltaPhi(lep1_4vec));
+        DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
+        TLorentzVector tst_4vec;
+        tst_4vec.SetPtEtaPhiM(MET_softTerm,0,MET_softPhi,0);
+        DPhi_TSTLepLeading = fabs(tst_4vec.DeltaPhi(lep0_4vec));
+        DPhi_TSTLepSecond = fabs(tst_4vec.DeltaPhi(lep1_4vec));
+        DPhi_TSTLepMin = min(DPhi_TSTLepLeading,DPhi_TSTLepSecond);
+        MinDR_Lep0Jet = 1000.;
+        MinDR_Lep1Jet = 1000.;
+        MinDR_PhotonJet = 1000.;
+        MinDPhi_PhotonJet = 1000.;
+        TLorentzVector jet_4vec;
+        for (unsigned int j=0;j<jet_pT->size();j++) {
+            jet_4vec.SetPtEtaPhiM(jet_pT->at(j),jet_eta->at(j),jet_phi->at(j),jet_m->at(j));
+            float DR_Lep0Jet = jet_4vec.DeltaR(lep0_4vec);
+            float DR_Lep1Jet = jet_4vec.DeltaR(lep1_4vec);
+            if (MinDR_Lep0Jet>DR_Lep0Jet) MinDR_Lep0Jet = DR_Lep0Jet;
+            if (MinDR_Lep1Jet>DR_Lep1Jet) MinDR_Lep1Jet = DR_Lep1Jet;
+            float DR_PhotonJet = jet_4vec.DeltaR(z_4vec);
+            float DPhi_PhotonJet = jet_4vec.DeltaPhi(z_4vec);
+            if (MinDR_PhotonJet>DR_PhotonJet) MinDR_PhotonJet = DR_PhotonJet;
+            if (MinDPhi_PhotonJet>DPhi_PhotonJet) MinDPhi_PhotonJet = DPhi_PhotonJet;
+        }
+        float min_DPhi_MET_LepJet = 1000.;
+        float DPhi_MET_LepJet = 1000.;
+        for (unsigned int j=0;j<jet_pT->size();j++) {
+            jet_4vec.SetPtEtaPhiM(jet_pT->at(j),jet_eta->at(j),jet_phi->at(j),jet_m->at(j));
+            DPhi_MET_LepJet = jet_4vec.DeltaR(met_4vec);
+            if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
+        }
+        DPhi_MET_LepJet = lep0_4vec.DeltaR(met_4vec);
+        if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
+        DPhi_MET_LepJet = lep1_4vec.DeltaR(met_4vec);
+        if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
+        MET_rel = MET;
+        if (min_DPhi_MET_LepJet<TMath::Pi()/2.) MET_rel = MET*TMath::Sin(min_DPhi_MET_LepJet);
+
+        //---------------------------------------------
+        // compute dijet system variables, m80jj, W pT, DR(2jet), etc.
+        //---------------------------------------------
+        z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
+        met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
+        GetDijetVariables(z_4vec,met_4vec);
+
+        BaselineTree->Fill();     
+
+    }
+
+    std::cout << "write output..." << std::endl;
+    BaselineTree->Write();
+
+    hist_cutflow_raw->Write();
+    hist_cutflow_weight->Write();
+    for (int bin=0;bin<bin_size;bin++) {
+        hist_METl_Pt[bin]->Write();
+        hist_METt_Pt[bin]->Write();
+    }
+    if (!isData) {
+        hist_EventCount->SetBinContent(2,nentries);
+        hist_EventCount->SetBinContent(3,N_passMET100);
+        hist_EventCount->Write();
+    }
+
+    std::cout << "done." << std::endl;
+    outputFile.Close();
+    delete inputFile;
 
 }
