@@ -32,7 +32,7 @@
 #include "TLorentzVector.h"
 #include "TObject.h"
 
-#include "BasicSetting.C"
+#include "../BasicSetting.C"
 
 using namespace std;
 
@@ -51,7 +51,7 @@ void getPhotonSmearingFunction(TString file, TString histname, TH1D* hist) {
 
 void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, int isData, string treeName = "tree_NoSys" ) {
 
-        float mylumi = 1.0;
+    float mylumi = 1.0;
   
 	if     ( TString(outputName).Contains("mc16cd_2018") ) mylumi =  6461;
 	else if( TString(outputName).Contains("mc16cd")      ) mylumi = 44000;
@@ -193,50 +193,50 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	T->SetBranchStatus("mu"              ,1);
 	T->SetBranchStatus("nVtx"            ,1); 
 	T->SetBranchStatus("met_Et"             ,1);
-        T->SetBranchStatus("met_Et_loose"           ,1);
-        T->SetBranchStatus("met_Et_tight"           ,1);
-        T->SetBranchStatus("met_Et_tighter"         ,1);
-        T->SetBranchStatus("met_Et_tenacious"       ,1); 
-        //------------------------------------------------------
-        // 2019 RJR analysis variables -------------------------
-        //------------------------------------------------------
-        T->SetBranchStatus("is2Lep2Jet"       ,1);
-        T->SetBranchStatus("is2L2JInt"       ,1);
-        T->SetBranchStatus("nBJet20_MV2c10_FixedCutBEff_77"       ,1);
-        T->SetBranchStatus("mjj"       ,1);
-        T->SetBranchStatus("mll_RJ"       ,1);
-        T->SetBranchStatus("R_minH2P_minH3P"       ,1);
-        T->SetBranchStatus("RPT_HT5PP"       ,1);
-        T->SetBranchStatus("dphiVP"       ,1);
-        T->SetBranchStatus("H2PP"       ,1);
-        T->SetBranchStatus("H5PP"       ,1);
-        T->SetBranchStatus("nJet20"       ,1);
-        T->SetBranchStatus("minDphi"       ,1);
-        T->SetBranchStatus("MZ"       ,1);
-        T->SetBranchStatus("NjS"       ,1);
-        T->SetBranchStatus("NjISR"       ,1);
-        T->SetBranchStatus("dphiISRI"       ,1);
-        T->SetBranchStatus("RISR"       ,1);
-        T->SetBranchStatus("PTISR"       ,1);
-        T->SetBranchStatus("PTI"       ,1);
-        T->SetBranchStatus("PTCM"       ,1);
-        T->SetBranchStatus("MJ"       ,1);
-        T->SetBranchStatus("is3Lep3Jet"       ,1);
-        T->SetBranchStatus("is4Lep3Jet"       ,1);
-        T->SetBranchStatus("lept1sign_VR"       ,1);
-        T->SetBranchStatus("lept2sign_VR"       ,1);
-        T->SetBranchStatus("lept1Pt_VR"       ,1);
-        T->SetBranchStatus("lept2Pt_VR"       ,1);
-        T->SetBranchStatus("MZ_VR"       ,1);
-        T->SetBranchStatus("MJ_VR"       ,1);
-        T->SetBranchStatus("RISR_VR"       ,1);
-        T->SetBranchStatus("PTISR_VR"       ,1);
-        T->SetBranchStatus("PTI_VR"       ,1);
-        T->SetBranchStatus("PTCM_VR"       ,1);
-        T->SetBranchStatus("dphiISRI_VR"       ,1);
-        T->SetBranchStatus("lepFlavor"       ,1);
-        T->SetBranchStatus("lepCharge"       ,1);
-        //------------------------------------------------------
+    T->SetBranchStatus("met_Et_loose"           ,1);
+    T->SetBranchStatus("met_Et_tight"           ,1);
+    T->SetBranchStatus("met_Et_tighter"         ,1);
+    T->SetBranchStatus("met_Et_tenacious"       ,1); 
+    //------------------------------------------------------
+    // 2019 RJR analysis variables -------------------------
+    //------------------------------------------------------
+    T->SetBranchStatus("is2Lep2Jet"       ,1);
+    T->SetBranchStatus("is2L2JInt"       ,1);
+    T->SetBranchStatus("nBJet20_MV2c10_FixedCutBEff_77"       ,1);
+    T->SetBranchStatus("mjj"       ,1);
+    T->SetBranchStatus("mll_RJ"       ,1);
+    T->SetBranchStatus("R_minH2P_minH3P"       ,1);
+    T->SetBranchStatus("RPT_HT5PP"       ,1);
+    T->SetBranchStatus("dphiVP"       ,1);
+    T->SetBranchStatus("H2PP"       ,1);
+    T->SetBranchStatus("H5PP"       ,1);
+    T->SetBranchStatus("nJet20"       ,1);
+    T->SetBranchStatus("minDphi"       ,1);
+    T->SetBranchStatus("MZ"       ,1);
+    T->SetBranchStatus("NjS"       ,1);
+    T->SetBranchStatus("NjISR"       ,1);
+    T->SetBranchStatus("dphiISRI"       ,1);
+    T->SetBranchStatus("RISR"       ,1);
+    T->SetBranchStatus("PTISR"       ,1);
+    T->SetBranchStatus("PTI"       ,1);
+    T->SetBranchStatus("PTCM"       ,1);
+    T->SetBranchStatus("MJ"       ,1);
+    T->SetBranchStatus("is3Lep3Jet"       ,1);
+    T->SetBranchStatus("is4Lep3Jet"       ,1);
+    T->SetBranchStatus("lept1sign_VR"       ,1);
+    T->SetBranchStatus("lept2sign_VR"       ,1);
+    T->SetBranchStatus("lept1Pt_VR"       ,1);
+    T->SetBranchStatus("lept2Pt_VR"       ,1);
+    T->SetBranchStatus("MZ_VR"       ,1);
+    T->SetBranchStatus("MJ_VR"       ,1);
+    T->SetBranchStatus("RISR_VR"       ,1);
+    T->SetBranchStatus("PTISR_VR"       ,1);
+    T->SetBranchStatus("PTI_VR"       ,1);
+    T->SetBranchStatus("PTCM_VR"       ,1);
+    T->SetBranchStatus("dphiISRI_VR"       ,1);
+    T->SetBranchStatus("lepFlavor"       ,1);
+    T->SetBranchStatus("lepCharge"       ,1);
+    //------------------------------------------------------
 	T->SetBranchStatus("met_Phi"         ,1); 
 	T->SetBranchStatus("TST_Et"         ,1); 
 	T->SetBranchStatus("TST_Phi"         ,1); 
@@ -291,50 +291,50 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	T->SetBranchAddress("mu"              ,&Mu               );
 	T->SetBranchAddress("nVtx"            ,&nVtx               );
 	T->SetBranchAddress("met_Et"             ,&MET              );
-        //------------------------------------------------------
-        // 2019 RJR analysis variables -------------------------
-        //------------------------------------------------------
-        T->SetBranchAddress("met_Et_loose"             ,&MET_loose              );
-        T->SetBranchAddress("met_Et_tight"             ,&MET_tight              );
-        T->SetBranchAddress("met_Et_tighter"             ,&MET_tighter              );
-        T->SetBranchAddress("met_Et_tenacious"             ,&MET_tenacious              );
-        T->SetBranchAddress("trigMatch_2LTrigOR"         ,&trigMatch_2LTrigOR          );
-        T->SetBranchAddress("is2Lep2Jet"         ,&is2Lep2Jet         );
-        T->SetBranchAddress("is2L2JInt"         ,&is2L2JInt         );
-        T->SetBranchAddress("nBJet20_MV2c10_FixedCutBEff_77"    ,&nBJet20_MV2c10_FixedCutBEff_77 );
-        T->SetBranchAddress("mjj"         ,&mjj          );
-        T->SetBranchAddress("mll_RJ"          ,&mll_RJ          );
-        T->SetBranchAddress("R_minH2P_minH3P"          ,&R_minH2P_minH3P           );
-        T->SetBranchAddress("RPT_HT5PP"              ,&RPT_HT5PP               );
-        T->SetBranchAddress("dphiVP"          ,&dphiVP            );
-        T->SetBranchAddress("H2PP"           ,&H2PP           );
-        T->SetBranchAddress("H5PP"           ,&H5PP           );
-        T->SetBranchAddress("nJet20"             ,&nJet20            );
-        T->SetBranchAddress("minDphi"          ,&minDphi           );
-        T->SetBranchAddress("MZ"         ,&MZ          );
-        T->SetBranchAddress("NjS"         ,&NjS        );
-        T->SetBranchAddress("NjISR"           ,&NjISR           );
-        T->SetBranchAddress("dphiISRI"           ,&dphiISRI           );
-        T->SetBranchAddress("RISR"          ,&RISR           );
-        T->SetBranchAddress("PTISR"          ,&PTISR           );
-        T->SetBranchAddress("PTI"         ,&PTI          );
-        T->SetBranchAddress("PTCM"         ,&PTCM          );
-        T->SetBranchAddress("MJ",            &MJ   );
-        T->SetBranchAddress("is3Lep3Jet",           &is3Lep3Jet  );
-        T->SetBranchAddress("is4Lep3Jet",           &is4Lep3Jet  );
-        T->SetBranchAddress("lept1sign_VR",           &lept1sign_VR  );
-        T->SetBranchAddress("lept2sign_VR",           &lept2sign_VR   );
-        T->SetBranchAddress("lept1Pt_VR",           &lept1Pt_VR );
-        T->SetBranchAddress("lept2Pt_VR",            &lept2Pt_VR );
-        T->SetBranchAddress("MZ_VR",                  &MZ_VR );
-        T->SetBranchAddress("MJ_VR",                 &MJ_VR );
-        T->SetBranchAddress("RISR_VR",           &RISR_VR  );
-        T->SetBranchAddress("PTISR_VR",           &PTISR_VR  );
-        T->SetBranchAddress("PTI_VR",           &PTI_VR  );
-        T->SetBranchAddress("PTCM_VR",           &PTCM_VR   );
-        T->SetBranchAddress("dphiISRI_VR",           &dphiISRI_VR );
-        T->SetBranchAddress("lepFlavor",                  &lepFlavor );
-        T->SetBranchAddress("lepCharge",                 &lepCharge );
+    //------------------------------------------------------
+    // 2019 RJR analysis variables -------------------------
+    //------------------------------------------------------
+    T->SetBranchAddress("met_Et_loose"             ,&MET_loose              );
+    T->SetBranchAddress("met_Et_tight"             ,&MET_tight              );
+    T->SetBranchAddress("met_Et_tighter"             ,&MET_tighter              );
+    T->SetBranchAddress("met_Et_tenacious"             ,&MET_tenacious              );
+    T->SetBranchAddress("trigMatch_2LTrigOR"         ,&trigMatch_2LTrigOR          );
+    T->SetBranchAddress("is2Lep2Jet"         ,&is2Lep2Jet         );
+    T->SetBranchAddress("is2L2JInt"         ,&is2L2JInt         );
+    T->SetBranchAddress("nBJet20_MV2c10_FixedCutBEff_77"    ,&nBJet20_MV2c10_FixedCutBEff_77 );
+    T->SetBranchAddress("mjj"         ,&mjj          );
+    T->SetBranchAddress("mll_RJ"          ,&mll_RJ          );
+    T->SetBranchAddress("R_minH2P_minH3P"          ,&R_minH2P_minH3P           );
+    T->SetBranchAddress("RPT_HT5PP"              ,&RPT_HT5PP               );
+    T->SetBranchAddress("dphiVP"          ,&dphiVP            );
+    T->SetBranchAddress("H2PP"           ,&H2PP           );
+    T->SetBranchAddress("H5PP"           ,&H5PP           );
+    T->SetBranchAddress("nJet20"             ,&nJet20            );
+    T->SetBranchAddress("minDphi"          ,&minDphi           );
+    T->SetBranchAddress("MZ"         ,&MZ          );
+    T->SetBranchAddress("NjS"         ,&NjS        );
+    T->SetBranchAddress("NjISR"           ,&NjISR           );
+    T->SetBranchAddress("dphiISRI"           ,&dphiISRI           );
+    T->SetBranchAddress("RISR"          ,&RISR           );
+    T->SetBranchAddress("PTISR"          ,&PTISR           );
+    T->SetBranchAddress("PTI"         ,&PTI          );
+    T->SetBranchAddress("PTCM"         ,&PTCM          );
+    T->SetBranchAddress("MJ",            &MJ   );
+    T->SetBranchAddress("is3Lep3Jet",           &is3Lep3Jet  );
+    T->SetBranchAddress("is4Lep3Jet",           &is4Lep3Jet  );
+    T->SetBranchAddress("lept1sign_VR",           &lept1sign_VR  );
+    T->SetBranchAddress("lept2sign_VR",           &lept2sign_VR   );
+    T->SetBranchAddress("lept1Pt_VR",           &lept1Pt_VR );
+    T->SetBranchAddress("lept2Pt_VR",            &lept2Pt_VR );
+    T->SetBranchAddress("MZ_VR",                  &MZ_VR );
+    T->SetBranchAddress("MJ_VR",                 &MJ_VR );
+    T->SetBranchAddress("RISR_VR",           &RISR_VR  );
+    T->SetBranchAddress("PTISR_VR",           &PTISR_VR  );
+    T->SetBranchAddress("PTI_VR",           &PTI_VR  );
+    T->SetBranchAddress("PTCM_VR",           &PTCM_VR   );
+    T->SetBranchAddress("dphiISRI_VR",           &dphiISRI_VR );
+    T->SetBranchAddress("lepFlavor",                  &lepFlavor );
+    T->SetBranchAddress("lepCharge",                 &lepCharge );
 	//------------------------------------------------------
 	T->SetBranchAddress("met_Phi"         ,&MET_phi          );
 	T->SetBranchAddress("TST_Et"         ,&MET_softTerm          );
@@ -470,51 +470,51 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	BaselineTree.Branch("Mu",&Mu,"Mu/F");
 	BaselineTree.Branch("nVtx",&nVtx,"nVtx/I");
 	BaselineTree.Branch("MET_raw",&MET,"MET_raw/F");
-        //------------------------------------------------------
-        // 2019 RJR analysis variables -------------------------
-        //------------------------------------------------------
+    //------------------------------------------------------
+    // 2019 RJR analysis variables -------------------------
+    //------------------------------------------------------
 	BaselineTree.Branch("MET_loose",&MET_loose,"MET_loose/F");
 	BaselineTree.Branch("MET_tight",&MET_tight,"MET_tight/F");
 	BaselineTree.Branch("MET_tighter",&MET_tighter,"MET_tighter/F");
 	BaselineTree.Branch("MET_tenacious",&MET_tenacious,"MET_tenacious/F"); 
-        BaselineTree.Branch("trigMatch_2LTrigOR",&trigMatch_2LTrigOR,"trigMatch_2LTrigOR/I");
-        BaselineTree.Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
-        BaselineTree.Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
-        BaselineTree.Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
-        BaselineTree.Branch("mjj",&mjj,"mjj/F");
-        BaselineTree.Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
-        BaselineTree.Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
-        BaselineTree.Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
-        BaselineTree.Branch("dphiVP",&dphiVP,"dphiVP/F");
-        BaselineTree.Branch("H2PP",&H2PP,"H2PP/F");
-        BaselineTree.Branch("H5PP",&H5PP,"H5PP/F");
-        BaselineTree.Branch("nJet20",&nJet20,"nJet20/I");
-        BaselineTree.Branch("minDphi",&minDphi,"minDphi/F");
-        BaselineTree.Branch("MZ",&MZ,"MZ/F");
-        BaselineTree.Branch("NjS",&NjS,"NjS/I");
-        BaselineTree.Branch("NjISR",&NjISR,"NjISR/I");
-        BaselineTree.Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
-        BaselineTree.Branch("RISR",&RISR,"RISR/F");
-        BaselineTree.Branch("PTISR",&PTISR,"PTISR/F");
-        BaselineTree.Branch("PTI",&PTI,"PTI/F");
-        BaselineTree.Branch("PTCM",&PTCM,"PTCM/F");
-        BaselineTree.Branch("MJ",&MJ,"MJ/F");
-        BaselineTree.Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
-        BaselineTree.Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
-        BaselineTree.Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
-        BaselineTree.Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
-        BaselineTree.Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
-        BaselineTree.Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
-        BaselineTree.Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
-        BaselineTree.Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
-        BaselineTree.Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
-        BaselineTree.Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
-        BaselineTree.Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
-        BaselineTree.Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
-        BaselineTree.Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
-        BaselineTree.Branch("lepFlavor","std::vector<int>",&lepFlavor);
-        BaselineTree.Branch("lepCharge","std::vector<int>",&lepCharge);
-        //------------------------------------------------------
+    BaselineTree.Branch("trigMatch_2LTrigOR",&trigMatch_2LTrigOR,"trigMatch_2LTrigOR/I");
+    BaselineTree.Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
+    BaselineTree.Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
+    BaselineTree.Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
+    BaselineTree.Branch("mjj",&mjj,"mjj/F");
+    BaselineTree.Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
+    BaselineTree.Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
+    BaselineTree.Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
+    BaselineTree.Branch("dphiVP",&dphiVP,"dphiVP/F");
+    BaselineTree.Branch("H2PP",&H2PP,"H2PP/F");
+    BaselineTree.Branch("H5PP",&H5PP,"H5PP/F");
+    BaselineTree.Branch("nJet20",&nJet20,"nJet20/I");
+    BaselineTree.Branch("minDphi",&minDphi,"minDphi/F");
+    BaselineTree.Branch("MZ",&MZ,"MZ/F");
+    BaselineTree.Branch("NjS",&NjS,"NjS/I");
+    BaselineTree.Branch("NjISR",&NjISR,"NjISR/I");
+    BaselineTree.Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
+    BaselineTree.Branch("RISR",&RISR,"RISR/F");
+    BaselineTree.Branch("PTISR",&PTISR,"PTISR/F");
+    BaselineTree.Branch("PTI",&PTI,"PTI/F");
+    BaselineTree.Branch("PTCM",&PTCM,"PTCM/F");
+    BaselineTree.Branch("MJ",&MJ,"MJ/F");
+    BaselineTree.Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
+    BaselineTree.Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
+    BaselineTree.Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
+    BaselineTree.Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
+    BaselineTree.Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
+    BaselineTree.Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
+    BaselineTree.Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
+    BaselineTree.Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
+    BaselineTree.Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
+    BaselineTree.Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
+    BaselineTree.Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
+    BaselineTree.Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
+    BaselineTree.Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
+    BaselineTree.Branch("lepFlavor","std::vector<int>",&lepFlavor);
+    BaselineTree.Branch("lepCharge","std::vector<int>",&lepCharge);
+    //------------------------------------------------------
 	BaselineTree.Branch("METl_raw",&METl,"METl_raw/F");
 	BaselineTree.Branch("METt_raw",&METt,"METt_raw/F");
 	BaselineTree.Branch("MET_phi_raw",&MET_phi,"MET_phi_raw/F");

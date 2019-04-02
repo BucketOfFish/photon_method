@@ -8,10 +8,8 @@
 //double lumi = 3200.;
 double lumi = 36100.;
 
-std::string outputPath = "../OutputNtuples/v1.6/"; //update to correspond to most recent n-tuple sample
-std::string smearingPath = "../OutputNtuples/v1.6/"; //update to correspond to most recent n-tuple sample
-//std::string outputPath = "../OutputNtuples/v1.3_v00/"; //for v1.3 n-tuples
-//std::string smearingPath = "../OutputNtuples/v1.3_v00/"; //for v1.3 n-tuples 
+std::string outputPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/";
+std::string smearingPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/";
 std::string oldSmearingPath = "/eos/atlas/atlascerngroupdisk/phys-susy/strong2L/v02-04/Ruo/PhotonMethodOutput/OutputNtuples_EWK2L/";
 
 string photon_tag = "";

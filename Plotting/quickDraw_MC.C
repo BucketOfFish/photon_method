@@ -25,6 +25,8 @@
 #include "TLine.h"
 #include "TMath.h"
 
+#include "../BasicSetting.C"
+
 using namespace std;
 
 void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string var = "HT", string smearing_mode = "NoSmear" ) {
@@ -40,11 +42,8 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
   // define filenames
   //-----------------------------------------------
 
-  //string ntuplePath = "../OutputNtuples/v1.2/"; //For v1.2
-  string ntuplePath = "../OutputNtuples/v1.3_v00/"; //for v1.3
-
-  string Zfilename      = ntuplePath + "ZMC16a/Zjets_merged_processed.root";
-  string gfilename      = ntuplePath + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
+  string Zfilename      = outputPath + "ZMC16a/Zjets_merged_processed.root";
+  string gfilename      = outputPath + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
   
   cout << "channel              " << channel       << endl;
   cout << "smearing mode        " << smearing_mode << endl;
@@ -363,6 +362,6 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
   hratio->GetYaxis()->SetRangeUser(0.0,2.0);
   hratio->Draw("E1");
 
-  can->Print(Form("plots/v1.3/mm_NoSmear_HT_MC_ZptHTreweigh.pdf"));
+  can->Print(Form(plotsPath + "mm_NoSmear_HT_MC_ZptHTreweigh.pdf"));
 	
 }

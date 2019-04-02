@@ -96,7 +96,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
 		cout << "Opening tt smearing file   : " << ttfilename << endl;
 		TFile ftt( ttfilename.c_str() );
 
-		TTree*  ttt              = (TTree*)ftt.Get("ttbar_NoSys");
+		TTree*  ttt              = (TTree*)ftt.Get("BaselineTree");
 		ttt->SetBranchStatus("*", 0);
 		ttt->SetBranchStatus("totalWeight", 1);
 		ttt->SetBranchStatus("jet_n", 1);
@@ -133,7 +133,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
 		cout << "Opening VV smearing file   : " << vvfilename << endl;
 		TFile fvv( vvfilename.c_str() );
 
-		TTree*  tvv              = (TTree*)fvv.Get("diboson_NoSys");
+		TTree*  tvv              = (TTree*)fvv.Get("BaselineTree");
 		tvv->SetBranchStatus("*", 0);
 		tvv->SetBranchStatus("totalWeight", 1);
 		tvv->SetBranchStatus("jet_n", 1);

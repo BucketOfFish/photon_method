@@ -25,6 +25,8 @@
 #include "TLine.h"
 #include "TMath.h"
 
+#include "../BasicSetting.C"
+
 using namespace std;
 
 void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , string var = "MET_tenacious" , bool VgSubtracted = false , string smearing_mode = "NoSmear" , bool normalize = true ) {
@@ -75,20 +77,17 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
   // string gfilename      = "../OutputNtuples/gdata/JETM4_" + gdatalabel + "_" + channel + "_" + smearing_mode + ".root";
   // string vg_filename    = "../OutputNtuples/Vg/Vgall.root";
 
-  // for v1.2
-  string outPath = "../OutputNtuples/v1.5/";
-
   //string VgString = "";
   //if( VgSubtracted ) VgString = "_VgSubtracted";
   
-  string Zfilename      = outPath + "zdata/data15-16_merged_processed.root";
-  string tt_filename    = outPath + mcdir + "ttbar_merged_processed.root";
-  string vv_filename    = outPath + mcdir + "diboson_merged_processed.root";
-  string z_filename     = outPath + mcdir + "Zjets_merged_processed.root";
-  //string o_filename     = outPath + mcdir + "triboson_higgs_topOther_merged_processed.root";
-  //string gfilename      = outPath + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
-  string gfilename      = outPath + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
-  //string vg_filename    = outPath + "gmc/Vgamma_merged_processed.root";
+  string Zfilename      = outputPath + "zdata/data15-16_merged_processed.root";
+  string tt_filename    = outputPath + mcdir + "ttbar_merged_processed.root";
+  string vv_filename    = outputPath + mcdir + "diboson_merged_processed.root";
+  string z_filename     = outputPath + mcdir + "Zjets_merged_processed.root";
+  //string o_filename     = outputPath + mcdir + "triboson_higgs_topOther_merged_processed.root";
+  //string gfilename      = outputPath + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
+  string gfilename      = outputPath + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
+  //string vg_filename    = outputPath + "gmc/Vgamma_merged_processed.root";
   
   cout << "period               " << period        << endl;
   cout << "channel              " << channel       << endl;
@@ -600,7 +599,7 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
   
   //can->Print(Form("plots/quickData_Data_%s_%s_%s_%s_VgSubtraction.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
-  can->Print(Form("plots/v1.5/VR_SR_studies/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+  can->Print(Form(plotsPath + "VR_SR_studies/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
 
   // TFile* outfile = TFile::Open( Form("plots/quickData_Data_%s_%s_%s_%s.root",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()) , "RECREATE" );

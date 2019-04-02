@@ -32,7 +32,7 @@ The parameters of the function GetPhotonReweighting(string label, string ch, int
 #include "TLorentzVector.h"
 #include "TGraphAsymmErrors.h"
 
-#include "BasicSetting.C"
+#include "../BasicSetting.C"
 #include "GetSimpleReweightingHistograms.C"
 
 using namespace std;

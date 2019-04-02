@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------------------------
 // this script takes the outputs from GetBaseLineEvents.C and GetPhotonEvents.C, and makes smeared photon information.
 // the parameters of the function GetPhotonSmearing(string label, string ch, int isData, string period, int smearing_method) are:
-//      label: filename
+//  label: filename
 // 	ch: which dilepton channel (ee,mm)
 // 	isData: 0 (MC) or 1 (data) 
-//      period: data15-16 (input) -> ZMC16a (source file), data17 -> ZMC16cd, data18 -> ZMC16cd
-//      smearing_method: 0 (no smear), 1 (MC smear), 2 (data smear), 3 (truth smear), 4 (MC smear)
+//  period: data15-16 (input) -> ZMC16a (source file), data17 -> ZMC16cd, data18 -> ZMC16cd
+//  smearing_method: 0 (no smear), 1 (MC smear), 2 (data smear), 3 (truth smear), 4 (MC smear)
 // example: root -l -b 'GetPhotonSmearing.C+("ee-channel","ee",0,"data15-16",0)'  //for no smear
 //-----------------------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@
 #include "TSpectrum.h"
 #include "TVirtualFFT.h"
 
-#include "BasicSetting.C"
+#include "../BasicSetting.C"
 #include "PhotonVariables.C"
 #include "GetDijetVariables.C"
 #include "GetSmearingHistogram.C"

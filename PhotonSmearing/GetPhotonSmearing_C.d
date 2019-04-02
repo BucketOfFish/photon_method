@@ -108,7 +108,7 @@
 ./GetPhotonSmearing_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TRotation.h
 ./GetPhotonSmearing_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TSpectrum.h
 ./GetPhotonSmearing_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TVirtualFFT.h
-./GetPhotonSmearing_C.so: BasicSetting.C PhotonVariables.C
+./GetPhotonSmearing_C.so: ../BasicSetting.C PhotonVariables.C
 ./GetPhotonSmearing_C.so: GetDijetVariables.C GetSmearingHistogram.C
 ./GetPhotonSmearing_C.so: GetMllHistogram.C GetIndividualLeptonInfo.C
 ./GetPhotonSmearing_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TRandom.h

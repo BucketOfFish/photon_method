@@ -108,7 +108,8 @@
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TRotation.h
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TGraphAsymmErrors.h
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TGraph.h
-./GetPhotonReweighting_C.so: BasicSetting.C GetSimpleReweightingHistograms.C
+./GetPhotonReweighting_C.so: ../BasicSetting.C
+./GetPhotonReweighting_C.so: GetSimpleReweightingHistograms.C
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TCanvas.h
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TPad.h
 ./GetPhotonReweighting_C.so: /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.14.04-0d8dc/x86_64-slc6-gcc62-opt/include/TVirtualPad.h

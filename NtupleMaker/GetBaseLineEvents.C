@@ -33,7 +33,7 @@
 #include "TGraphErrors.h"
 #include "TObject.h"
 
-#include "BasicSetting.C"
+#include "../BasicSetting.C"
 #include "InputVariables.C"
 #include "OutputVariables.C"
 #include "GetDijetVariables.C"
