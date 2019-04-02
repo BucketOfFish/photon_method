@@ -46,10 +46,14 @@ vector<string> noSampleWeight;
 vector<string> noEventWeight;
 
 int RebinHistogram(TH1D* hist, int rebin) {
+
+    // Does what?
+
     float negative_yield = 0.;
     float positive_yield = 0.;
     float core_yield = 0.;
     int remainder = 0;
+
     if (rebin==0) {
         rebin = 1;
         for (int bin=1;bin<=hist->GetNbinsX();bin++) {
@@ -76,33 +80,12 @@ int RebinHistogram(TH1D* hist, int rebin) {
     else {
         hist->Rebin(rebin);
     }
-    //std::cout  << "negative_yield = " << negative_yield << ", positive_yield = " << positive_yield << ", remainder = " << remainder << std::endl;
+
     for (int bin=1;bin<=hist->GetNbinsX();bin++) {
         hist->SetBinContent(bin,max(hist->GetBinContent(bin),0.));
     }
+
     return rebin;
-}
-
-void getPhotonSmearingFunction(TString file, TString histname, TH1D* hist, int rebin) {
-    TFile *fData = TFile::Open( file );
-    fData->cd("");
-    TH1D* temp = (TH1D*)fData->Get(histname);
-    for (int bin=1;bin<=temp->GetNbinsX();bin++) {
-        hist->SetBinContent(bin,temp->GetBinContent(bin));
-    }
-    fData->Close();
-}
-
-void getPhotonSmearingFunction2(TString file, TString histname, TH1D* hist, int rebin) {
-    TFile *fData = TFile::Open( file );
-    fData->cd("");
-    TH1D* temp = (TH1D*)fData->Get(histname);
-    //temp->Rebin(rebin);
-    //hist->Rebin(rebin);
-    for (int bin=1;bin<=temp->GetNbinsX();bin++) {
-        hist->SetBinContent(bin,max(temp->GetBinContent(bin),0.));
-    }
-    fData->Close();
 }
 
 void GetPhotonSmearing(string label, string ch, int isData, string period, int smearing_method) {
@@ -119,7 +102,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 
     std::cout << "Prepare Mll histograms..." << std::endl;
 
-    GetMllHistogram(ch,period);
+    GetMllHistogram(ch,period); // fill histogram hist_Mll_dPt
+
     for (int bin0=0;bin0<bin_size;bin0++) {
         for (int bin1=0;bin1<dpt_bin_size;bin1++) {
             int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1],0);
@@ -176,10 +160,6 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
             float gmetl_rms = g_metl[bin]->GetRMS();
             float zmetl_mean = z_metl[bin]->GetMean();
             float zmetl_rms = z_metl[bin]->GetRMS();
-            //std::cout << "--------------------------------------------------------" << std::endl;
-            //std::cout << "bin " << bin << ", rebin " << rebin << std::endl;
-            //std::cout << "gmetl_mean " << gmetl_mean << ", gmetl_rms " << gmetl_rms << std::endl;
-            //std::cout << "zmetl_mean " << zmetl_mean << ", zmetl_rms " << zmetl_rms << std::endl;
             int newbin = 40000/rebin;
             Float_t *smear = new Float_t[2*((newbin+1)/2+1)];
             Float_t *fft_re = new Float_t[newbin];
@@ -222,18 +202,9 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
                 z_resp[bin]->SetBinContent(i+1,z_resp_in[i]);
                 smear[i] = z_smear_in[i];
             }
-            // rebin = RebinHistogram(z_dpt[bin],0);
-            // rebin = RebinHistogram(g_dpt[bin],rebin);
-            // float gdpt_mean = g_dpt[bin]->GetMean();
-            // float gdpt_rms = g_dpt[bin]->GetRMS();
-            // float zdpt_mean = z_dpt[bin]->GetMean();
-            // float zdpt_rms = z_dpt[bin]->GetRMS();
             float smear_mean = smear_raw[bin]->GetMean();
             float smear_rms = smear_raw[bin]->GetRMS();
-            //std::cout << "gdpt_mean " << gdpt_mean << ", gdpt_rms " << gdpt_rms << std::endl;
-            //std::cout << "zdpt_mean " << zdpt_mean << ", zdpt_rms " << zdpt_rms << std::endl;
 
-            //std::cout << "smear_mean " << smear_mean << ", smear_rms " << smear_rms << std::endl;
             for (int i=0;i<newbin;i++) {
                 if (gmetl_rms/zmetl_rms > 1.0) {
                     smear_raw[bin]->SetBinContent(i+1,0.);
@@ -246,9 +217,6 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
                     smear[i] = 0.;
                 }
             }
-            // smearing_method 3 isn't implemented
-            //if (smearing_method == 3) shift[bin] = -g_dpt[bin]->GetMean();
-            //else shift[bin] = -g_metl[bin]->GetMean();
 
             shift[bin] = -g_metl[bin]->GetMean();
         }
@@ -287,16 +255,13 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 
     string outfilename;
     if (isData==1) outfilename = TString(TString(smearingPath)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
-    if (isData==0){
-        outfilename = TString(TString(smearingPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
+    if (isData==0) outfilename = TString(TString(smearingPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
 
-    }
     TFile*  f              = new TFile(outfilename.c_str(),"recreate");          
     TTree* BaselineTree = new TTree("BaselineTree","baseline tree");
 
     cout << endl;
     cout << "Create file           : " << outfilename        << endl;
-
 
     //-----------------------------
     // access existing branches
@@ -389,9 +354,6 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     TBranch *b_gamma_pt_smear = BaselineTree->Branch("Z_pt",&gamma_pt_smear,"Z_pt/F");
     TBranch *b_gamma_phi_smear = BaselineTree->Branch("Z_phi",&gamma_phi_smear,"Z_phi/F");
     TBranch *b_gamma_eta_smear = BaselineTree->Branch("Z_eta",&gamma_eta,"Z_eta/F");
-    // TBranch *b_truthGamma_pt = BaselineTree->Branch("Z_truthPt",&truthGamma_pt,"Z_truthPt/F");
-    // TBranch *b_truthGamma_eta = BaselineTree->Branch("Z_truthEta",&truthGamma_eta,"Z_truthEta/F");
-    // TBranch *b_truthGamma_phi = BaselineTree->Branch("Z_truthPhi",&truthGamma_phi,"Z_truthPhi/F");
     //-----------EDIT HERE TO ADD VARS FOR 2019 RJR ANALYSIS
     TBranch *b_MET_smear = BaselineTree->Branch("MET",&MET_smear,"MET/F");
     TBranch *b_MET_loose = BaselineTree->Branch("MET_loose",&MET_loose,"MET_loose/F");
@@ -608,31 +570,15 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
         if (jet_n<1) jet0_4vec.SetPtEtaPhiM(0,0,0,0);
         else jet0_4vec.SetPtEtaPhiM(jet_pT->at(0),jet_eta->at(0),jet_phi->at(0),jet_m->at(0));
 
-        //cout << __LINE__ << endl;
-        //cout << "jet_n " << jet_n << endl;
-
         TLorentzVector jet1_4vec;
-        if (jet_n<2)jet1_4vec.SetPtEtaPhiM(0,0,0,0);
+        if (jet_n<2) jet1_4vec.SetPtEtaPhiM(0,0,0,0);
         else jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),jet_m->at(1));
 
-        //		TLorentzVector jet1_4vec;
-        //cout << __LINE__ << endl;
-        if (jet_n<2){
-            //cout << __LINE__ << endl;
-            jet1_4vec.SetPtEtaPhiM(0,0,0,0);
+        if (jet_n<2) jet1_4vec.SetPtEtaPhiM(0,0,0,0);
+        else jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),jet_m->at(1));
 
-        }
-        else{
-            //cout << __LINE__ << endl;
-            jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),jet_m->at(1));
-        }
-
-        //cout << __LINE__ << endl;
         DPhi_METJetLeading_smear = fabs(met_4vec_smear.DeltaPhi(jet0_4vec));
         DPhi_METJetSecond_smear = fabs(met_4vec_smear.DeltaPhi(jet1_4vec));
-
-        //DPhi_METJetLeading_smear = -999;
-        //DPhi_METJetSecond_smear  = -999;
 
         DPhi_METPhoton_smear = fabs(TMath::ATan2(METt,METl_smear));
         dphi_smear = hist_low_dphi->FindBin(DPhi_METPhoton_smear)-1;
@@ -643,11 +589,11 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 
         // translate photon pT to dilepton sum pT, and compute HTincl for photon events
         float photon_2LPt = 0;
-        //if (pt_smear>=0) if (lep_sumpt[pt_smear]->Integral()>0) photon_2LPt = lep_sumpt[pt_smear]->GetRandom();
         HTincl = HT + photon_2LPt;
-        //dpt = hist_low_dpt->FindBin(gamma_pt_smear-gamma_pt)-1;
         dpt = hist_low_dpt->FindBin(METl_smear)-1;
-        if (dpt>=0 && pt_smear>=0) if (hist_Mll_dPt[pt_smear][dpt]->Integral()>0) mll = hist_Mll_dPt[pt_smear][dpt]->GetRandom();
+        if (dpt>=0 && pt_smear>=0)
+            if (hist_Mll_dPt[pt_smear][dpt]->Integral()>0)
+                mll = hist_Mll_dPt[pt_smear][dpt]->GetRandom();
 
         //---------------------------------------------
         // compute two lepton kinematics
@@ -679,9 +625,6 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
         MT2W = ComputeMT2(lep0_4vec, lep1_4vec, met_4vec_smear, 0, 0).Compute();
         DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(lep0_4vec));
         DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(lep1_4vec));
-        /////////////////////////////////////////////////////////////////////////////////////////
-        //		cout << "DEBUGGING - leading: " << DPhi_METLepLeading_smear << " second: " << DPhi_METLepSecond_smear << endl;
-        /////////////////////////////////////////////////////////////////////////////////////////
         DR_2Lep = lep0_4vec.DeltaR(lep1_4vec);
 
         BaselineTree->Fill();

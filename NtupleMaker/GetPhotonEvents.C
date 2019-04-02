@@ -39,16 +39,6 @@ using namespace std;
 vector<string> noSampleWeight;
 vector<string> noEventWeight;
 
-void getPhotonSmearingFunction(TString file, TString histname, TH1D* hist) {
-	TFile *fData = TFile::Open( file );
-	fData->cd("");
-	TH1D* temp = (TH1D*)fData->Get(histname);
-	for (int bin=1;bin<=temp->GetNbinsX();bin++) {
-		hist->SetBinContent(bin,max(temp->GetBinContent(bin),0.));
-	}
-	fData->Close();
-}
-
 void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, int isData, string treeName = "tree_NoSys" ) {
 
     float mylumi = 1.0;
