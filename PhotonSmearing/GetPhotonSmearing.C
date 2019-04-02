@@ -275,11 +275,11 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 	//if (isData==0) infilename = TString(TString(smearingPath)+"gmc/gmc_raw.root"); 
 
 	if (isData==1){
-	  infilename = outputPath + "gdata/" + label + ".root";
+	  infilename = ntuple_path + "gdata/" + label + ".root";
 	  cout << __FILE__ << " " << __LINE__ << endl;
 	}
 	if (isData==0){
-	  infilename = outputPath + "gmc/" + label + ".root"; //"../OutputNtuples_v1.2/gmc/SinglePhoton211_merged_processed.root";
+	  infilename = ntuple_path + "gmc/" + label + ".root"; //"../OutputNtuples_v1.2/gmc/SinglePhoton211_merged_processed.root";
 	  cout << __FILE__ << " " << __LINE__ << endl;
 	}
 

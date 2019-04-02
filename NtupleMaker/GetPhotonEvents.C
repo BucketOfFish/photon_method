@@ -75,7 +75,7 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	cout << "Events in ntuple       : " << T->GetEntries() << endl;
 	cout << "Total generated events : " << _nGenEvents     << endl;
 	cout << "Output type            : " << outputName      << endl;
-	cout << "Output path            : " << outputPath      << endl;
+	cout << "Output path            : " << ntuple_path      << endl;
 	cout << "updated event weights" << endl;
 	cout << "using luminosity       : " << mylumi          << endl;
 	
@@ -437,11 +437,10 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	// add new branches
 	//-----------------------------
 
-	string outputfilename = outputPath + "/" + outputName + "/" + sampleID.c_str() + ".root";
+	string outputfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
 	cout << "Writing to output file : " << outputfilename << endl;
 	TFile   outputFile( outputfilename.c_str() , "recreate" );
 	
-	//TFile   outputFile(TString(outputPath)+"/"+TString(outputName)+"/"+TString(sampleID.c_str())+".root","recreate");
 	TTree BaselineTree("BaselineTree","baseline tree");
 	float gamma_pt = 0.;
 	float gamma_eta = 0.;

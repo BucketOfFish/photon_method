@@ -73,12 +73,12 @@ void GetPhotonReweighting(string label, string ch, int isData, int smearing_meth
 
     string  filename;
     if (isData==1) {
-        filename = TString(TString(outputPath) + "gdata/" + label + "_merged_processed"  + "_" +TString(ch) + TString(photon_tag) + ".root");
+        filename = TString(TString(ntuple_path) + "gdata/" + label + "_merged_processed"  + "_" +TString(ch) + TString(photon_tag) + ".root");
         cout << "opening data file" << endl;
     }
     //cout << "bypassing gdata dir" <<  endl;
     if (isData==0) {
-        filename = TString(TString(outputPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root");
+        filename = TString(TString(ntuple_path) + "gmc/gmc_" + TString(ch) + TString(photon_tag) + ".root");
         cout << "bypassing gdata dir" <<  endl; 
         cout << "opening MC file" << endl;
     }

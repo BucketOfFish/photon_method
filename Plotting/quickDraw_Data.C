@@ -80,14 +80,14 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
   //string VgString = "";
   //if( VgSubtracted ) VgString = "_VgSubtracted";
   
-  string Zfilename      = outputPath + "zdata/data15-16_merged_processed.root";
-  string tt_filename    = outputPath + mcdir + "ttbar_merged_processed.root";
-  string vv_filename    = outputPath + mcdir + "diboson_merged_processed.root";
-  string z_filename     = outputPath + mcdir + "Zjets_merged_processed.root";
-  //string o_filename     = outputPath + mcdir + "triboson_higgs_topOther_merged_processed.root";
-  //string gfilename      = outputPath + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
-  string gfilename      = outputPath + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
-  //string vg_filename    = outputPath + "gmc/Vgamma_merged_processed.root";
+  string Zfilename      = ntuple_path + "zdata/data15-16_merged_processed.root";
+  string tt_filename    = ntuple_path + mcdir + "ttbar_merged_processed.root";
+  string vv_filename    = ntuple_path + mcdir + "diboson_merged_processed.root";
+  string z_filename     = ntuple_path + mcdir + "Zjets_merged_processed.root";
+  //string o_filename     = ntuple_path + mcdir + "triboson_higgs_topOther_merged_processed.root";
+  //string gfilename      = ntuple_path + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
+  string gfilename      = ntuple_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
+  //string vg_filename    = ntuple_path + "gmc/Vgamma_merged_processed.root";
   
   cout << "period               " << period        << endl;
   cout << "channel              " << channel       << endl;

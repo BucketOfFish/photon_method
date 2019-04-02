@@ -111,12 +111,11 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
 	// add new branches
 	//-----------------------------
 
-	string outfilename = outputPath + "/" + outputName + "/" + sampleID.c_str() + ".root";
+	string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
 	cout << "Writing to : " << outfilename << endl;
 	
 	TFile   outputFile( outfilename.c_str() , "recreate" );
 
-	//TFile   outputFile(TString(outputPath)+"/"+TString(outputName.c_str())+"/"+TString(sampleID.c_str())+"_"+TString(ch.c_str())+".root","recreate");
 	TTree* BaselineTree;
 	BaselineTree = new TTree("BaselineTree","baseline tree");
 	AddBranches(BaselineTree, isData);

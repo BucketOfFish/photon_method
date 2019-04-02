@@ -1,14 +1,11 @@
 //-----------------------------------------------------------------------------------------------
 // this script defines the binning for photon smearing and reweighting.
-// std::string outputPath is the output folder
-// std::string smearingPath is the folder which contains the source ntuple of photon smearing function
 // bool useDeconvolution allows you to switch between deconvolution method and the standard smearing method
 //-----------------------------------------------------------------------------------------------
 
-//double lumi = 3200.;
 double lumi = 36100.;
 
-std::string outputPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/Ntuples/";
+std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/Ntuples/";
 std::string smearingPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/SmearedNtuples/";
 std::string oldSmearingPath = "/eos/atlas/atlascerngroupdisk/phys-susy/strong2L/v02-04/Ruo/PhotonMethodOutput/OutputNtuples_EWK2L/";
 std::string plotsPath = "/eos/user/m/mazhang/PhotonMethod/v1.6/Plots/";

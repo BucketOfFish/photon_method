@@ -42,8 +42,8 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
   // define filenames
   //-----------------------------------------------
 
-  string Zfilename      = outputPath + "ZMC16a/Zjets_merged_processed.root";
-  string gfilename      = outputPath + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
+  string Zfilename      = ntuple_path + "ZMC16a/Zjets_merged_processed.root";
+  string gfilename      = ntuple_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
   
   cout << "channel              " << channel       << endl;
   cout << "smearing mode        " << smearing_mode << endl;
