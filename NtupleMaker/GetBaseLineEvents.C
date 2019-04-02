@@ -36,11 +36,8 @@
 #include "../BasicSetting.C"
 #include "InputVariables.C"
 #include "OutputVariables.C"
-#include "GetDijetVariables.C"
-//#include "GetJigsawVariables.C"
-#include "MT2_ROOT.h"
+#include "../PhotonSmearing/GetDijetVariables.C"
 float beta_limit = 10.;
-#include "GetMT2Max.C"
 
 using namespace std;
 
@@ -379,134 +376,15 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
 		//---------------------------------------------
 		// compute dijet system variables, m80jj, W pT, DR(2jet), etc.
 		//---------------------------------------------
-		//if (fmod(i,1e5)==0) std::cout << i << " compute dijet variables" << std::endl;
 		z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
 		met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
 		GetDijetVariables(z_4vec,met_4vec);
 
-		//if (lep_truthPt->size()<2) continue;
-		//if (truthJet_pT->size()<2) continue;
-		//TLorentzVector met_4vec_truth;
-		//met_4vec_truth.SetPtEtaPhiM(truthMET,0,truthMET_Phi,0);
-		//float lep0_pt_truth = lep_truthPt->at(0);
-		//float lep0_eta_truth = lep_truthEta->at(0);
-		//float lep0_phi_truth = lep_truthPhi->at(0);
-		//float lep1_pt_truth = lep_truthPt->at(1);
-		//float lep1_eta_truth = lep_truthEta->at(1);
-		//float lep1_phi_truth = lep_truthPhi->at(1);
-		//if (lep0_pt_truth<0) {
-		//	lep0_pt_truth = 0;
-		//	lep0_eta_truth = 0;
-		//	lep0_phi_truth = 0;
-		//}
-		//if (lep1_pt_truth<0) {
-		//	lep1_pt_truth = 0;
-		//	lep1_eta_truth = 0;
-		//	lep1_phi_truth = 0;
-		//}
-		//float jet0_pt_truth = truthJet_pT->at(0);
-		//float jet0_eta_truth = truthJet_eta->at(0);
-		//float jet0_phi_truth = truthJet_phi->at(0);
-		//float jet1_pt_truth = truthJet_pT->at(1);
-		//float jet1_eta_truth = truthJet_eta->at(1);
-		//float jet1_phi_truth = truthJet_phi->at(1);
-		//if (jet0_pt_truth<0) {
-		//	jet0_pt_truth = 0;
-		//	jet0_eta_truth = 0;
-		//	jet0_phi_truth = 0;
-		//}
-		//if (jet1_pt_truth<0) {
-		//	jet1_pt_truth = 0;
-		//	jet1_eta_truth = 0;
-		//	jet1_phi_truth = 0;
-		//}
-		//TLorentzVector lep0_4vec_truth;
-		//lep0_4vec_truth.SetPtEtaPhiM(lep0_pt_truth,lep0_eta_truth,lep0_phi_truth,0);
-		//TLorentzVector lep1_4vec_truth;
-		//lep1_4vec_truth.SetPtEtaPhiM(lep1_pt_truth,lep1_eta_truth,lep1_phi_truth,0);
-		//TLorentzVector z_4vec_truth = lep0_4vec_truth+lep1_4vec_truth;
-		//TLorentzVector jet0_4vec_truth;
-		//jet0_4vec_truth.SetPtEtaPhiM(jet0_pt_truth,jet0_eta_truth,jet0_phi_truth,0);
-		//TLorentzVector jet1_4vec_truth;
-		//jet1_4vec_truth.SetPtEtaPhiM(jet1_pt_truth,jet1_eta_truth,jet1_phi_truth,0);
-		//TLorentzVector w_4vec_truth = jet0_4vec_truth+jet1_4vec_truth;
-		//MT2_truth = ComputeMT2(z_4vec_truth, w_4vec_truth, met_4vec_truth, 0, 0).Compute();
-		//MT2_max = GetMT2Max(MT2_truth,z_4vec_truth, w_4vec_truth, met_4vec_truth,&boost_pt,&boost_phi);
-
-		//MT2_max = GetMT2Max(mll,lep0_4vec, lep1_4vec, met_4vec,&boost_pt,&boost_phi);
-		//MT2_max = GetMT2Max(MT2W,lep0_4vec, lep1_4vec, met_4vec,&boost_pt,&boost_phi);
-
-		//---------------------------------------------
-		// prompt jet truth matching
-		//---------------------------------------------
-		// if (fmod(i,1e5)==0) std::cout << i << " prompt jet truth matching" << std::endl;
-		// TLorentzVector truthJet_4vec;
-		// TLorentzVector recoJet_4vec;
-		// jet_isPrompt->clear();
-		// for (unsigned int j1=0;j1<jet_pT->size();j1++) {
-		// 	jet_isPrompt->push_back(0);
-		// }
-		// if (doTruthJetMatch) {
-		// 	if (!isData) {
-		// 		for (unsigned int j0=0;j0<truthJet_pT->size();j0++) {
-		// 			truthJet_4vec.SetPtEtaPhiM(truthJet_pT->at(j0),truthJet_eta->at(j0),truthJet_phi->at(j0),0);
-		// 			float min_DR = 1000.;
-		// 			int reco_this = 0;
-		// 			for (unsigned int j1=0;j1<jet_pT->size();j1++) {
-		// 				recoJet_4vec.SetPtEtaPhiM(jet_pT->at(j1),jet_eta->at(j1),jet_phi->at(j1),0);
-		// 				float DR_this = truthJet_4vec.DeltaR(recoJet_4vec);
-		// 				if (DR_this<min_DR) {
-		// 					min_DR = DR_this;
-		// 					reco_this = j1;
-		// 				}
-		// 			}
-		// 			if (min_DR<0.3) jet_isPrompt->at(reco_this) = 1;
-		// 		}
-		// 	}
-		// }
-		// int njet_turth_prompt = 0;
-		// for (unsigned int j=0;j<jet_isPrompt->size();j++) {
-		// 	if (jet_isPrompt->at(j)==1) njet_turth_prompt += 1;
-		// }
-
-		//---------------------------------------------
-		// apply Jigsaw rules to find ISR jets, without knowing the flavor of the objects
-		// this is for the compressed region
-		//---------------------------------------------
-		// if (fmod(i,1e5)==0) std::cout << i << " compute jigsaw variables" << std::endl;
-		// if (doJigsaw) {
-		// 	GetJigsawVariables();
-		// }
-
-		//---------------------------------------------
-		// Fill METl histograms for smearing, and mll histograms for mll modeling
-		// hist_dPt_Pt histogram, i.e. the Z truth-reco response function
-		// as well as the hist_2LPt_Pt histogram, which translates Z pT to dilepton sum pT
-		//---------------------------------------------
-		// if (fmod(i,1e5)==0) std::cout << i << " Fill METl histograms" << std::endl;
-		// float pt37_cut = 37.;
-		// if (!isData) {
-		// 	if (Z_pt>pt37_cut && abs(MinDPhi_PhotonJet)>0.0) {
-		// 		truthMETt = truthMET*TMath::Sin(truthMET_Phi-Z_truthPhi);
-		// 		truthMETl = truthMET*TMath::Cos(truthMET_Phi-Z_truthPhi);
-		// 		int pt_truth = hist_low_pt->FindBin(Z_truthPt)-1;
-		// 		int dpt = hist_low_dpt->FindBin((Z_pt-Z_truthPt))-1;
-		// 		int dpt_dilep = hist_low_dpt->FindBin((Z_pt-Z_truthPt_dilep))-1;
-		// 		if (Z_truthPt>pt_bin[bin_size]) pt_truth = bin_size-1;
-		// 		if (pt>=0) hist_METl_Pt[pt]->Fill(METl,totalWeight);
-		// 		if (pt>=0) hist_METt_Pt[pt]->Fill(METt,totalWeight);
-		// 	}
-		// }
-
-
-		//BaselineTree.Fill();     
 		BaselineTree->Fill();     
 
 	}
 
 	std::cout << "write output..." << std::endl;
-	//T->Print();
-	//BaselineTree.Write();
 	BaselineTree->Write();
 
 	hist_cutflow_raw->Write();

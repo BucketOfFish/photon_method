@@ -666,7 +666,6 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 		//---------------------------------------------
 		TLorentzVector z_4vec;
 		z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
-		//z_4vec.SetPtEtaPhiM(gamma_pt_smear,gamma_eta,gamma_phi,mll);
 		GetDijetVariables(z_4vec,met_4vec_smear);
 
 		lep_pT->clear();

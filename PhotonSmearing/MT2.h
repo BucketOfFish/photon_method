@@ -69,62 +69,6 @@ double MT2 =  asymm_mt2_lester_bisect::get_mT2(
            desiredPrecisionOnMt2);
 
  */
-
-
-#ifndef LESTER_TESTWHETHERELLIPSESAREDISJOINT_H
-#define LESTER_TESTWHETHERELLIPSESAREDISJOINT_H
-
-#include <cmath> // for fabs( ... )
-
-/*
- * The
- *
- *i             bool ellipsesAreDisjoint(const EllipseParams & e1, const EllipseParams & e2);
- *
- * function determines whether two ellipses (not both singular) are disjoint.
- * Ellipses are assumed to be solid objects with a filled interior.
- * They are disjoint it no part of their interiors overlap.
- * Singular (in this context) is defined below.
- *
- * It uses the method of:
-
-Computer Aided Geometric Design 23 (2006) 324–350
-A new approach to characterizing the relative position of two ellipses depending on one parameter
-Fernando Etayo 1,3, Laureano Gonzalez-Vega ∗,2,3, Natalia del Rio 3
-Departamento de Matematicas, Estadistica y Computacion, Universidad de Cantabria, Spain
-Received 15 September 2004; received in revised form 2 November 2005; accepted 10 January 2006 Available online 28 February 2006
-
-pointed out to me by Gary B. Huges and Mohcine Chraibi authors of
-
- Comput Visual Sci (2012) 15:291–301 DOI 10.1007/s00791-013-0214-3
- Calculating ellipse overlap areas Gary B. Hughes · Mohcine Chraibi
-
- * Note:
- *
- * Though the paper above talks only about ellipses, from playing with some test cases, I (CGL) have conjectured that the algorithm actually works well even if the conics are parabolas provided that the axx>0&&ayy>0 test is reduced to axx>=0&&ayy>=0&&axx*ayy!=0 ... which is true is good news for the similicity of the MT2 calculator ... as the MT2 calculator will not need to distinguish these two possibilities.  In a private communication between me (CGL) and the  authors of Computer Aided Geometric Design 23 (2006) 324–350, the authors have indicated that it is not unreasonable to believe that the code does indeed work on the parabolica cases too.  This algorithm relies on that generalisation, which may be the subject of a paper (to appear) from Etayo and Gonzalez-Vega.
- *
- *
- * Definition: an ellipse is defined with respect to cartesian co-ordinates (x,y) by an equation of the form;
- *
- * xVec^T A xVec = 0                 (1)
- *
- * where xVec is a columnar three vec containing (x,y,1) and where A is a symmetric matrix having elements:
- *
- *       [ axx axy ax  ]
- *   A = [ axy ayy ay  ]
- *       [ ax  ay  a   ].
- *
- * Therfore the ellipse equation would look like:
- *
- * axx x^2 + 2 axy x y + ayy y^2 + 2 ax x + 2 ay y + a = 0.
- *
- * Note that this parametrisation has one parameter too many ... the "A"-matrix can be multiplied by a non-zero constant, and the ellipse is not changed.
- * Etayo et al's implementation REQUIRES that axx and ayy be strictly positive.
- * The implementation herein doesn't quite enforce that. The implementation herein allows axx or ayy to be non-negative .... and it is left to the user to ensure that axx and ayy are not exactly zero.
- * Note also that (1) is general enough to contain all conic sections, so it is left to the user to ensure that only values of A consistent
- * with (non-singluar) ellipses are fed into the program below.  For our purposes, an ellipse is "singular" iff coeffLamPow3 (see below) is zero.
- */
-
 namespace Lester {
 
 struct EllipseParams {
@@ -623,31 +567,3 @@ std::pair <double,double>  ben_findsols(double MT2, double px, double py, double
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
