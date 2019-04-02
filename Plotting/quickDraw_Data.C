@@ -599,7 +599,7 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
   
   //can->Print(Form("plots/quickData_Data_%s_%s_%s_%s_VgSubtraction.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
-  can->Print(Form(plotsPath + "VR_SR_studies/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+  can->Print(Form("%sVR_SR_studies/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
 
   // TFile* outfile = TFile::Open( Form("plots/quickData_Data_%s_%s_%s_%s.root",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()) , "RECREATE" );

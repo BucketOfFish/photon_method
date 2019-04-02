@@ -199,7 +199,7 @@ TH1F* GetSimpleReweightingHistograms(int isData, string label , string period, s
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
   leg->Draw();
-  can->Print(Form("plots/GetSimpleReweightingHistograms_%s_%s%s_2L.pdf",label.c_str(),channel.c_str(),smearing_mode.c_str()));
+  can->Print(Form("%sGetSimpleReweightingHistograms_%s_%s%s_2L.pdf",plotsPath.c_str(),label.c_str(),channel.c_str(),smearing_mode.c_str()));
 
   TH1F* histoZ = (TH1F*) hdata->Clone("histoZ");
   histoZ->Add( htt , -1.0 );
@@ -243,7 +243,7 @@ TH1F* GetSimpleReweightingHistograms(int isData, string label , string period, s
   hratio->SetLineColor(1);
   hratio->Draw("hist");
   
-  can2->Print(Form("plots/GetSimpleReweightingHistograms_%s_%s%s_Z_vs_g.pdf",label.c_str(),channel.c_str(),smearing_mode.c_str()));
+  can2->Print(Form("%sGetSimpleReweightingHistograms_%s_%s%s_Z_vs_g.pdf",plotsPath.c_str(),label.c_str(),channel.c_str(),smearing_mode.c_str()));
 
   cout << "histoG->Integral() " << histoG->Integral() << endl;
   cout << "histoZ->Integral() " << histoZ->Integral() << endl;
