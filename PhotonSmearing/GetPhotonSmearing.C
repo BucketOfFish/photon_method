@@ -33,7 +33,6 @@
 #include "TVirtualFFT.h"
 
 #include "../BasicSetting.C"
-#include "PhotonVariables.C"
 #include "GetDijetVariables.C"
 #include "GetSmearingHistogram.C"
 #include "GetMllHistogram.C"

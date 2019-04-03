@@ -34,6 +34,7 @@
 #include "TObject.h"
 
 #include "../BasicSetting.C"
+#include "InputVariables.C"
 #include "../PhotonSmearing/GetDijetVariables.C"
 float beta_limit = 10.;
 
@@ -55,6 +56,12 @@ void RebinHistogram(TH1D* hist) {
             else negative_yield += hist->GetBinContent(bin);
         }
     }
+}
+
+template<class variableType>
+void SetInputBranch(TTree* inputTree, string branchName, variableType variablePointer) {
+    inputTree->SetBranchStatus(branchName.c_str(), 1);
+    inputTree->SetBranchAddress(branchName.c_str(), variablePointer);
 }
 
 void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, bool isData, string treename = "outputTree" ) {
@@ -88,75 +95,83 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     //-----------------------------
     // access existing branches
     //-----------------------------
-    bool trigMatch_1L2LTrig;
-    ULong64_t EventNumber;
-    Int_t RunNumber;
-    Float_t Mu;
-    Int_t nVtx;
-    Float_t mll;
-    float MET;
-    float MET_phi;
-    float MET_softTerm;
-    float MET_softPhi;
-    //Variables for 2019 RJR analysis
-    Bool_t trigMatch_2LTrigOR;
-    float MET_loose;   
-    float MET_tight;
-    float MET_tighter;  
-    float MET_tenacious; 
-    Bool_t is2Lep2Jet;
-    Bool_t is2L2JInt;
-    int nBJet20_MV2c10_FixedCutBEff_77;
-    float mjj;
-    Double_t mll_RJ;
-    Double_t R_minH2P_minH3P;
-    Double_t RPT_HT5PP;
-    Double_t dphiVP;
-    Double_t H2PP; 
-    Double_t H5PP;
-    int nJet20;
-    Double_t minDphi; 
-    Double_t MZ;
-    Double_t NjS;
-    Double_t NjISR;
-    Double_t dphiISRI; 
-    Double_t RISR;
-    Double_t PTISR;
-    Double_t PTI;
-    Double_t PTCM;
-    Double_t MJ;
-    Bool_t is3Lep3Jet;
-    Bool_t is4Lep3Jet;
-    Double_t lept1sign_VR;
-    Double_t lept2sign_VR;
-    Double_t lept1Pt_VR;
-    Double_t lept2Pt_VR;
-    Double_t MZ_VR;
-    Double_t MJ_VR;
-    Double_t RISR_VR;
-    Double_t PTISR_VR;
-    Double_t PTI_VR;
-    Double_t PTCM_VR;
-    Double_t dphiISRI_VR;
-    //-----------------------------
-    float DPhi_METJetLeading; //might need to change back to Float_t
-    float DPhi_METJetSecond; //might need to change back to Float_t
-    float HT;
-    Float_t Z_pt;
-    Int_t jet_n;
-    Int_t bjet_n;
-    Int_t nLep_signal;
-    Int_t nLep_base;
-    std::vector<int>*    lepFlavor = new std::vector<int>(10);
-    std::vector<int>*    lepCharge = new std::vector<int>(10);
-    std::vector<int>*    lepSignal = new std::vector<int>(10);
-    std::vector<float>* lep_pT = new std::vector<float>(10);
-    std::vector<float>* lep_eta = new std::vector<float>(10);
-    std::vector<float>* lep_phi = new std::vector<float>(10);
-    std::vector<float>* jet_pT = new std::vector<float>(10);
-    std::vector<float>* jet_eta = new std::vector<float>(10);
-    std::vector<float>* jet_phi = new std::vector<float>(10);
-    std::vector<float>* jet_m = new std::vector<float>(10);
+    inputTree->SetBranchStatus("*", 0);
+    bool trigMatch_1L2LTrig; SetInputBranch(inputTree, "trigMatch_1L2LTrig", &trigMatch_1L2LTrig);
+    ULong64_t EventNumber; SetInputBranch(inputTree, "EventNumber", &EventNumber);
+    Int_t RunNumber; SetInputBranch(inputTree, "RunNumber", &RunNumber);
+    Float_t Mu; SetInputBranch(inputTree, "mu", &Mu);
+    Int_t nVtx; SetInputBranch(inputTree, "nVtx", &nVtx);
+    Float_t mll; SetInputBranch(inputTree, "mll", &mll);
+    float MET; SetInputBranch(inputTree, "met_Et", &MET);
+    float MET_phi; SetInputBranch(inputTree, "met_Phi", &MET_phi);
+    float MET_softTerm; SetInputBranch(inputTree, "TST_Et", &MET_softTerm);
+    float MET_softPhi; SetInputBranch(inputTree, "TST_Phi", &MET_softPhi);
+    Bool_t trigMatch_2LTrigOR; SetInputBranch(inputTree, "trigMatch_2LTrigOR", &trigMatch_2LTrigOR);
+    float MET_loose; SetInputBranch(inputTree, "met_Et_loose", &MET_loose);
+    float MET_tight; SetInputBranch(inputTree, "met_Et_tight", &MET_tight);
+    float MET_tighter; SetInputBranch(inputTree, "met_Et_tighter", &MET_tighter);
+    float MET_tenacious; SetInputBranch(inputTree, "met_Et_tenacious", &MET_tenacious);
+    Bool_t is2Lep2Jet; SetInputBranch(inputTree, "is2Lep2Jet", &is2Lep2Jet);
+    Bool_t is2L2JInt; SetInputBranch(inputTree, "is2L2JInt", &is2L2JInt);
+    int nBJet20_MV2c10_FixedCutBEff_77; SetInputBranch(inputTree, "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77);
+    float mjj; SetInputBranch(inputTree, "mjj", &mjj);
+    Double_t mll_RJ; SetInputBranch(inputTree, "mll_RJ", &mll_RJ);
+    Double_t R_minH2P_minH3P; SetInputBranch(inputTree, "R_minH2P_minH3P", &R_minH2P_minH3P);
+    Double_t RPT_HT5PP; SetInputBranch(inputTree, "RPT_HT5PP", &RPT_HT5PP);
+    Double_t dphiVP; SetInputBranch(inputTree, "dphiVP", &dphiVP);
+    Double_t H2PP; SetInputBranch(inputTree, "H2PP", &H2PP);
+    Double_t H5PP; SetInputBranch(inputTree, "H5PP", &H5PP);
+    int nJet20; SetInputBranch(inputTree, "nJet20", &nJet20);
+    Double_t minDphi; SetInputBranch(inputTree, "minDphi", &minDphi);
+    Double_t MZ; SetInputBranch(inputTree, "MZ", &MZ);
+    Double_t NjS; SetInputBranch(inputTree, "NjS", &NjS);
+    Double_t NjISR; SetInputBranch(inputTree, "NjISR", &NjISR);
+    Double_t dphiISRI; SetInputBranch(inputTree, "dphiISRI", &dphiISRI);
+    Double_t RISR; SetInputBranch(inputTree, "RISR", &RISR);
+    Double_t PTISR; SetInputBranch(inputTree, "PTISR", &PTISR);
+    Double_t PTI; SetInputBranch(inputTree, "PTI", &PTI);
+    Double_t PTCM; SetInputBranch(inputTree, "PTCM", &PTCM);
+    Double_t MJ; SetInputBranch(inputTree, "MJ", &MJ);
+    Bool_t is3Lep3Jet; SetInputBranch(inputTree, "is3Lep3Jet", &is3Lep3Jet);
+    Bool_t is4Lep3Jet; SetInputBranch(inputTree, "is4Lep3Jet", &is4Lep3Jet);
+    Double_t lept1sign_VR; SetInputBranch(inputTree, "lept1sign_VR", &lept1sign_VR);
+    Double_t lept2sign_VR; SetInputBranch(inputTree, "lept2sign_VR", &lept2sign_VR);
+    Double_t lept1Pt_VR; SetInputBranch(inputTree, "lept1Pt_VR", &lept1Pt_VR);
+    Double_t lept2Pt_VR; SetInputBranch(inputTree, "lept2Pt_VR", &lept2Pt_VR);
+    Double_t MZ_VR; SetInputBranch(inputTree, "MZ_VR", &MZ_VR);
+    Double_t MJ_VR; SetInputBranch(inputTree, "MJ_VR", &MJ_VR);
+    Double_t RISR_VR; SetInputBranch(inputTree, "RISR_VR", &RISR_VR);
+    Double_t PTISR_VR; SetInputBranch(inputTree, "PTISR_VR", &PTISR_VR);
+    Double_t PTI_VR; SetInputBranch(inputTree, "PTI_VR", &PTI_VR);
+    Double_t PTCM_VR; SetInputBranch(inputTree, "PTCM_VR", &PTCM_VR);
+    Double_t dphiISRI_VR; SetInputBranch(inputTree, "dphiISRI_VR", &dphiISRI_VR);
+    float DPhi_METJetLeading; SetInputBranch(inputTree, "DPhiJ1Met", &DPhi_METJetLeading);
+    float DPhi_METJetSecond; SetInputBranch(inputTree, "DPhiJ2Met", &DPhi_METJetSecond);
+    float HT; SetInputBranch(inputTree, "Ht30", &HT);
+    Float_t Z_pt; SetInputBranch(inputTree, "Ptll", &Z_pt);
+    Int_t jet_n; SetInputBranch(inputTree, "nJet30", &jet_n);
+    Int_t bjet_n; SetInputBranch(inputTree, "nBJet30_MV2c10_FixedCutBEff_77", &bjet_n);
+    Int_t nLep_signal; SetInputBranch(inputTree, "nLep_signal", &nLep_signal);
+    Int_t nLep_base; SetInputBranch(inputTree, "nLep_base", &nLep_base);
+    //std::vector<int>* lepFlavor = new std::vector<int>(10); SetInputBranch(inputTree, "lepFlavor", &lepFlavor);
+    //std::vector<int>* lepCharge = new std::vector<int>(10); SetInputBranch(inputTree, "lepCharge", &lepCharge);
+    //std::vector<float>* lep_pT = new std::vector<float>(10); SetInputBranch(inputTree, "lepPt", &lep_pT);
+    //std::vector<float>* lep_eta = new std::vector<float>(10); SetInputBranch(inputTree, "lepEta", &lep_eta);
+    //std::vector<float>* lep_phi = new std::vector<float>(10); SetInputBranch(inputTree, "lepPhi", &lep_phi);
+    //std::vector<float>* jet_pT = new std::vector<float>(10); SetInputBranch(inputTree, "jetPt", &jet_pT);
+    //std::vector<float>* jet_eta = new std::vector<float>(10); SetInputBranch(inputTree, "jetEta", &jet_eta);
+    //std::vector<float>* jet_phi = new std::vector<float>(10); SetInputBranch(inputTree, "jetPhi", &jet_phi);
+    //std::vector<float>* jet_m = new std::vector<float>(10); SetInputBranch(inputTree, "jetM", &jet_m);
+    SetInputBranch(inputTree, "lepFlavor", &lepFlavor);
+    SetInputBranch(inputTree, "lepCharge", &lepCharge);
+    SetInputBranch(inputTree, "lepPt", &lep_pT);
+    SetInputBranch(inputTree, "lepEta", &lep_eta);
+    SetInputBranch(inputTree, "lepPhi", &lep_phi);
+    SetInputBranch(inputTree, "jetPt", &jet_pT);
+    SetInputBranch(inputTree, "jetEta", &jet_eta);
+    SetInputBranch(inputTree, "jetPhi", &jet_phi);
+    SetInputBranch(inputTree, "jetM", &jet_m);
+
     Double_t genWeight;
     Double_t eventWeight;
     Double_t leptonWeight;
@@ -164,164 +179,14 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     Double_t bTagWeight;
     Double_t pileupWeight;
     Double_t FFWeight;
-
-    inputTree->SetBranchStatus("*", 0);
-    inputTree->SetBranchStatus("EventNumber"            ,1);
-    inputTree->SetBranchStatus("trigMatch_1L2LTrig"     ,1);
-    inputTree->SetBranchStatus("RunNumber"              ,1);
-    inputTree->SetBranchStatus("mu"                     ,1);
-    inputTree->SetBranchStatus("nVtx"                   ,1);
-    inputTree->SetBranchStatus("mll"                    ,1);
-    inputTree->SetBranchStatus("met_Et"                 ,1);
-    inputTree->SetBranchStatus("met_Et_loose"           ,1);
-    inputTree->SetBranchStatus("met_Et_tight"           ,1);
-    inputTree->SetBranchStatus("met_Et_tighter"         ,1);
-    inputTree->SetBranchStatus("met_Et_tenacious"       ,1);
-    // 2019 RJR analysis variables -------------------------
-    inputTree->SetBranchStatus("is2Lep2Jet"       ,1);
-    inputTree->SetBranchStatus("is2L2JInt"       ,1);
-    inputTree->SetBranchStatus("nBJet20_MV2c10_FixedCutBEff_77"       ,1);
-    inputTree->SetBranchStatus("mjj"       ,1);
-    inputTree->SetBranchStatus("mll_RJ"       ,1);
-    inputTree->SetBranchStatus("R_minH2P_minH3P"       ,1);
-    inputTree->SetBranchStatus("RPT_HT5PP"       ,1);
-    inputTree->SetBranchStatus("dphiVP"       ,1);
-    inputTree->SetBranchStatus("H2PP"       ,1);
-    inputTree->SetBranchStatus("H5PP"       ,1);
-    inputTree->SetBranchStatus("nJet20"       ,1);
-    inputTree->SetBranchStatus("minDphi"       ,1);
-    inputTree->SetBranchStatus("MZ"       ,1);
-    inputTree->SetBranchStatus("NjS"       ,1);
-    inputTree->SetBranchStatus("NjISR"       ,1);
-    inputTree->SetBranchStatus("dphiISRI"       ,1);
-    inputTree->SetBranchStatus("RISR"       ,1);
-    inputTree->SetBranchStatus("PTISR"       ,1);
-    inputTree->SetBranchStatus("PTI"       ,1);
-    inputTree->SetBranchStatus("PTCM"       ,1);
-    inputTree->SetBranchStatus("MJ"       ,1);
-    inputTree->SetBranchStatus("is3Lep3Jet"       ,1);
-    inputTree->SetBranchStatus("is4Lep3Jet"       ,1);
-    inputTree->SetBranchStatus("lept1sign_VR"       ,1);
-    inputTree->SetBranchStatus("lept2sign_VR"       ,1);
-    inputTree->SetBranchStatus("lept1Pt_VR"       ,1);
-    inputTree->SetBranchStatus("lept2Pt_VR"       ,1);
-    inputTree->SetBranchStatus("MZ_VR"       ,1);
-    inputTree->SetBranchStatus("MJ_VR"       ,1);
-    inputTree->SetBranchStatus("RISR_VR"       ,1);
-    inputTree->SetBranchStatus("PTISR_VR"       ,1);
-    inputTree->SetBranchStatus("PTI_VR"       ,1);
-    inputTree->SetBranchStatus("PTCM_VR"       ,1);
-    inputTree->SetBranchStatus("dphiISRI_VR"       ,1);
-    //------------------------------------------------------
-    inputTree->SetBranchStatus("met_Phi"                ,1);
-    inputTree->SetBranchStatus("TST_Et"                 ,1); 
-    inputTree->SetBranchStatus("TST_Phi"                ,1); 
-    inputTree->SetBranchStatus("DPhiJ1Met"              ,1);
-    inputTree->SetBranchStatus("DPhiJ2Met"              ,1);
-    inputTree->SetBranchStatus("Ht30"                   ,1);
-    inputTree->SetBranchStatus("Ptll"                   ,1);
-    inputTree->SetBranchStatus("nBJet30_MV2c10_FixedCutBEff_77"        ,1);
-    inputTree->SetBranchStatus("nLep_signal"            ,1);
-    inputTree->SetBranchStatus("nLep_base"              ,1);
-    inputTree->SetBranchStatus("lepSignal"              ,1);
-    inputTree->SetBranchStatus("lepFlavor"              ,1);
-    inputTree->SetBranchStatus("lepCharge"              ,1);
-    inputTree->SetBranchStatus("lepPt"                  ,1);
-    inputTree->SetBranchStatus("lepEta"                 ,1);
-    inputTree->SetBranchStatus("lepPhi"                 ,1);
-    inputTree->SetBranchStatus("nJet30"                 ,1);
-    inputTree->SetBranchStatus("jetPt"                  ,1);
-    inputTree->SetBranchStatus("jetEta"                 ,1);
-    inputTree->SetBranchStatus("jetPhi"                 ,1);
-    inputTree->SetBranchStatus("jetM"                   ,1);
-
     if (!isData) {
-        inputTree->SetBranchStatus("genWeight"          ,1);
-        inputTree->SetBranchStatus("eventWeight"        ,1);
-        inputTree->SetBranchStatus("leptonWeight"       ,1);
-        inputTree->SetBranchStatus("jvtWeight"          ,1);
-        inputTree->SetBranchStatus("bTagWeight"         ,1);
-        inputTree->SetBranchStatus("pileupWeight"       ,1);
-        inputTree->SetBranchStatus("FFWeight"           ,1);
-    }
-
-    inputTree->SetBranchAddress("trigMatch_1L2LTrig"    ,&trigMatch_1L2LTrig      );
-    inputTree->SetBranchAddress("EventNumber"           ,&EventNumber             );
-    inputTree->SetBranchAddress("RunNumber"             ,&RunNumber               );
-    inputTree->SetBranchAddress("mu"                    ,&Mu                      );
-    inputTree->SetBranchAddress("nVtx"                  ,&nVtx                    );
-    inputTree->SetBranchAddress("mll"                   ,&mll                     );
-    // 2019 RJR analysis variables -------------------------
-    inputTree->SetBranchAddress("met_Et"                ,&MET                     );
-    inputTree->SetBranchAddress("met_Et_loose"          ,&MET_loose               );
-    inputTree->SetBranchAddress("met_Et_tight"          ,&MET_tight               );
-    inputTree->SetBranchAddress("met_Et_tighter"        ,&MET_tighter             );
-    inputTree->SetBranchAddress("met_Et_tenacious"      ,&MET_tenacious           );
-    inputTree->SetBranchAddress("trigMatch_2LTrigOR"         ,&trigMatch_2LTrigOR          );
-    inputTree->SetBranchAddress("is2Lep2Jet"         ,&is2Lep2Jet         );
-    inputTree->SetBranchAddress("is2L2JInt"         ,&is2L2JInt         );
-    inputTree->SetBranchAddress("nBJet20_MV2c10_FixedCutBEff_77"  ,&nBJet20_MV2c10_FixedCutBEff_77 );
-    inputTree->SetBranchAddress("mjj"         ,&mjj          );
-    inputTree->SetBranchAddress("mll_RJ"          ,&mll_RJ          );
-    inputTree->SetBranchAddress("R_minH2P_minH3P"          ,&R_minH2P_minH3P           );
-    inputTree->SetBranchAddress("RPT_HT5PP"              ,&RPT_HT5PP               );
-    inputTree->SetBranchAddress("dphiVP"          ,&dphiVP            );
-    inputTree->SetBranchAddress("H2PP"           ,&H2PP           );
-    inputTree->SetBranchAddress("H5PP"           ,&H5PP           );
-    inputTree->SetBranchAddress("nJet20"             ,&nJet20            );
-    inputTree->SetBranchAddress("minDphi"          ,&minDphi           );
-    inputTree->SetBranchAddress("MZ"         ,&MZ          );
-    inputTree->SetBranchAddress("NjS"         ,&NjS        );
-    inputTree->SetBranchAddress("NjISR"           ,&NjISR           );
-    inputTree->SetBranchAddress("dphiISRI"           ,&dphiISRI           );
-    inputTree->SetBranchAddress("RISR"          ,&RISR           );
-    inputTree->SetBranchAddress("PTISR"          ,&PTISR           );
-    inputTree->SetBranchAddress("PTI"         ,&PTI          );
-    inputTree->SetBranchAddress("PTCM"         ,&PTCM          );
-    inputTree->SetBranchAddress("MJ",            &MJ   );
-    inputTree->SetBranchAddress("is3Lep3Jet",           &is3Lep3Jet  );
-    inputTree->SetBranchAddress("is4Lep3Jet",           &is4Lep3Jet  );
-    inputTree->SetBranchAddress("lept1sign_VR",           &lept1sign_VR  );
-    inputTree->SetBranchAddress("lept2sign_VR",           &lept2sign_VR   );
-    inputTree->SetBranchAddress("lept1Pt_VR",           &lept1Pt_VR );
-    inputTree->SetBranchAddress("lept2Pt_VR",            &lept2Pt_VR );
-    inputTree->SetBranchAddress("MZ_VR",                  &MZ_VR );
-    inputTree->SetBranchAddress("MJ_VR",                 &MJ_VR );
-    inputTree->SetBranchAddress("RISR_VR",           &RISR_VR  );
-    inputTree->SetBranchAddress("PTISR_VR",           &PTISR_VR  );
-    inputTree->SetBranchAddress("PTI_VR",           &PTI_VR  );
-    inputTree->SetBranchAddress("PTCM_VR",           &PTCM_VR   );
-    inputTree->SetBranchAddress("dphiISRI_VR",           &dphiISRI_VR );
-    //------------------------------------------------------
-    inputTree->SetBranchAddress("met_Phi"               ,&MET_phi                 );
-    inputTree->SetBranchAddress("TST_Et"                ,&MET_softTerm            );
-    inputTree->SetBranchAddress("TST_Phi"               ,&MET_softPhi             );
-    inputTree->SetBranchAddress("DPhiJ1Met"             ,&DPhi_METJetLeading      );
-    inputTree->SetBranchAddress("DPhiJ2Met"             ,&DPhi_METJetSecond       );
-    inputTree->SetBranchAddress("Ht30"                  ,&HT                      );
-    inputTree->SetBranchAddress("Ptll"                  ,&Z_pt                    );
-    inputTree->SetBranchAddress("nBJet30_MV2c10_FixedCutBEff_77" ,&bjet_n                  );
-    inputTree->SetBranchAddress("nLep_signal"           ,&nLep_signal             );
-    inputTree->SetBranchAddress("nLep_base"             ,&nLep_base               );
-    inputTree->SetBranchAddress("lepPt"                 ,&lep_pT                  );
-    inputTree->SetBranchAddress("lepFlavor"             ,&lepFlavor               );
-    inputTree->SetBranchAddress("lepCharge"             ,&lepCharge               );
-    inputTree->SetBranchAddress("lepEta"                ,&lep_eta                 );
-    inputTree->SetBranchAddress("lepPhi"                ,&lep_phi                 );
-    inputTree->SetBranchAddress("nJet30"                ,&jet_n                   );
-    inputTree->SetBranchAddress("jetPt"                 ,&jet_pT                  );
-    inputTree->SetBranchAddress("jetEta"                ,&jet_eta                 );
-    inputTree->SetBranchAddress("jetPhi"                ,&jet_phi                 );
-    inputTree->SetBranchAddress("jetM"                  ,&jet_m                   );
-
-    if (!isData) {
-        inputTree->SetBranchAddress("genWeight"         ,&genWeight     );
-        inputTree->SetBranchAddress("eventWeight"       ,&eventWeight   );
-        inputTree->SetBranchAddress("leptonWeight"      ,&leptonWeight  );
-        inputTree->SetBranchAddress("jvtWeight"         ,&jvtWeight     );
-        inputTree->SetBranchAddress("bTagWeight"        ,&bTagWeight    );
-        inputTree->SetBranchAddress("pileupWeight"      ,&pileupWeight  );
-        inputTree->SetBranchAddress("FFWeight"          ,&FFWeight      );
+        SetInputBranch(inputTree, "genWeight", &genWeight);
+        SetInputBranch(inputTree, "eventWeight", &eventWeight);
+        SetInputBranch(inputTree, "leptonWeight", &leptonWeight);
+        SetInputBranch(inputTree, "jvtWeight", &jvtWeight);
+        SetInputBranch(inputTree, "bTagWeight", &bTagWeight);
+        SetInputBranch(inputTree, "pileupWeight", &pileupWeight);
+        SetInputBranch(inputTree, "FFWeight", &FFWeight);
     }
 
     //-----------------------------
@@ -335,74 +200,6 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
 
     TTree* BaselineTree;
     BaselineTree = new TTree("BaselineTree","baseline tree");
-
-    int    channel = 0;
-    int    is_OS   = 0;
-    float  Z_eta   = 0.0;
-    float  Z_phi   = 0.0;
-    int    el_n    = 0;
-    int    mu_n    = 0;
-    float MET_rel = 0.;
-    float METl = 0.;
-    float METt = 0.;
-    float DPhi_2Lep = 0.;
-    float DR_2Lep = 0.;
-    float DR_W80jj = 0.;
-    float DR_Wmin2Jet = 0.;
-    float DR_J0J1 = 0.;
-    float DR_J1J2 = 0.;
-    float DPhi_METPhoton = 0.;
-    float DPhi_METLepLeading = 0.;
-    float DPhi_METLepSecond = 0.;
-    float DPhi_METLepMin = 0.;
-    float DPhi_TSTLepLeading = 0.;
-    float DPhi_TSTLepSecond = 0.;
-    float DPhi_TSTLepMin = 0.;
-    float MinDR_Lep0Jet = 0.;
-    float MinDR_Lep1Jet = 0.;
-    float MinDR_PhotonJet = 0.;
-    float MinDPhi_PhotonJet = 0.;
-    float mj0j1 = 0.;
-    float mj1j2 = 0.;
-    float m80jj = 0.;
-    float W80_pt = 0.;
-    float DPhi_METW80 = 0.;
-    float DPhi_W80Z = 0.;
-    float mWmin = 0.;
-    float Wmin_pt = 0.;
-    float Wmin_eta = 0.;
-    float DPhi_METWmin = 0.;
-    float DPhi_WminZ = 0.;
-    float W01_pt = 0.;
-    float DPhi_METW01 = 0.;
-    float DPhi_W01Z = 0.;
-    double totalWeight = 0.;
-    float FS_ee_weight = 0.;
-    float FS_mm_weight = 0.;
-    std::vector<int>* jet_isPrompt = new std::vector<int>(10);
-    // following are variables from Jigsaw
-    std::vector<int>* lep_MetHsph = new std::vector<int>(10);
-    std::vector<int>* jet_MetHsph = new std::vector<int>(10);
-    float DPhi_METISR = 0.;
-    float ISR_pT = 0.;
-    float ISR_eta = 0.;
-    float ISR_phi = 0.;
-    float Jigsaw_ZMass = 0.;
-    float Jigsaw_WMass = 0.;
-    float DPhi_METJigsawW = 0.;
-    // following are variables from dijet pair
-    std::vector<int>* jet_isW80 = new std::vector<int>(10);
-    std::vector<int>* jet_isW01 = new std::vector<int>(10);
-    std::vector<int>* jet_isW12 = new std::vector<int>(10);
-    std::vector<int>* jet_isWmin = new std::vector<int>(10);
-    std::vector<int>* jet_isWminJ0 = new std::vector<int>(10);
-    std::vector<int>* jet_isWminJ1 = new std::vector<int>(10);
-    float DPhi_METNonWJet = 0.;
-    float NonWJet_pT = 0.;
-    float DPhi_METNonW12Jet = 0.;
-    float NonW12Jet_pT = 0.;
-    float DPhi_METNonWminJet = 0.;
-    float NonWminJet_pT = 0.;
 
     TH1D* hist_cutflow_raw = new TH1D("hist_cutflow_raw","",8,0,8);
     TH1D* hist_cutflow_weight = new TH1D("hist_cutflow_weight","",8,0,8);

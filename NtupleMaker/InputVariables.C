@@ -1,0 +1,9 @@
+std::vector<int>* lepFlavor = new std::vector<int>(10);
+std::vector<int>* lepCharge = new std::vector<int>(10);
+std::vector<float>* lep_pT = new std::vector<float>(10);
+std::vector<float>* lep_eta = new std::vector<float>(10);
+std::vector<float>* lep_phi = new std::vector<float>(10);
+std::vector<float>* jet_pT = new std::vector<float>(10);
+std::vector<float>* jet_eta = new std::vector<float>(10);
+std::vector<float>* jet_phi = new std::vector<float>(10);
+std::vector<float>* jet_m = new std::vector<float>(10);
