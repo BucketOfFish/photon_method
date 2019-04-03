@@ -33,11 +33,13 @@
 #include "TVirtualFFT.h"
 
 #include "../BasicSetting.C"
+#include "../NtupleMaker/InputVariables.C"
+#include "../CommonFunctions/CommonFunctions.C"
 #include "GetDijetVariables.C"
 #include "GetSmearingHistogram.C"
 #include "GetMllHistogram.C"
 #include "GetIndividualLeptonInfo.C"
-#include "MT2_ROOT.h"
+#include "MT2.h"
 
 using namespace std;
 
@@ -96,16 +98,16 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     cout << "smearing method " << smearing_method << endl;
 
     //-----------------------------
-    // prepare lep pT functions, to convert photon pT to dilepton sum pT
+    // get and rebin mll histograms
     //-----------------------------
 
     std::cout << "Prepare Mll histograms..." << std::endl;
 
     GetMllHistogram(ch,period); // fill histogram hist_Mll_dPt
 
-    for (int bin0=0;bin0<bin_size;bin0++) {
-        for (int bin1=0;bin1<dpt_bin_size;bin1++) {
-            int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1],0);
+    for (int bin0=0; bin0<bin_size; bin0++) {
+        for (int bin1=0; bin1<dpt_bin_size; bin1++) {
+            int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1], 0);
         }
     }
 
@@ -114,18 +116,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     //-----------------------------
 
     std::cout << "Prepare smearing histograms..." << std::endl;
-
-    if (smearing_method == 0) photon_tag = "_NoSmear";
-    if (smearing_method == 1) photon_tag = "_McSmear";
-    if (smearing_method == 2) photon_tag = "_DataSmear";
-    if (smearing_method == 3) photon_tag = "_TruthSmear";
-    if (smearing_method == 4) photon_tag = "_McSmear";
-    if (smearing_method == 5) photon_tag = "_DataSmear";
-
     cout << "smearing_method    " << smearing_method << endl;
-    cout << "photon_tag         " << photon_tag      << endl;
 
-    TSpectrum pfinder;
     TH1D* g_resp[bin_size];
     TH1D* z_resp[bin_size];
     TH1D* smear_raw[bin_size];
@@ -133,8 +125,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     TH1D* smear_fft_im[bin_size];
     TH1D* smear_fft_amp[bin_size];
     TH1D* smear_final[bin_size];
-    TH1D* smear_final_phi[bin_size];
     float shift[bin_size];
+
     TH1D* g_metl_smear[bin_size];
     TH1D* g_metl_smear_2j[bin_size];
     for (int bin=0;bin<bin_size;bin++) {
@@ -144,10 +136,10 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
         g_metl_smear_2j[bin]->SetStats(0);
     }
 
-
-    GetSmearingHistogram(ch, lumi, photon_tag,period,smearing_method);
+    GetSmearingHistogram(ch, lumi, period, smearing_method);
 
     if (smearing_method >= 0) {  // if you want to use the deconvolution method to smear photon events. To enable this method, set "bool useDeconvolution = true" in BasicSetting.C
+        TSpectrum pfinder;
         for (int bin=0;bin<bin_size;bin++) {
             int rebin = 1;
             rebin = RebinHistogram(z_metl[bin],0);
@@ -175,18 +167,9 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
             smear_fft_im[bin] = new TH1D(TString("smear_fft_im_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
             smear_fft_amp[bin] = new TH1D(TString("smear_fft_amp_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
             for (int i=0;i<newbin;i++) {
-                if (smearing_method == 3) {
-                    cout << "smearing_method 3 not yet implemented, quitting!" << endl;
-                    exit(0);
-                    // z_smear_in[i] = max(z_dpt[bin]->GetBinContent(i+1),0.);
-                    // if (i<newbin/2) g_smear_in[i] = max(g_dpt[bin]->GetBinContent(i+1+newbin/2),0.);
-                    // else g_smear_in[i] = 0.;
-                }
-                else {
-                    z_smear_in[i] = max(z_metl[bin]->GetBinContent(i+1),0.);
-                    if (i<newbin/2) g_smear_in[i] = max(g_metl[bin]->GetBinContent(i+1+newbin/2),0.);
-                    else g_smear_in[i] = 0.;
-                }
+                z_smear_in[i] = max(z_metl[bin]->GetBinContent(i+1),0.);
+                if (i<newbin/2) g_smear_in[i] = max(g_metl[bin]->GetBinContent(i+1+newbin/2),0.);
+                else g_smear_in[i] = 0.;
                 z_resp_in[i] = max(z_metl[bin]->GetBinContent(i+1),0.);
                 g_resp_in[i] = max(g_metl[bin]->GetBinContent(i+1),0.);
                 if (i<newbin/2) j_resp_in[i] = max(z_jetmetl[bin]->GetBinContent(i+1+newbin/2),0.);
@@ -220,6 +203,7 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
             shift[bin] = -g_metl[bin]->GetMean();
         }
     }
+
     for (int bin=0;bin<bin_size;bin++) {
         smear_final[bin] = new TH1D(TString("smear_final_")+TString::Itoa(bin,10),"",500,-1000,1000);
         for (int i=0;i<500;i++) {
@@ -247,20 +231,24 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     cout << "Events in ntuple       : " << T->GetEntries() << endl;
 
     //---------------------------------------------
-    // open file, get Tree and EventCountHist
+    // create smeared output file
     //---------------------------------------------
 
     TH1::SetDefaultSumw2();
+
+    if (smearing_method == 0) photon_tag = "_NoSmear";
+    if (smearing_method == 4) photon_tag = "_McSmear";
+    if (smearing_method == 5) photon_tag = "_DataSmear";
 
     string outfilename;
     if (isData==1) outfilename = TString(TString(smearingPath)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
     if (isData==0) outfilename = TString(TString(smearingPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
 
-    TFile*  f              = new TFile(outfilename.c_str(),"recreate");          
-    TTree* BaselineTree = new TTree("BaselineTree","baseline tree");
+    TFile* f = new TFile(outfilename.c_str(), "recreate");          
+    TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
 
     cout << endl;
-    cout << "Create file           : " << outfilename        << endl;
+    cout << "Create file           : " << outfilename << endl;
 
     //-----------------------------
     // access existing branches
@@ -343,93 +331,93 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     // add new branches
     //-----------------------------
 
-    TBranch *b_totalWeight = BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
-    TBranch *b_HT = BaselineTree->Branch("HT",&HT,"HT/F");
-    TBranch *b_jet_n = BaselineTree->Branch("jet_n",&jet_n,"jet_n/I");
-    TBranch *b_bjet_n = BaselineTree->Branch("bjet_n",&bjet_n,"bjet_n/I");
-    TBranch *b_lep_n = BaselineTree->Branch("lep_n",&lep_n,"lep_n/I");
-    TBranch *b_mll = BaselineTree->Branch("mll",&mll,"mll/F");
-    TBranch *b_gamma_pt = BaselineTree->Branch("gamma_pt",&gamma_pt,"gamma_pt/F");
-    TBranch *b_gamma_pt_smear = BaselineTree->Branch("Z_pt",&gamma_pt_smear,"Z_pt/F");
-    TBranch *b_gamma_phi_smear = BaselineTree->Branch("Z_phi",&gamma_phi_smear,"Z_phi/F");
-    TBranch *b_gamma_eta_smear = BaselineTree->Branch("Z_eta",&gamma_eta,"Z_eta/F");
+    BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
+    BaselineTree->Branch("HT",&HT,"HT/F");
+    BaselineTree->Branch("jet_n",&jet_n,"jet_n/I");
+    BaselineTree->Branch("bjet_n",&bjet_n,"bjet_n/I");
+    BaselineTree->Branch("lep_n",&lep_n,"lep_n/I");
+    BaselineTree->Branch("mll",&mll,"mll/F");
+    BaselineTree->Branch("gamma_pt",&gamma_pt,"gamma_pt/F");
+    BaselineTree->Branch("Z_pt",&gamma_pt_smear,"Z_pt/F");
+    BaselineTree->Branch("Z_phi",&gamma_phi_smear,"Z_phi/F");
+    BaselineTree->Branch("Z_eta",&gamma_eta,"Z_eta/F");
     //-----------EDIT HERE TO ADD VARS FOR 2019 RJR ANALYSIS
-    TBranch *b_MET_smear = BaselineTree->Branch("MET",&MET_smear,"MET/F");
-    TBranch *b_MET_loose = BaselineTree->Branch("MET_loose",&MET_loose,"MET_loose/F");
-    TBranch *b_MET_tight = BaselineTree->Branch("MET_tight",&MET_tight,"MET_tight/F");
-    TBranch *b_MET_tighter = BaselineTree->Branch("MET_tighter",&MET_tighter,"MET_tighter/F");
-    TBranch *b_MET_tenacious = BaselineTree->Branch("MET_tenacious",&MET_tenacious,"MET_tenacious/F");
-    TBranch *b_is2Lep2Jet =BaselineTree->Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
-    TBranch *b_is2L2JInt =BaselineTree->Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
-    TBranch *b_nBJet20_MV2c10_FixedCutBEff_77 =BaselineTree->Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
-    TBranch *b_mjj =BaselineTree->Branch("mjj",&mjj,"mjj/F");
-    TBranch *b_mll_RJ =BaselineTree->Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
-    TBranch *b_R_minH2P_minH3P =BaselineTree->Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
-    TBranch *b_RPT_HT5PP =BaselineTree->Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
-    TBranch *b_dphiVP =BaselineTree->Branch("dphiVP",&dphiVP,"dphiVP/F");
-    TBranch *b_H2PP =BaselineTree->Branch("H2PP",&H2PP,"H2PP/F");
-    TBranch *b_H5PP =BaselineTree->Branch("H5PP",&H5PP,"H5PP/F");
-    TBranch *b_nJet20 =BaselineTree->Branch("nJet20",&nJet20,"nJet20/I");
-    TBranch *b_minDphi =BaselineTree->Branch("minDphi",&minDphi,"minDphi/F");
-    TBranch *b_MZ =BaselineTree->Branch("MZ",&MZ,"MZ/F");
-    TBranch *b_NjS =BaselineTree->Branch("NjS",&NjS,"NjS/I");
-    TBranch *b_NjISR =BaselineTree->Branch("NjISR",&NjISR,"NjISR/I");
-    TBranch *b_dphiISRI =BaselineTree->Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
-    TBranch *b_RISR =BaselineTree->Branch("RISR",&RISR,"RISR/F");
-    TBranch *b_PTISR =BaselineTree->Branch("PTISR",&PTISR,"PTISR/F");
-    TBranch *b_PTI =BaselineTree->Branch("PTI",&PTI,"PTI/F");
-    TBranch *b_PTCM =BaselineTree->Branch("PTCM",&PTCM,"PTCM/F");
-    TBranch *b_MJ =BaselineTree->Branch("MJ",&MJ,"MJ/F");
-    TBranch *b_is3Lep3Jet =BaselineTree->Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
-    TBranch *b_is4Lep3Jet =BaselineTree->Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
-    TBranch *b_lept1sign_VR =BaselineTree->Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
-    TBranch *b_lept2sign_VR =BaselineTree->Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
-    TBranch *b_lept1Pt_VR =BaselineTree->Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
-    TBranch *b_lept2Pt_VR =BaselineTree->Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
-    TBranch *b_MZ_VR =BaselineTree->Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
-    TBranch *b_MJ_VR =BaselineTree->Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
-    TBranch *b_RISR_VR =BaselineTree->Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
-    TBranch *b_PTISR_VR =BaselineTree->Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
-    TBranch *b_PTI_VR =BaselineTree->Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
-    TBranch *b_PTCM_VR =BaselineTree->Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
-    TBranch *b_dphiISRI_VR =BaselineTree->Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
-    TBranch *b_lepFlavor =BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
-    TBranch *b_lepCharge =BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
+    BaselineTree->Branch("MET",&MET_smear,"MET/F");
+    BaselineTree->Branch("MET_loose",&MET_loose,"MET_loose/F");
+    BaselineTree->Branch("MET_tight",&MET_tight,"MET_tight/F");
+    BaselineTree->Branch("MET_tighter",&MET_tighter,"MET_tighter/F");
+    BaselineTree->Branch("MET_tenacious",&MET_tenacious,"MET_tenacious/F");
+    BaselineTree->Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
+    BaselineTree->Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
+    BaselineTree->Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
+    BaselineTree->Branch("mjj",&mjj,"mjj/F");
+    BaselineTree->Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
+    BaselineTree->Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
+    BaselineTree->Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
+    BaselineTree->Branch("dphiVP",&dphiVP,"dphiVP/F");
+    BaselineTree->Branch("H2PP",&H2PP,"H2PP/F");
+    BaselineTree->Branch("H5PP",&H5PP,"H5PP/F");
+    BaselineTree->Branch("nJet20",&nJet20,"nJet20/I");
+    BaselineTree->Branch("minDphi",&minDphi,"minDphi/F");
+    BaselineTree->Branch("MZ",&MZ,"MZ/F");
+    BaselineTree->Branch("NjS",&NjS,"NjS/I");
+    BaselineTree->Branch("NjISR",&NjISR,"NjISR/I");
+    BaselineTree->Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
+    BaselineTree->Branch("RISR",&RISR,"RISR/F");
+    BaselineTree->Branch("PTISR",&PTISR,"PTISR/F");
+    BaselineTree->Branch("PTI",&PTI,"PTI/F");
+    BaselineTree->Branch("PTCM",&PTCM,"PTCM/F");
+    BaselineTree->Branch("MJ",&MJ,"MJ/F");
+    BaselineTree->Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
+    BaselineTree->Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
+    BaselineTree->Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
+    BaselineTree->Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
+    BaselineTree->Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
+    BaselineTree->Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
+    BaselineTree->Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
+    BaselineTree->Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
+    BaselineTree->Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
+    BaselineTree->Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
+    BaselineTree->Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
+    BaselineTree->Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
+    BaselineTree->Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
+    BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
+    BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
     //---------------------------------------------------------
-    TBranch *b_METl_smear = BaselineTree->Branch("METl",&METl_smear,"METl/F");
-    TBranch *b_METt_smear = BaselineTree->Branch("METt",&METt_smear,"METt/F");
-    TBranch *b_MET_phi_smear = BaselineTree->Branch("MET_phi",&MET_phi_smear,"MET_phi/F");
-    TBranch *b_DPhi_METJetLeading_smear = BaselineTree->Branch("DPhi_METJetLeading",&DPhi_METJetLeading_smear,"DPhi_METJetLeading/F");
-    TBranch *b_DPhi_METJetSecond_smear = BaselineTree->Branch("DPhi_METJetSecond",&DPhi_METJetSecond_smear,"DPhi_METJetSecond/F");
-    TBranch *b_DPhi_METLepLeading_smear = BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading_smear,"DPhi_METLepLeading/F");
-    TBranch *b_DPhi_METLepSecond_smear = BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond_smear,"DPhi_METLepSecond/F");
-    TBranch *b_DPhi_METPhoton_smear = BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton_smear,"DPhi_METPhoton/F");
-    TBranch *b_DR_Wmin2Jet = BaselineTree->Branch("DR_Wmin2Jet",&DR_Wmin2Jet,"DR_Wmin2Jet/F");
-    TBranch *b_DR_J0J1 = BaselineTree->Branch("DR_J0J1",&DR_J0J1,"DR_J0J1/F");
-    TBranch *b_mWmin = BaselineTree->Branch("mWmin",&mWmin,"mWmin/F");
-    TBranch *b_Wmin_pt = BaselineTree->Branch("Wmin_pt",&Wmin_pt,"Wmin_pt/F");
-    TBranch *b_Wmin_eta = BaselineTree->Branch("Wmin_eta",&Wmin_eta,"Wmin_eta/F");
-    TBranch *b_DPhi_METWmin = BaselineTree->Branch("DPhi_METWmin",&DPhi_METWmin,"DPhi_METWmin/F");
-    TBranch *b_DPhi_WminZ = BaselineTree->Branch("DPhi_WminZ",&DPhi_WminZ,"DPhi_WminZ/F");
-    TBranch *b_mj0j1 = BaselineTree->Branch("mj0j1",&mj0j1,"mj0j1/F");
-    TBranch *b_W01_pt = BaselineTree->Branch("W01_pt",&W01_pt,"W01_pt/F");
-    TBranch *b_DPhi_METW01 = BaselineTree->Branch("DPhi_METW01",&DPhi_METW01,"DPhi_METW01/F");
-    TBranch *b_DPhi_W01Z = BaselineTree->Branch("DPhi_W01Z",&DPhi_W01Z,"DPhi_W01Z/F");
-    TBranch *b_DPhi_METNonWJet = BaselineTree->Branch("DPhi_METNonWJet",&DPhi_METNonWJet,"DPhi_METNonWJet/F");
-    TBranch *b_NonWJet_pT = BaselineTree->Branch("NonWJet_pT",&NonWJet_pT,"NonWJet_pT/F");
-    TBranch *b_DPhi_METNonWminJet = BaselineTree->Branch("DPhi_METNonWminJet",&DPhi_METNonWminJet,"DPhi_METNonWminJet/F");
-    TBranch *b_NonWminJet_pT = BaselineTree->Branch("NonWminJet_pT",&NonWminJet_pT,"NonWminJet_pT/F");
+    BaselineTree->Branch("METl",&METl_smear,"METl/F");
+    BaselineTree->Branch("METt",&METt_smear,"METt/F");
+    BaselineTree->Branch("MET_phi",&MET_phi_smear,"MET_phi/F");
+    BaselineTree->Branch("DPhi_METJetLeading",&DPhi_METJetLeading_smear,"DPhi_METJetLeading/F");
+    BaselineTree->Branch("DPhi_METJetSecond",&DPhi_METJetSecond_smear,"DPhi_METJetSecond/F");
+    BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading_smear,"DPhi_METLepLeading/F");
+    BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond_smear,"DPhi_METLepSecond/F");
+    BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton_smear,"DPhi_METPhoton/F");
+    BaselineTree->Branch("DR_Wmin2Jet",&DR_Wmin2Jet,"DR_Wmin2Jet/F");
+    BaselineTree->Branch("DR_J0J1",&DR_J0J1,"DR_J0J1/F");
+    BaselineTree->Branch("mWmin",&mWmin,"mWmin/F");
+    BaselineTree->Branch("Wmin_pt",&Wmin_pt,"Wmin_pt/F");
+    BaselineTree->Branch("Wmin_eta",&Wmin_eta,"Wmin_eta/F");
+    BaselineTree->Branch("DPhi_METWmin",&DPhi_METWmin,"DPhi_METWmin/F");
+    BaselineTree->Branch("DPhi_WminZ",&DPhi_WminZ,"DPhi_WminZ/F");
+    BaselineTree->Branch("mj0j1",&mj0j1,"mj0j1/F");
+    BaselineTree->Branch("W01_pt",&W01_pt,"W01_pt/F");
+    BaselineTree->Branch("DPhi_METW01",&DPhi_METW01,"DPhi_METW01/F");
+    BaselineTree->Branch("DPhi_W01Z",&DPhi_W01Z,"DPhi_W01Z/F");
+    BaselineTree->Branch("DPhi_METNonWJet",&DPhi_METNonWJet,"DPhi_METNonWJet/F");
+    BaselineTree->Branch("NonWJet_pT",&NonWJet_pT,"NonWJet_pT/F");
+    BaselineTree->Branch("DPhi_METNonWminJet",&DPhi_METNonWminJet,"DPhi_METNonWminJet/F");
+    BaselineTree->Branch("NonWminJet_pT",&NonWminJet_pT,"NonWminJet_pT/F");
 
-    TBranch *b_lep_pT = BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
-    TBranch *b_lep_phi = BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
-    TBranch *b_lep_eta = BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
-    TBranch *b_jet_pT = BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
-    TBranch *b_jet_phi = BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
-    TBranch *b_jet_eta = BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
-    TBranch *b_jet_m = BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
+    BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
+    BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
+    BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
+    BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
+    BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
+    BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
+    BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
 
-    TBranch *b_MT2W = BaselineTree->Branch("MT2W",&MT2W,"MT2W/F");
-    TBranch *b_DR_2Lep = BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
+    BaselineTree->Branch("MT2W",&MT2W,"MT2W/F");
+    BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
 
     TH1D* hist_low_njet = new TH1D("hist_low_njet","",bin_size,njet_bin);
     hist_low_njet->SetStats(0);
@@ -630,6 +618,10 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 
     }
 
+    //-----------------------------
+    // write tree and histograms
+    //-----------------------------
+
     BaselineTree->Write();
 
     for (int bin=0;bin<bin_size;bin++) {
@@ -651,6 +643,4 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
 
     std::cout << "done." << std::endl;
     delete f;
-
-
 }

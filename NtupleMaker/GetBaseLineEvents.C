@@ -34,9 +34,9 @@
 #include "TObject.h"
 
 #include "../BasicSetting.C"
+#include "../CommonFunctions/CommonFunctions.C"
 #include "InputVariables.C"
 #include "../PhotonSmearing/GetDijetVariables.C"
-float beta_limit = 10.;
 
 using namespace std;
 
@@ -56,12 +56,6 @@ void RebinHistogram(TH1D* hist) {
             else negative_yield += hist->GetBinContent(bin);
         }
     }
-}
-
-template<class variableType>
-void SetInputBranch(TTree* inputTree, string branchName, variableType variablePointer) {
-    inputTree->SetBranchStatus(branchName.c_str(), 1);
-    inputTree->SetBranchAddress(branchName.c_str(), variablePointer);
 }
 
 void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, bool isData, string treename = "outputTree" ) {

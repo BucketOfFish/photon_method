@@ -125,7 +125,6 @@ int W_j1 = 0;
 int Wmin_j0 = 0;
 int Wmin_j1 = 0;
 
-int    channel = 0;
 int    is_OS   = 0;
 float  Z_eta   = 0.0;
 float  Z_phi   = 0.0;

@@ -22,7 +22,9 @@ int gchannel;
 // 4 : R21 MC smearing
 // 5 : R21 data smearing
 
-void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period, int smearing_method) {
+using namespace std;
+
+void GetSmearingHistogram(string ch, float lumi, string period, int smearing_method) {
 
     cout << "GetSmearingHistogram : smearing_method " << smearing_method << endl;
 
@@ -41,8 +43,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         std::cout << "Get smearing function from R21 data." << std::endl;
 
         //--- smearing with R21 samples
-        //string datafilename = smearingPath + "Zdata/" + period + "_merged_processed.root";
-        string datafilename = smearingPath + "zdata/" + period + "_merged_processed.root";
+        string datafilename = ntuple_path + "zdata/" + period + "_merged_processed.root";
 
         cout << "Opening data smearing file   : " << datafilename << endl;
         TFile fZ( datafilename.c_str() );
@@ -85,7 +86,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         if( TString(period).EqualTo("data15-16") ) mcperiod = "ZMC16a/";
         if( TString(period).EqualTo("data17")    ) mcperiod = "ZMC16cd/";
 
-        string ttfilename = smearingPath + mcperiod + "ttbar_merged_processed.root";
+        string ttfilename = ntuple_path + mcperiod + "ttbar_merged_processed.root";
         cout << "Opening tt smearing file   : " << ttfilename << endl;
         TFile ftt( ttfilename.c_str() );
 
@@ -122,7 +123,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         ftt.Close();
 
         // smearing with R21 samples
-        string vvfilename = smearingPath + mcperiod + "diboson_merged_processed.root";
+        string vvfilename = ntuple_path + mcperiod + "diboson_merged_processed.root";
         cout << "Opening VV smearing file   : " << vvfilename << endl;
         TFile fvv( vvfilename.c_str() );
 
@@ -162,7 +163,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         if( TString(period).EqualTo("data15-16") ) gperiod = "data15-16";
         if( TString(period).EqualTo("data17")    ) gperiod = "data17";
 
-        string gfilename = smearingPath + "gdata/" + gperiod + "_merged_processed.root";
+        string gfilename = ntuple_path + "gdata/" + gperiod + "_merged_processed.root";
 
         cout << "Opening photon smearing file   : " << gfilename << endl;
         TFile fPhoton( gfilename.c_str() );
@@ -213,7 +214,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         if( TString(period).EqualTo("data15-16") ) mcperiod = "ZMC16a/";
         if( TString(period).EqualTo("data17")    ) mcperiod = "ZMC16cd/";
 
-        string Zfilename = smearingPath + mcperiod + "Zjets_merged_processed.root";
+        string Zfilename = ntuple_path + mcperiod + "Zjets_merged_processed.root";
 
         cout << "Opening Z+jets MC smearing file           : " << Zfilename << endl;
 
@@ -261,7 +262,7 @@ void GetSmearingHistogram(string ch, float lumi, string photon_tag,string period
         }
         fZ.Close();
 
-        string gmcfilename = smearingPath + "gmc/SinglePhoton222_merged_processed.root";
+        string gmcfilename = ntuple_path + "gmc/SinglePhoton222_merged_processed.root";
 
         cout << "Opening photon MC smearing file " << gmcfilename << endl;
 
