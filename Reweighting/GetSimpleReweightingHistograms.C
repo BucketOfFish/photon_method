@@ -1,29 +1,4 @@
-#include <algorithm>
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <math.h>
-#include <fstream>
-#include <sstream>
-
-#include "TCanvas.h"
-#include "TLegend.h"
-#include "TChain.h"
-#include "TDirectory.h"
-#include "TFile.h"
-#include "TROOT.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TMath.h"
-#include "TPad.h"
-#include "TCut.h"
-#include "TProfile.h"
-#include "THStack.h"
-#include "TLatex.h"
-#include "TGraphErrors.h"
-#include "TStyle.h"
-#include "TLine.h"
-#include "TMath.h"
+#include "../CommonFunctions/CommonLibraries.C"
 
 using namespace std;
 
@@ -59,7 +34,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     string tt_filename     = ntuple_path + mcperiod + "ttbar_merged_processed.root";
     string vv_filename     = ntuple_path + mcperiod + "diboson_merged_processed.root";
     string zjets_filename  = ntuple_path + mcperiod + "Zjets_merged_processed.root";
-    string photon_filename = smearing_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root";//Vg subtracted 
+    string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root";//Vg subtracted 
 
     cout << "Opening data file    " << data_filename   << endl;
     cout << "Opening ttbar file   " << tt_filename     << endl;
@@ -102,7 +77,6 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
 
     TCut gselection("lep_pT[0]>25 && lep_pT[1]>25 && jet_n>=2 && bjet_n == 0");
     TCut weight("totalWeight");
-    TCut g_rw("ptreweight3");
     TCut lumi("1.0");
 
     if( TString(period).EqualTo("data15-16") ) lumi = TCut("36200");
@@ -141,6 +115,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
 
     // fill histograms: Z_pt -step2
     else if (step == 2) {
+        TCut g_rw("ptreweight3"); // from step 1
         chdata-> Draw("min(Z_pt,999)>>hdata"  ,Zselection       ,"goff");
         chtt->   Draw("min(Z_pt,999)>>htt"    ,Zselection*RunRange*weight*lumi,"goff");
         chvv->   Draw("min(Z_pt,999)>>hvv"    ,Zselection*RunRange*weight*lumi,"goff");
