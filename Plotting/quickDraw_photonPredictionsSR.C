@@ -286,9 +286,9 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
 
     //can2->Update();
     
-    can->Print(Form("%sVR_SR_studies/quickData_Data_%s_%s_%s_%s_SR_zmc_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can->Print(Form("%sVR_SR_studies/quickData_Data_%s_%s_%s_%s_SR_zmc_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
-    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_zmc_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_zmc_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
   }
 
   
@@ -467,9 +467,9 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
 
     //can2->Update();
 
-    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_gdata_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_gdata_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
-    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_gdata_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_gdata_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
   }
 
   else if( TString(data).EqualTo("ttbar") ){
@@ -648,9 +648,9 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
 
     //can2->Update();
 
-    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_ttbar_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_ttbar_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
 
-    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_ttbar_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_ttbar_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
   }
 
   else if( TString(data).EqualTo("vv") ){
@@ -826,8 +826,8 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
     hratio2->GetYaxis()->SetRangeUser(0.,2.0);
     hratio2->Draw("E1");
 
-    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_VV_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
-    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_VV_metWPs.pdf",plotsPath.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can2->Print(Form("%sVR_SR_studies/ratioPlots_%s_%s_%s_%s_SR_VV_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+    can->Print(Form("%sVR_SR_studies/quickDraw_%s_%s_%s_%s_SR_VV_metWPs.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
   }
 
 }

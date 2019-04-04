@@ -1,13 +1,8 @@
 // Takes input automatically from GetPhotonSmearing.C
-TH1D* z_dphi[bin_size];
 TH1D* z_metl[bin_size];
 TH1D* z_metl_2j[bin_size];
-TH1D* tt_metl[bin_size];
-TH1D* vv_metl[bin_size];
 TH1D* g_metl[bin_size];
 TH1D* z_jetmetl[bin_size];
-TH1D* tt_jetmetl[bin_size];
-TH1D* vv_jetmetl[bin_size];
 
 TH1D* hist_low_pt = new TH1D("hist_low_pt","",bin_size,sm_pt_bin);
 

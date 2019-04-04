@@ -21,11 +21,12 @@ cd ..
 
 cd PhotonSmearing/
 
-root -l -b 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm",0,"data15-16",4)'
-root -l -b 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","ee",0,"data15-16",0)'
-root -l -b 'GetPhotonSmearing.C("data15-16_merged_processed","mm",1,"data15-16",5)'
-root -l -b 'GetPhotonSmearing.C("data15-16_merged_processed","mm",1,"data15-16",0)'
-root -l -b 'GetPhotonSmearing.C("data15-16_merged_processed","ee",1,"data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm",0,"data15-16",4)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","ee",0,"data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm",0,"data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm",1,"data15-16",5)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm",1,"data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","ee",1,"data15-16",0)'
 
 cd ..
 
@@ -33,13 +34,17 @@ cd ..
 
 cd Reweighting/
 
-root -l -b 'GetPhotonReweighting.C("data15-16","ee",1,0,1)'
-root -l -b 'GetPhotonReweighting.C("data15-16","ee”,1,0,2)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee",1,"NoSmear",1)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee",1,"NoSmear",2)'
 
-root -l -b 'GetPhotonReweighting.C("data15-16","mm",1,2,1)' 
-root -l -b 'GetPhotonReweighting.C("data15-16","mm",1,2,2)' 
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm",1,"DataSmear",1)' 
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm",1,"DataSmear",2)' 
 
-root -l -b 'GetPhotonReweighting.C("data15-16","mm",1,0,1)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee",0,"NoSmear",1)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee",0,"NoSmear",2)'
+
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm",0,"McSmear",1)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm",0,"McSmear",2)'
 
 cd ..
 
@@ -47,8 +52,8 @@ cd ..
 
 cd Plotting/
 
-root -l quickDraw_MC.C
-root -l quickDraw_Data.C
-root -l -b 'quickDraw_photonPredictionsSR.C("data15-16", "mm" , "MET", "NoSmear", "gdata”)'
+root -l -b -q quickDraw_MC.C
+root -l -b -q quickDraw_Data.C
+root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16", "mm" , "MET", "NoSmear", "gdata”)'
 
 cd ..

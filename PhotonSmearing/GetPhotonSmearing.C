@@ -94,7 +94,7 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     cout << "channel         " << ch              << endl;
     cout << "period          " << period          << endl;
     cout << "isData?         " << isData          << endl;
-    cout << "smearing path   " << smearingPath    << endl;
+    cout << "smearing path   " << smearing_path    << endl;
     cout << "smearing method " << smearing_method << endl;
 
     //-----------------------------
@@ -213,7 +213,7 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     }
 
     //---------------------------------------------
-    // open file, get Tree and EventCountHist
+    // get unsmeared input file
     //---------------------------------------------
 
     TH1::SetDefaultSumw2();
@@ -241,8 +241,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     if (smearing_method == 5) photon_tag = "_DataSmear";
 
     string outfilename;
-    if (isData==1) outfilename = TString(TString(smearingPath)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
-    if (isData==0) outfilename = TString(TString(smearingPath)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
+    if (isData==1) outfilename = TString(TString(smearing_path)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
+    if (isData==0) outfilename = TString(TString(smearing_path)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
