@@ -127,10 +127,9 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     if( TString(period).EqualTo("data17")    ) Zweight *= lumi17;
 
     TCut weight_g    = "totalWeight";
-    //TCut weight_g_rw = "totalWeight*ptreweight3";
-    TCut weight_g_rw = "totalWeight*ptreweight3*ptreweight5"; //2-STEP
+    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2"; //2-STEP
 
-    cout << "VR selection         " << VR.GetTitle()  << endl;
+   cout << "VR selection         " << VR.GetTitle()  << endl;
     cout << "Z selection          " << Zselection.GetTitle()  << endl;  
     cout << "Z weight             " << Zweight.GetTitle()     << endl;
     cout << "g selection          " << gselection.GetTitle()  << endl;

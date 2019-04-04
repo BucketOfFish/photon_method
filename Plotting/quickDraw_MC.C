@@ -68,8 +68,7 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
 
     TCut Zweight = "totalWeight*36100"; //change luminosity according to data year
     TCut weight_g    = "totalWeight*36100";
-    //TCut weight_g_rw = "totalWeight*ptreweight3*36100"; //For checking step1 of reweighting
-    TCut weight_g_rw = "totalWeight*ptreweight3*ptreweight5*36100";
+    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2*36100";
 
     cout << "Z selection          " << Zselection.GetTitle()  << endl;  
     cout << "Z weight             " << Zweight.GetTitle()     << endl;

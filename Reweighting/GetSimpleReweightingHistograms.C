@@ -115,7 +115,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
 
     // fill histograms: Z_pt -step2
     else if (step == 2) {
-        TCut g_rw("ptreweight3"); // from step 1
+        TCut g_rw("ptreweight_step1"); // from step 1
         chdata-> Draw("min(Z_pt,999)>>hdata"  ,Zselection       ,"goff");
         chtt->   Draw("min(Z_pt,999)>>htt"    ,Zselection*RunRange*weight*lumi,"goff");
         chvv->   Draw("min(Z_pt,999)>>hvv"    ,Zselection*RunRange*weight*lumi,"goff");

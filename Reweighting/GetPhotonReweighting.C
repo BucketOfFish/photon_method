@@ -64,9 +64,9 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
     Float_t ptreweight = 0.;
     TBranch *b_ptreweight;
     if (step == 1)
-        b_ptreweight = outputTree->Branch("ptreweight3",&ptreweight,"ptreweight3/F");
+        b_ptreweight = outputTree->Branch("ptreweight_step1",&ptreweight,"ptreweight_step1/F");
     else if (step == 2)
-        b_ptreweight = outputTree->Branch("ptreweight5",&ptreweight,"ptreweight5/F");
+        b_ptreweight = outputTree->Branch("ptreweight_step2",&ptreweight,"ptreweight_step2/F");
 
     //-----------------------------
     // loop over events and fill new branch

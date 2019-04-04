@@ -56,7 +56,7 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
     TCut SR("jet_n>=2 && lep_pT[0]>25 && lep_pT[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && nBJet20_MV2c10_FixedCutBEff_77==0 && (mjj<60.0 || mjj>100.)");
 
     TCut weight_g    = "totalWeight";
-    TCut weight_g_rw = "totalWeight*ptreweight3*ptreweight5"; //2-STEP
+    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2"; //2-STEP
 
     //-----------------------------------------------
     // define and draw histograms
