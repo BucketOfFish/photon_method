@@ -41,13 +41,13 @@ using namespace std;
 vector<string> noSampleWeight;
 vector<string> noEventWeight;
 
-void GetPhotonReweighting(string periodlabel, string ch, int isData, string smearing_mode, int step) {
+void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, int step) {
 
     //---------------------------------------------
     // Standard 1-d reweighting array 
     //---------------------------------------------
 
-    TH1F* hreweight = GetSimpleReweightingHistograms(isData, periodlabel , ch , smearing_mode, step);
+    TH1F* hreweight = GetSimpleReweightingHistograms(periodlabel, ch, smearing_mode, step);
     cout << "Got reweighting histogram hratio with integral " << hreweight->Integral() << endl;
 
     //---------------------------------------------
@@ -59,11 +59,11 @@ void GetPhotonReweighting(string periodlabel, string ch, int isData, string smea
     TH1::SetDefaultSumw2();
 
     string  filename;
-    if (isData==1) {
+    if (isData == "Data") {
         filename = TString(TString(reweighting_path) + "gdata/" + periodlabel + "_merged_processed"  + "_" +TString(ch) + "_" + TString(smearing_mode) + ".root");
         cout << "opening data file" << endl;
     }
-    if (isData==0) {
+    if (isData == "MC") {
         filename = TString(TString(reweighting_path) + "gmc/gmc_" + TString(ch) + "_" + TString(smearing_mode) + ".root");
         cout << "bypassing gdata dir" <<  endl; 
         cout << "opening MC file" << endl;
@@ -141,7 +141,7 @@ void GetPhotonReweighting(string periodlabel, string ch, int isData, string smea
     std::vector<float>* jet_pT = new std::vector<float>(10); SetInputBranch(outputTree, "jet_pT", &jet_pT);
     std::vector<float>* lep_pT = new std::vector<float>(10); SetInputBranch(outputTree, "lep_pT", &lep_pT);
 
-    if (isData == 0) {
+    if (isData == "MC") {
         float gamma_dR = 0.; SetInputBranch(outputTree, "gamma_dR", &gamma_dR);
     }
 

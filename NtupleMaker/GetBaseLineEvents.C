@@ -58,7 +58,7 @@ void RebinHistogram(TH1D* hist) {
     }
 }
 
-void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, bool isData, string treename = "outputTree" ) {
+void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, string isData, string treename = "outputTree" ) {
 
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -71,7 +71,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     string  filename       = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
     TFile*  inputFile      = TFile::Open(filename.c_str());
     Float_t _nGenEvents = 1.;
-    if (!isData) {
+    if (isData == "MC") {
         cout << "Setting _nGenEvents = 1 for now NEED TO FIX" << endl;
         _nGenEvents    = 1.0;
         hist_EventCount->SetBinContent(1,1.0);
@@ -82,7 +82,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     cout << endl;
     cout << "Opening file           : " << filename        << endl;
     cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
-    if (!isData) {
+    if (isData == "MC") {
         cout << "Total generated events : " << _nGenEvents     << endl;
     }
 
@@ -173,7 +173,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     Double_t bTagWeight;
     Double_t pileupWeight;
     Double_t FFWeight;
-    if (!isData) {
+    if (isData == "MC") {
         SetInputBranch(inputTree, "genWeight", &genWeight);
         SetInputBranch(inputTree, "eventWeight", &eventWeight);
         SetInputBranch(inputTree, "leptonWeight", &leptonWeight);
@@ -378,7 +378,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
 
         //--- evaluate weight
         totalWeight = 1;
-        if (!isData) totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+        if (isData == "MC") totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
 
         //--- determine channel
         channel = -1;
@@ -492,7 +492,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         hist_METl_Pt[bin]->Write();
         hist_METt_Pt[bin]->Write();
     }
-    if (!isData) {
+    if (isData == "MC") {
         hist_EventCount->SetBinContent(2,nentries);
         hist_EventCount->SetBinContent(3,N_passMET100);
         hist_EventCount->Write();

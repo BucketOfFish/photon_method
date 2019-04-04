@@ -89,7 +89,7 @@ int RebinHistogram(TH1D* hist, int rebin) {
     return rebin;
 }
 
-void GetPhotonSmearing(string label, string ch, int isData, string period, int smearing_method) {
+void GetPhotonSmearing(string label, string ch, string isData, string period, int smearing_method) {
 
     cout << "channel         " << ch              << endl;
     cout << "period          " << period          << endl;
@@ -219,8 +219,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     TH1::SetDefaultSumw2();
 
     string  infilename;
-    if (isData==0) infilename = ntuple_path + "gmc/" + label + ".root";
-    else if (isData==1) infilename = ntuple_path + "gdata/" + label + ".root";
+    if (isData == "MC") infilename = ntuple_path + "gmc/" + label + ".root";
+    else if (isData == "Data") infilename = ntuple_path + "gdata/" + label + ".root";
     cout << __FILE__ << " " << __LINE__ << endl;
 
     TChain* T = new TChain("BaselineTree");
@@ -241,8 +241,8 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     if (smearing_method == 5) photon_tag = "_DataSmear";
 
     string outfilename;
-    if (isData==1) outfilename = TString(TString(smearing_path)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
-    if (isData==0) outfilename = TString(TString(smearing_path)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
+    if (isData == "Data") outfilename = TString(TString(smearing_path)+"gdata/" + label + "_"+TString(ch)+TString(photon_tag)+".root"); 
+    if (isData == "MC") outfilename = TString(TString(smearing_path)+"gmc/gmc_"+TString(ch)+TString(photon_tag)+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -262,13 +262,13 @@ void GetPhotonSmearing(string label, string ch, int isData, string period, int s
     T->SetBranchAddress("HT"              ,&HT               );
     T->SetBranchAddress("jet_n"           ,&jet_n            );
     T->SetBranchAddress("bjet_n"           ,&bjet_n            );
-    // if (isData!=1) T->SetBranchAddress("truthGamma_pt", &truthGamma_pt);
-    // if (isData!=1) T->SetBranchAddress("truthGamma_phi", &truthGamma_phi);
-    // if (isData!=1) T->SetBranchAddress("truthGamma_eta", &truthGamma_eta);
+    // if (isData == "MC") T->SetBranchAddress("truthGamma_pt", &truthGamma_pt);
+    // if (isData == "MC") T->SetBranchAddress("truthGamma_phi", &truthGamma_phi);
+    // if (isData == "MC") T->SetBranchAddress("truthGamma_eta", &truthGamma_eta);
     T->SetBranchAddress("gamma_pt", &gamma_pt);
     T->SetBranchAddress("gamma_eta", &gamma_eta);
     T->SetBranchAddress("gamma_phi", &gamma_phi);
-    if (isData!=1) T->SetBranchAddress("gamma_dR", &gamma_dR);
+    if (isData == "MC") T->SetBranchAddress("gamma_dR", &gamma_dR);
     T->SetBranchAddress("MET_raw"             ,&MET              );
     //------------------------------------------------------
     // 2019 RJR analysis variables -------------------------

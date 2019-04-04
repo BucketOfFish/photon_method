@@ -39,7 +39,7 @@ using namespace std;
 vector<string> noSampleWeight;
 vector<string> noEventWeight;
 
-void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, int isData, string treeName = "tree_NoSys" ) {
+void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, string isData, string treeName = "tree_NoSys" ) {
 
     float mylumi = 1.0;
   
@@ -381,7 +381,7 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 	Double_t bTagWeight;
 	Double_t pileupWeight;
 
-	if (isData!=1) {
+	if (isData == "MC") {
 	  T->SetBranchStatus("genWeight", 1);
 	  T->SetBranchStatus("eventWeight", 1);
 	  T->SetBranchStatus("jvtWeight", 1);
@@ -633,7 +633,7 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, i
 		TLorentzVector gamma_4vec;
 		gamma_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,0);
 
-		if (isData!=1) {
+		if (isData == "MC") {
             totalWeight = mylumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
 			if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
 		}

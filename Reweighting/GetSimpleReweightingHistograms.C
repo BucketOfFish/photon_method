@@ -27,7 +27,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(int isData, string period, string channel, string smearing_mode, int step ){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string smearing_mode, int step ){
 
     cout << "Doing histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
