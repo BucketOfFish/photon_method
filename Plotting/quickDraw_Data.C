@@ -39,7 +39,7 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     string z_filename     = ntuple_path + mcdir + "Zjets_merged_processed.root";
     //string o_filename     = ntuple_path + mcdir + "triboson_higgs_topOther_merged_processed.root";
     //string gfilename      = ntuple_path + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
-    string gfilename      = smearing_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
+    string gfilename      = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
     //string vg_filename    = ntuple_path + "gmc/Vgamma_merged_processed.root";
 
     cout << "period               " << period        << endl;

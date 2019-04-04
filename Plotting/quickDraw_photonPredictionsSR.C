@@ -32,10 +32,10 @@ void quickDraw_photonPredictionsSR( string period = "data15-16" , string channel
         gdatalabel = "data18";
     }
 
-    string gfilename      = smearing_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
+    string gfilename      = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
     string tt_filename    = ntuple_path + mcdir + "ttbar_merged_processed.root";
     string vv_filename    = ntuple_path + mcdir + "diboson_merged_processed.root";
-    string z_filename     = ntuple_patntuple_path + mcdir + "Zjets_merged_processed.root";
+    string z_filename     = ntuple_path + mcdir + "Zjets_merged_processed.root";
 
     cout << "period               " << period        << endl;
     cout << "channel              " << channel       << endl;
