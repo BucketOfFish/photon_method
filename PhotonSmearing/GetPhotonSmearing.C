@@ -9,31 +9,9 @@
 // example: root -l -b 'GetPhotonSmearing.C+("ee-channel","ee",0,"data15-16",0)'  //for no smear
 //-----------------------------------------------------------------------------------------------
 
-#include <cstdlib>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <map>
-#include <string>
-#include <iomanip> 
-
-#include "TFile.h"
-#include "TF1.h"
-#include "TH1.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TSystem.h"
-#include "TROOT.h"
-#include "TStopwatch.h"
-#include "TChain.h"
-#include "TBranch.h"
-#include "TLorentzVector.h"
-#include "TSpectrum.h"
-#include "TVirtualFFT.h"
-
-#include "../BasicSetting.C"
+#include "../Settings.C"
 #include "../NtupleMaker/InputVariables.C"
+#include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
 #include "GetDijetVariables.C"
 #include "GetSmearingHistogram.C"

@@ -9,31 +9,8 @@
 // example of code running command: root -l -b -q 'GetBaseLineEvents.C+("Zjets_merged_processed","zmc","/afs/cern.ch/user/b/benhoob/SusySkim2LJets/v1.2/SUSY2/SUSY2_Bkgs_mc16a/",0,"Zjets_NoSys")'
 //-----------------------------------------------------------------------------------------------
 
-
-#include <cstdlib>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <map>
-#include <string>
-#include <iomanip> 
-
-#include "TFile.h"
-#include "TF1.h"
-#include "TH1.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TSystem.h"
-#include "TROOT.h"
-#include "TStopwatch.h"
-#include "TChain.h"
-#include "TBranch.h"
-#include "TLorentzVector.h"
-#include "TGraphErrors.h"
-#include "TObject.h"
-
-#include "../BasicSetting.C"
+#include "../Settings.C"
+#include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
 #include "InputVariables.C"
 #include "../PhotonSmearing/GetDijetVariables.C"
