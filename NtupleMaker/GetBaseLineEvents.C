@@ -1,14 +1,3 @@
-//-----------------------------------------------------------------------------------------------
-// this script takes the non-photon ntuples from QuickAna and generates smaller ntuples with information required by photon method
-// the parameters of the function GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, bool isData, stringtreename = "outputTree" ) are:
-// 	sampleID: DSID of the MC sample, or simply the input file name
-//      outputName: name of output directory 
-// 	pathToNtuples: the path to the input ntuple
-// 	isData: put "1" if you are running a data sample, "0" if MC 
-//      stringtreename: check tree, usually Zjets_NoSys
-// example of code running command: root -l -b -q 'GetBaseLineEvents.C+("Zjets_merged_processed","zmc","/afs/cern.ch/user/b/benhoob/SusySkim2LJets/v1.2/SUSY2/SUSY2_Bkgs_mc16a/",0,"Zjets_NoSys")'
-//-----------------------------------------------------------------------------------------------
-
 #include "../Settings.C"
 #include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
@@ -99,12 +88,13 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     Float_t Mu; CopyBranch(inputTree, BaselineTree, "mu", "Mu", &Mu, "F");
     Int_t nVtx; CopyBranch(inputTree, BaselineTree, "nVtx", "nVtx", &nVtx, "I");
     Float_t mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
-    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET", &MET, "F");
     float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "MET_Phi", &MET_phi, "F");
     float MET_softTerm; CopyBranch(inputTree, BaselineTree, "TST_Et", "MET_softTerm", &MET_softTerm, "F");
     float MET_softPhi; CopyBranch(inputTree, BaselineTree, "TST_Phi", "MET_softPhi", &MET_softPhi, "F");
     Bool_t trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "I");
+    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET", &MET, "F");
     float MET_loose; CopyBranch(inputTree, BaselineTree, "met_Et_loose", "MET_loose", &MET_loose, "F");
+    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET_tight", &MET, "F");
     float MET_tighter; CopyBranch(inputTree, BaselineTree, "met_Et_tighter", "MET_tighter", &MET_tighter, "F");
     float MET_tenacious; CopyBranch(inputTree, BaselineTree, "met_Et_tenacious", "MET_tenacious", &MET_tenacious, "F");
     Bool_t is2Lep2Jet; CopyBranch(inputTree, BaselineTree, "is2Lep2Jet", "is2Lep2Jet", &is2Lep2Jet, "I");

@@ -1,14 +1,3 @@
-//-----------------------------------------------------------------------------------------------
-// this script takes the photon ntuples from QuickAna and generates smaller ntuples with information required by photon method
-// Parameters for: GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, int isData, string treeName = "tree_NoSys" ): 
-// 	sampleID: DSID of the MC sample, input ntuple filename in most instances
-//      outputName: pretty self-explanatory 
-// 	pathToNtuples: the path to the input ntuples  
-// 	isData:  "1" for data samples, "0" for MC 
-//      treeName: Singlephoton2##_NoSys, you can find this out in the ntuple 
-// Example usage: root -l -b -q 'GetPhotonEvents.C+("SinglePhoton211_merged_processed","gmc","/afs/cern.ch/user/b/benhoob/SusySkim2LJets/v1.2/JETM4/JETM4_mc16a/JETM4_mc16a_v1.2_v2/merged/",0,"SinglePhoton211_NoSys")'
-//-----------------------------------------------------------------------------------------------
-
 #include "../Settings.C"
 #include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
@@ -31,11 +20,11 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, s
 
 	TH1::SetDefaultSumw2();
 
-	string  filename       = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
-	TFile*  inputFile      = TFile::Open(filename.c_str());
-	TTree*  inputTree              = (TTree*)inputFile->Get( treeName.c_str() );
+	string filename = Form("%s%s.root",pathToNtuples.c_str(), sampleID.c_str()); 
+	TFile* inputFile = TFile::Open(filename.c_str());
+	TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
-	Float_t _nGenEvents    = 1.;
+	Float_t _nGenEvents = 1.;
 
 	cout << endl;
 	cout << "Opening file           : " << filename        << endl;
@@ -100,6 +89,7 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, s
     float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET_raw", &MET, "F");
     float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "MET_phi_raw", &MET_phi, "F");
     float MET_loose; CopyBranch(inputTree, BaselineTree, "met_Et_loose", "MET_loose", &MET_loose, "F");
+    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET_tight", &MET, "F");
     float MET_tighter; CopyBranch(inputTree, BaselineTree, "met_Et_tighter", "MET_tighter", &MET_tighter, "F");
     float MET_tenacious; CopyBranch(inputTree, BaselineTree, "met_Et_tenacious", "MET_tenacious", &MET_tenacious, "F");
     Bool_t is2Lep2Jet; CopyBranch(inputTree, BaselineTree, "is2Lep2Jet", "is2Lep2Jet", &is2Lep2Jet, "I");
@@ -212,7 +202,7 @@ void GetPhotonEvents(string sampleID, string outputName, string pathToNtuples, s
 		
 		double trigWeight = 0;
 
-		if (trigMatch_HLT_g15_loose_L1EM7 ==1 && photon_pT->at(0)>(15)   && photon_pT->at(0)<(25+5)) trigWeight = trigPrescale_HLT_g15_loose_L1EM7;
+		if (trigMatch_HLT_g15_loose_L1EM7 ==1 && photon_pT->at(0)>(15) && photon_pT->at(0)<(25+5)) trigWeight = trigPrescale_HLT_g15_loose_L1EM7;
 		if (trigMatch_HLT_g25_loose_L1EM15==1 && photon_pT->at(0)>(25+5) && photon_pT->at(0)<(35+5)) trigWeight = trigPrescale_HLT_g25_loose_L1EM15;
 		if (trigMatch_HLT_g35_loose_L1EM15==1 && photon_pT->at(0)>(35+5) && photon_pT->at(0)<(40+5)) trigWeight = trigPrescale_HLT_g35_loose_L1EM15;
 		if (trigMatch_HLT_g40_loose_L1EM15==1 && photon_pT->at(0)>(40+5) && photon_pT->at(0)<(45+5)) trigWeight = trigPrescale_HLT_g40_loose_L1EM15;
