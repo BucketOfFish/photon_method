@@ -106,12 +106,11 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     float xmin = std::get<2>(plot_settings);
     float xmax = std::get<3>(plot_settings);
 
+    // Initialize histograms
+
     TH1F* hZ;
     TH1F* hg;
     TH1F* hg_rw ;
-
-
-    // Initialize histograms
 
     if(var == "Z_pt") {
         const unsigned int nZptbins = 16;

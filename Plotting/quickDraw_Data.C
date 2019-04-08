@@ -140,11 +140,39 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     // define and draw histograms
     //-----------------------------------------------
 
+    std::tuple<string, int, float, float> plot_settings;
+
+    if (var == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
+    else if (var == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 20, -200, 200);
+    else if (var == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 20, -200, 200);
+    else if (var == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
+    else if (var == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
+    else if (var == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
+    else if (var == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
+    else if (var == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
+    else if (var == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
+    else if (var == "bjet_n") plot_settings = std::make_tuple("n_{b-jets}", 4, 0, 4);
+    else if (var == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 100);
+    else if (var == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
+    else if (var == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
+    else if (var == "lep_pT[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
+    else if (var == "lep_pT[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
+    else if (var == "DPhi_METJetLeading") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
+    else if (var == "DPhi_METJetSecond") plot_settings = std::make_tuple("#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
+    else {
+        cout << "Error! unrecognized variable, need to set binning, quitting! " << var << endl;
+        exit(0);
+    }
+
+    string xtitle = std::get<0>(plot_settings);
+    int nbins = std::get<1>(plot_settings);
+    float xmin = std::get<2>(plot_settings);
+    float xmax = std::get<3>(plot_settings);
+
+    // initialize histograms
+
     const unsigned int nptbins = 16;
     double ptbins[nptbins+1] = {40, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 850, 1000};
-
-    int nmetbins =  20;
-    float metmax = 200;
 
     TH1F* hZ    ;//= new TH1F();    
     TH1F* hg    ;//= new TH1F();    
@@ -155,111 +183,6 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     //TH1F* hvg   ;//= new TH1F();
     //TH1F* hvg_rw;//= new TH1F();   
     TH1F* hg_rw ;//= new TH1F(); 
-
-    string xtitle = var;
-
-    int   nbins =  20;
-    float xmin  =   0;
-    float xmax  = 100;
-
-    if( TString(var).EqualTo("MET") ){
-        xtitle = "E_{T}^{miss} [GeV]";
-        nbins = nmetbins;
-        xmin  = 0.0;
-        xmax  = metmax;
-    }
-
-    else if( TString(var).EqualTo("METl") || TString(var).EqualTo("METt") ){
-        if( TString(var).EqualTo("METl") ) xtitle = "E_{T,||}^{miss} [GeV]";
-        if( TString(var).EqualTo("METt") ) xtitle = "E_{T,#perp}^{miss} [GeV]";
-        nbins =   20;
-        xmin  = -200;
-        xmax  =  200;
-    }
-
-    else if( TString(var).EqualTo("MET_loose") || TString(var).EqualTo("MET_tight") || TString(var).EqualTo("MET_tighter") || TString(var).EqualTo("MET_tenacious") ){
-        if( TString(var).EqualTo("MET_loose") ) xtitle = "E_{T,loose}^{miss} [GeV]";
-        if( TString(var).EqualTo("MET_tight") ) xtitle = "E_{T,tight}^{miss} [GeV]";
-        if( TString(var).EqualTo("MET_tighter") ) xtitle = "E_{T,tighter}^{miss} [GeV]";
-        if( TString(var).EqualTo("MET_tenacious") ) xtitle = "E_{T,tenacious}^{miss} [GeV]";
-        nbins = 20;
-        xmin  = 0;
-        xmax  = 200;
-    }
-
-    else if( TString(var).EqualTo("Z_pt") ){
-        xtitle = "p_{T} [GeV]";
-    }
-
-    else if( TString(var).EqualTo("HT") ){
-        xtitle = "H_{T}";
-        //nbins =   20;
-        //xmin  =    0;
-        //xmax  = 1000;
-    }
-
-    else if( TString(var).EqualTo("jet_n") ){
-        xtitle = "n_{jets}";
-        nbins = 6;
-        xmin  = 2;
-        xmax  = 8;
-    }
-
-    else if( TString(var).EqualTo("bjet_n") ){
-        xtitle = "n_{b-jets}";
-        nbins = 4;
-        xmin  = 0;
-        xmax  = 4;
-    }
-
-    else if( TString(var).EqualTo("mll") ){
-        xtitle = "m_{ll} [GeV]";
-        nbins =   30;
-        xmin  =    0;
-        xmax  =  300;
-    }
-
-    else if( TString(var).EqualTo("MT2W") ){
-        xtitle = "m_{T2}^{W} [GeV]";
-        nbins =   20;
-        xmin  =    0;
-        xmax  =  200;
-    }
-
-    else if( TString(var).EqualTo("lep_pT[0]") ){
-        xtitle = "1^{st} lepton p_{T} [GeV]";
-        nbins =   20;
-        xmin  =    0;
-        xmax  =  200;
-    }
-
-    else if( TString(var).EqualTo("lep_pT[1]") ){
-        xtitle = "2^{nd} lepton p_{T} [GeV]";
-        nbins =   20;
-        xmin  =    0;
-        xmax  =  100;
-    }
-
-    else if( TString(var).EqualTo("DPhi_METJetLeading") ){
-        xtitle = "#Delta#phi(jet_{1},E_{T}^{miss})";
-        nbins =   20;
-        xmin  =    0;
-        xmax  =  3.14;
-    }
-
-    else if( TString(var).EqualTo("DPhi_METJetSecond") ){
-        xtitle = "#Delta#phi(jet_{2},E_{T}^{miss})";
-        nbins =   20;
-        xmin  =    0;
-        xmax  =  3.14;
-    }
-
-    else{
-        cout << "Error! unrecognized variable, need to set binning, quitting! " << var << endl;
-        exit(0);
-    }
-
-    // initialize histograms
 
     if( TString(var).EqualTo("Z_pt") ){
         hZ     = new TH1F("hZ"     , "" , nptbins , ptbins );
@@ -322,9 +245,6 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     // normalize Z to MET<60 GeV region
     //-----------------------------------------------
 
-    float SF   = 1.0;
-    float SFrw = 1.0;
-
     if( normalize ){
 
         cout << "normalize to CR    " << CR.GetTitle()         << endl;
@@ -342,8 +262,8 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
         gtree->Draw("0.5>>hgnorm"     , (gselection+CR)*weight_g     , "goff");
         gtree->Draw("0.5>>hgrwnorm"   , (gselection+CR)*weight_g_rw  , "goff");
 
-        SF   = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgnorm->Integral();
-        SFrw = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgrwnorm->Integral();
+        float SF   = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgnorm->Integral();
+        float SFrw = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgrwnorm->Integral();
 
         cout << "Scale reweighted Z by    " << SFrw << endl;
         cout << "Scale raw Z by           " << SF   << endl;
@@ -486,46 +406,5 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    //can->Print(Form("plots/quickData_Data_%s_%s_%s_%s_VgSubtraction.pdf",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
-
     can->Print(Form("%sVR_SR_studies/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
-
-
-    // TFile* outfile = TFile::Open( Form("plots/quickData_Data_%s_%s_%s_%s.root",period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()) , "RECREATE" );
-    // outfile->cd();
-    // hratio->Write();
-    // outfile->Close();
-
-
-
-    // TCanvas* can = new TCanvas("can","can",600,600);
-    // can->cd();
-
-    // gPad->SetLogy();
-
-    // hZ->SetLineColor(1);
-    // hZ->SetLineWidth(2);
-
-    // hg->SetLineColor(4);
-    // hg->SetLineWidth(1);
-    // hg->SetLineStyle(9);
-
-    // hg_rw->SetLineColor(2);
-    // hg_rw->SetLineWidth(2);
-    // hg_rw->SetLineStyle(2);
-
-    // hZ->Draw("hist");
-    // hg->Draw("samehist");
-    // hg_rw->Draw("samehist");
-
-    // // h1->SetLineColor(4);
-    // // h1->SetStats(0);
-    // // h2->SetLineColor(2);
-    // // h2->SetStats(0);
-    // // h1->Draw();
-    // // h2->Draw("same");
-    // // c1->SetLogy();
-
-    // can->Print( Form( "quickDraw_Data_normalized_%s.pdf",var.c_str() ) );
-
 }
