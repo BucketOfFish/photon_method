@@ -38,22 +38,22 @@ void RebinHistogram(TH1D* hist) {
 void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples, string isData, string treename = "outputTree" ) {
 
     //---------------------------------------------
-    // open file, get Tree and EventCountHist
+    // open input and output files, get TTrees
     //---------------------------------------------
 
     TH1::SetDefaultSumw2();
 
-    TH1D* hist_EventCount = new TH1D("hist_EventCount","",3,0,3);
-    float N_passMET100 = 0.;
-    string  filename       = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
-    TFile*  inputFile      = TFile::Open(filename.c_str());
+    string filename = Form("%s%s.root",pathToNtuples.c_str(),sampleID.c_str()); 
+    TFile* inputFile = TFile::Open(filename.c_str());
+    TTree* inputTree = (TTree*)inputFile->Get(treename.c_str());
+
     Float_t _nGenEvents = 1.;
+    TH1D* hist_EventCount = new TH1D("hist_EventCount","",3,0,3);
     if (isData == "MC") {
         cout << "Setting _nGenEvents = 1 for now NEED TO FIX" << endl;
         _nGenEvents    = 1.0;
         hist_EventCount->SetBinContent(1,1.0);
     }
-    TTree*  inputTree              = (TTree*)inputFile->Get( treename.c_str() );
 
     std::cout << inputTree << std::endl;
     cout << endl;
@@ -63,86 +63,20 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         cout << "Total generated events : " << _nGenEvents     << endl;
     }
 
+    string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
+    cout << "Writing to : " << outfilename << endl;
+    TFile outputFile( outfilename.c_str() , "recreate" );
+    TTree* BaselineTree = new TTree("BaselineTree","baseline tree");
+
     //-----------------------------
-    // access existing branches
+    // access and copy over existing branches
     //-----------------------------
+
     inputTree->SetBranchStatus("*", 0);
+
     bool trigMatch_1L2LTrig; SetInputBranch(inputTree, "trigMatch_1L2LTrig", &trigMatch_1L2LTrig);
-    ULong64_t EventNumber; SetInputBranch(inputTree, "EventNumber", &EventNumber);
-    Int_t RunNumber; SetInputBranch(inputTree, "RunNumber", &RunNumber);
-    Float_t Mu; SetInputBranch(inputTree, "mu", &Mu);
-    Int_t nVtx; SetInputBranch(inputTree, "nVtx", &nVtx);
-    Float_t mll; SetInputBranch(inputTree, "mll", &mll);
-    float MET; SetInputBranch(inputTree, "met_Et", &MET);
-    float MET_phi; SetInputBranch(inputTree, "met_Phi", &MET_phi);
-    float MET_softTerm; SetInputBranch(inputTree, "TST_Et", &MET_softTerm);
-    float MET_softPhi; SetInputBranch(inputTree, "TST_Phi", &MET_softPhi);
-    Bool_t trigMatch_2LTrigOR; SetInputBranch(inputTree, "trigMatch_2LTrigOR", &trigMatch_2LTrigOR);
-    float MET_loose; SetInputBranch(inputTree, "met_Et_loose", &MET_loose);
-    float MET_tight; SetInputBranch(inputTree, "met_Et_tight", &MET_tight);
-    float MET_tighter; SetInputBranch(inputTree, "met_Et_tighter", &MET_tighter);
-    float MET_tenacious; SetInputBranch(inputTree, "met_Et_tenacious", &MET_tenacious);
-    Bool_t is2Lep2Jet; SetInputBranch(inputTree, "is2Lep2Jet", &is2Lep2Jet);
-    Bool_t is2L2JInt; SetInputBranch(inputTree, "is2L2JInt", &is2L2JInt);
-    int nBJet20_MV2c10_FixedCutBEff_77; SetInputBranch(inputTree, "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77);
-    float mjj; SetInputBranch(inputTree, "mjj", &mjj);
-    Double_t mll_RJ; SetInputBranch(inputTree, "mll_RJ", &mll_RJ);
-    Double_t R_minH2P_minH3P; SetInputBranch(inputTree, "R_minH2P_minH3P", &R_minH2P_minH3P);
-    Double_t RPT_HT5PP; SetInputBranch(inputTree, "RPT_HT5PP", &RPT_HT5PP);
-    Double_t dphiVP; SetInputBranch(inputTree, "dphiVP", &dphiVP);
-    Double_t H2PP; SetInputBranch(inputTree, "H2PP", &H2PP);
-    Double_t H5PP; SetInputBranch(inputTree, "H5PP", &H5PP);
-    int nJet20; SetInputBranch(inputTree, "nJet20", &nJet20);
-    Double_t minDphi; SetInputBranch(inputTree, "minDphi", &minDphi);
-    Double_t MZ; SetInputBranch(inputTree, "MZ", &MZ);
-    Double_t NjS; SetInputBranch(inputTree, "NjS", &NjS);
-    Double_t NjISR; SetInputBranch(inputTree, "NjISR", &NjISR);
-    Double_t dphiISRI; SetInputBranch(inputTree, "dphiISRI", &dphiISRI);
-    Double_t RISR; SetInputBranch(inputTree, "RISR", &RISR);
-    Double_t PTISR; SetInputBranch(inputTree, "PTISR", &PTISR);
-    Double_t PTI; SetInputBranch(inputTree, "PTI", &PTI);
-    Double_t PTCM; SetInputBranch(inputTree, "PTCM", &PTCM);
-    Double_t MJ; SetInputBranch(inputTree, "MJ", &MJ);
-    Bool_t is3Lep3Jet; SetInputBranch(inputTree, "is3Lep3Jet", &is3Lep3Jet);
-    Bool_t is4Lep3Jet; SetInputBranch(inputTree, "is4Lep3Jet", &is4Lep3Jet);
-    Double_t lept1sign_VR; SetInputBranch(inputTree, "lept1sign_VR", &lept1sign_VR);
-    Double_t lept2sign_VR; SetInputBranch(inputTree, "lept2sign_VR", &lept2sign_VR);
-    Double_t lept1Pt_VR; SetInputBranch(inputTree, "lept1Pt_VR", &lept1Pt_VR);
-    Double_t lept2Pt_VR; SetInputBranch(inputTree, "lept2Pt_VR", &lept2Pt_VR);
-    Double_t MZ_VR; SetInputBranch(inputTree, "MZ_VR", &MZ_VR);
-    Double_t MJ_VR; SetInputBranch(inputTree, "MJ_VR", &MJ_VR);
-    Double_t RISR_VR; SetInputBranch(inputTree, "RISR_VR", &RISR_VR);
-    Double_t PTISR_VR; SetInputBranch(inputTree, "PTISR_VR", &PTISR_VR);
-    Double_t PTI_VR; SetInputBranch(inputTree, "PTI_VR", &PTI_VR);
-    Double_t PTCM_VR; SetInputBranch(inputTree, "PTCM_VR", &PTCM_VR);
-    Double_t dphiISRI_VR; SetInputBranch(inputTree, "dphiISRI_VR", &dphiISRI_VR);
-    float DPhi_METJetLeading; SetInputBranch(inputTree, "DPhiJ1Met", &DPhi_METJetLeading);
-    float DPhi_METJetSecond; SetInputBranch(inputTree, "DPhiJ2Met", &DPhi_METJetSecond);
-    float HT; SetInputBranch(inputTree, "Ht30", &HT);
-    Float_t Z_pt; SetInputBranch(inputTree, "Ptll", &Z_pt);
-    Int_t jet_n; SetInputBranch(inputTree, "nJet30", &jet_n);
-    Int_t bjet_n; SetInputBranch(inputTree, "nBJet30_MV2c10_FixedCutBEff_77", &bjet_n);
     Int_t nLep_signal; SetInputBranch(inputTree, "nLep_signal", &nLep_signal);
     Int_t nLep_base; SetInputBranch(inputTree, "nLep_base", &nLep_base);
-    //std::vector<int>* lepFlavor = new std::vector<int>(10); SetInputBranch(inputTree, "lepFlavor", &lepFlavor);
-    //std::vector<int>* lepCharge = new std::vector<int>(10); SetInputBranch(inputTree, "lepCharge", &lepCharge);
-    //std::vector<float>* lep_pT = new std::vector<float>(10); SetInputBranch(inputTree, "lepPt", &lep_pT);
-    //std::vector<float>* lep_eta = new std::vector<float>(10); SetInputBranch(inputTree, "lepEta", &lep_eta);
-    //std::vector<float>* lep_phi = new std::vector<float>(10); SetInputBranch(inputTree, "lepPhi", &lep_phi);
-    //std::vector<float>* jet_pT = new std::vector<float>(10); SetInputBranch(inputTree, "jetPt", &jet_pT);
-    //std::vector<float>* jet_eta = new std::vector<float>(10); SetInputBranch(inputTree, "jetEta", &jet_eta);
-    //std::vector<float>* jet_phi = new std::vector<float>(10); SetInputBranch(inputTree, "jetPhi", &jet_phi);
-    //std::vector<float>* jet_m = new std::vector<float>(10); SetInputBranch(inputTree, "jetM", &jet_m);
-    SetInputBranch(inputTree, "lepFlavor", &lepFlavor);
-    SetInputBranch(inputTree, "lepCharge", &lepCharge);
-    SetInputBranch(inputTree, "lepPt", &lep_pT);
-    SetInputBranch(inputTree, "lepEta", &lep_eta);
-    SetInputBranch(inputTree, "lepPhi", &lep_phi);
-    SetInputBranch(inputTree, "jetPt", &jet_pT);
-    SetInputBranch(inputTree, "jetEta", &jet_eta);
-    SetInputBranch(inputTree, "jetPhi", &jet_phi);
-    SetInputBranch(inputTree, "jetM", &jet_m);
-
     Double_t genWeight;
     Double_t eventWeight;
     Double_t leptonWeight;
@@ -160,122 +94,103 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         SetInputBranch(inputTree, "FFWeight", &FFWeight);
     }
 
+    ULong64_t EventNumber; CopyBranch(inputTree, BaselineTree, "EventNumber", "EventNumber", &EventNumber, "I");
+    Int_t RunNumber; CopyBranch(inputTree, BaselineTree, "RunNumber", "RunNumber", &RunNumber, "I");
+    Float_t Mu; CopyBranch(inputTree, BaselineTree, "mu", "Mu", &Mu, "F");
+    Int_t nVtx; CopyBranch(inputTree, BaselineTree, "nVtx", "nVtx", &nVtx, "I");
+    Float_t mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
+    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET", &MET, "F");
+    float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "MET_Phi", &MET_phi, "F");
+    float MET_softTerm; CopyBranch(inputTree, BaselineTree, "TST_Et", "MET_softTerm", &MET_softTerm, "F");
+    float MET_softPhi; CopyBranch(inputTree, BaselineTree, "TST_Phi", "MET_softPhi", &MET_softPhi, "F");
+    Bool_t trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "I");
+    float MET_loose; CopyBranch(inputTree, BaselineTree, "met_Et_loose", "MET_loose", &MET_loose, "F");
+    float MET_tighter; CopyBranch(inputTree, BaselineTree, "met_Et_tighter", "MET_tighter", &MET_tighter, "F");
+    float MET_tenacious; CopyBranch(inputTree, BaselineTree, "met_Et_tenacious", "MET_tenacious", &MET_tenacious, "F");
+    Bool_t is2Lep2Jet; CopyBranch(inputTree, BaselineTree, "is2Lep2Jet", "is2Lep2Jet", &is2Lep2Jet, "I");
+    Bool_t is2L2JInt; CopyBranch(inputTree, BaselineTree, "is2L2JInt", "is2L2JInt", &is2L2JInt, "I");
+    int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
+    float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
+    Double_t mll_RJ; CopyBranch(inputTree, BaselineTree, "mll_RJ", "mll_RJ", &mll_RJ, "F");
+    Double_t R_minH2P_minH3P; CopyBranch(inputTree, BaselineTree, "R_minH2P_minH3P", "R_minH2P_minH3P", &R_minH2P_minH3P, "F");
+    Double_t RPT_HT5PP; CopyBranch(inputTree, BaselineTree, "RPT_HT5PP", "RPT_HT5PP", &RPT_HT5PP, "F");
+    Double_t dphiVP; CopyBranch(inputTree, BaselineTree, "dphiVP", "dphiVP", &dphiVP, "F");
+    Double_t H2PP; CopyBranch(inputTree, BaselineTree, "H2PP", "H2PP", &H2PP, "F");
+    Double_t H5PP; CopyBranch(inputTree, BaselineTree, "H5PP", "H5PP", &H5PP, "F");
+    int nJet20; CopyBranch(inputTree, BaselineTree, "nJet20", "nJet20", &nJet20, "I");
+    Double_t minDphi; CopyBranch(inputTree, BaselineTree, "minDphi", "minDphi", &minDphi, "F");
+    Double_t MZ; CopyBranch(inputTree, BaselineTree, "MZ", "MZ", &MZ, "F");
+    Double_t NjS; CopyBranch(inputTree, BaselineTree, "NjS", "NjS", &NjS, "I");
+    Double_t NjISR; CopyBranch(inputTree, BaselineTree, "NjISR", "NjISR", &NjISR, "I");
+    Double_t dphiISRI; CopyBranch(inputTree, BaselineTree, "dphiISRI", "dphiISRI", &dphiISRI, "F");
+    Double_t RISR; CopyBranch(inputTree, BaselineTree, "RISR", "RISR", &RISR, "F");
+    Double_t PTISR; CopyBranch(inputTree, BaselineTree, "PTISR", "PTISR", &PTISR, "F");
+    Double_t PTI; CopyBranch(inputTree, BaselineTree, "PTI", "PTI", &PTI, "F");
+    Double_t PTCM; CopyBranch(inputTree, BaselineTree, "PTCM", "PTCM", &PTCM, "F");
+    Double_t MJ; CopyBranch(inputTree, BaselineTree, "MJ", "MJ", &MJ, "F");
+    Bool_t is3Lep3Jet; CopyBranch(inputTree, BaselineTree, "is3Lep3Jet", "is3Lep3Jet", &is3Lep3Jet, "I");
+    Bool_t is4Lep3Jet; CopyBranch(inputTree, BaselineTree, "is4Lep3Jet", "is4Lep3Jet", &is4Lep3Jet, "I");
+    Double_t lept1sign_VR; CopyBranch(inputTree, BaselineTree, "lept1sign_VR", "lept1sign_VR", &lept1sign_VR, "I");
+    Double_t lept2sign_VR; CopyBranch(inputTree, BaselineTree, "lept2sign_VR", "lept2sign_VR", &lept2sign_VR, "I");
+    Double_t lept1Pt_VR; CopyBranch(inputTree, BaselineTree, "lept1Pt_VR", "lept1Pt_VR", &lept1Pt_VR, "F");
+    Double_t lept2Pt_VR; CopyBranch(inputTree, BaselineTree, "lept2Pt_VR", "lept2Pt_VR", &lept2Pt_VR, "F");
+    Double_t MZ_VR; CopyBranch(inputTree, BaselineTree, "MZ_VR", "MZ_VR", &MZ_VR, "F");
+    Double_t MJ_VR; CopyBranch(inputTree, BaselineTree, "MJ_VR", "MJ_VR", &MJ_VR, "F");
+    Double_t RISR_VR; CopyBranch(inputTree, BaselineTree, "RISR_VR", "RISR_VR", &RISR_VR, "F");
+    Double_t PTISR_VR; CopyBranch(inputTree, BaselineTree, "PTISR_VR", "PTISR_VR", &PTISR_VR, "F");
+    Double_t PTI_VR; CopyBranch(inputTree, BaselineTree, "PTI_VR", "PTI_VR", &PTI_VR, "F");
+    Double_t PTCM_VR; CopyBranch(inputTree, BaselineTree, "PTCM_VR", "PTCM_VR", &PTCM_VR, "F");
+    Double_t dphiISRI_VR; CopyBranch(inputTree, BaselineTree, "dphiISRI_VR", "dphiISRI_VR", &dphiISRI_VR, "F");
+    float DPhi_METJetLeading; CopyBranch(inputTree, BaselineTree, "DPhiJ1Met", "DPhiJ1Met", &DPhi_METJetLeading, "F");
+    float DPhi_METJetSecond; CopyBranch(inputTree, BaselineTree, "DPhiJ2Met", "DPhiJ2Met", &DPhi_METJetSecond, "F");
+    float HT; CopyBranch(inputTree, BaselineTree, "Ht30", "HT", &HT, "F");
+    Float_t Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Z_pt", &Z_pt, "F");
+    Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "jet_n", &jet_n, "I");
+    Int_t bjet_n; CopyBranch(inputTree, BaselineTree, "nBJet30_MV2c10_FixedCutBEff_77", "bjet_n", &bjet_n, "I");
+    //std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
+    //std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
+    //std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lep_pT", &lep_pT, "std::vector<float>");
+    //std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
+    //std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
+    //std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "std::vector<float>");
+    //std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "std::vector<float>");
+    //std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "std::vector<float>");
+    //std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jet_m", &jet_m, "std::vector<float>");
+    SetInputBranch(inputTree, "lepFlavor", &lepFlavor); BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
+    SetInputBranch(inputTree, "lepCharge", &lepCharge); BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
+    SetInputBranch(inputTree, "lepPt", &lep_pT); BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
+    SetInputBranch(inputTree, "lepEta", &lep_eta); BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
+    SetInputBranch(inputTree, "lepPhi", &lep_phi); BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
+    SetInputBranch(inputTree, "jetPt", &jet_pT); BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
+    SetInputBranch(inputTree, "jetEta", &jet_eta); BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
+    SetInputBranch(inputTree, "jetPhi", &jet_phi); BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
+    SetInputBranch(inputTree, "jetM", &jet_m); BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
+
     //-----------------------------
-    // add new branches
+    // add new branches and histograms
     //-----------------------------
-
-    string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
-    cout << "Writing to : " << outfilename << endl;
-
-    TFile   outputFile( outfilename.c_str() , "recreate" );
-
-    TTree* BaselineTree;
-    BaselineTree = new TTree("BaselineTree","baseline tree");
-
-    TH1D* hist_cutflow_raw = new TH1D("hist_cutflow_raw","",8,0,8);
-    TH1D* hist_cutflow_weight = new TH1D("hist_cutflow_weight","",8,0,8);
-
-    TH1D* hist_dPt_Pt[bin_size];
-    TH1D* hist_dPhi_Pt[bin_size];
-    TH1D* hist_METl_Pt[bin_size];
-    TH1D* hist_METt_Pt[bin_size];
-    TH1D* hist_JetMETl_Pt[bin_size];
-    TH1D* hist_2LPt_Pt[bin_size];
-    TH1D* hist_Mll_dPt[dpt_bin_size];
-    TH1D* hist_fsee_METl_Pt[bin_size];
-    TH1D* hist_fsmm_METl_Pt[bin_size];
-
-    Float_t MT2_max= 0;
-    TBranch *b_MT2_max = BaselineTree->Branch("MT2_max",&MT2_max,"MT2_max/F");
-    Float_t boost_phi= 0;
-    TBranch *b_boost_phi = BaselineTree->Branch("boost_phi",&boost_phi,"boost_phi/F");
-    Float_t boost_eta= 0;
-    TBranch *b_boost_eta = BaselineTree->Branch("boost_eta",&boost_eta,"boost_eta/F");
-    Float_t boost_pt= 0;
-    TBranch *b_boost_pt = BaselineTree->Branch("boost_pt",&boost_pt,"boost_pt/F");
 
     BaselineTree->Branch("DPhi_METNonWJet",&DPhi_METNonWJet,"DPhi_METNonWJet/F");
     BaselineTree->Branch("NonWJet_pT",&NonWJet_pT,"NonWJet_pT/F");
     BaselineTree->Branch("DPhi_METNonWminJet",&DPhi_METNonWminJet,"DPhi_METNonWminJet/F");
     BaselineTree->Branch("NonWminJet_pT",&NonWminJet_pT,"NonWminJet_pT/F");
-    BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
-    BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
-    BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
-    BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
-    BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
-    BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
-    BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
-    BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
-    BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
-    BaselineTree->Branch("Mu",&Mu,"Mu/F");
-    BaselineTree->Branch("nVtx",&nVtx,"nVtx/I");
-    BaselineTree->Branch("mll",&mll,"mll/F");
-    BaselineTree->Branch("MET",&MET,"MET/F");
-    // 2019 RJR analysis variables -------------------------
-    BaselineTree->Branch("MET_loose",&MET_loose,"MET_loose/F");
-    BaselineTree->Branch("MET_tight",&MET_tight,"MET_tight/F");
-    BaselineTree->Branch("MET_tighter",&MET_tighter,"MET_tighter/F");
-    BaselineTree->Branch("MET_tenacious",&MET_tenacious,"MET_tenacious/F");
-    BaselineTree->Branch("trigMatch_2LTrigOR",&trigMatch_2LTrigOR,"trigMatch_2LTrigOR/I");
-    BaselineTree->Branch("is2Lep2Jet",&is2Lep2Jet,"is2Lep2Jet/I");
-    BaselineTree->Branch("is2L2JInt",&is2L2JInt,"is2L2JInt/I");
-    BaselineTree->Branch("nBJet20_MV2c10_FixedCutBEff_77",&nBJet20_MV2c10_FixedCutBEff_77,"nBJet20_MV2c10_FixedCutBEff_77/I");
-    BaselineTree->Branch("mjj",&mjj,"mjj/F");
-    BaselineTree->Branch("mll_RJ",&mll_RJ,"mll_RJ/F");
-    BaselineTree->Branch("R_minH2P_minH3P",&R_minH2P_minH3P,"R_minH2P_minH3P/F");
-    BaselineTree->Branch("RPT_HT5PP",&RPT_HT5PP,"RPT_HT5PP/F");
-    BaselineTree->Branch("dphiVP",&dphiVP,"dphiVP/F");
-    BaselineTree->Branch("H2PP",&H2PP,"H2PP/F");
-    BaselineTree->Branch("H5PP",&H5PP,"H5PP/F");
-    BaselineTree->Branch("nJet20",&nJet20,"nJet20/I");
-    BaselineTree->Branch("minDphi",&minDphi,"minDphi/F");
-    BaselineTree->Branch("MZ",&MZ,"MZ/F");
-    BaselineTree->Branch("NjS",&NjS,"NjS/I");
-    BaselineTree->Branch("NjISR",&NjISR,"NjISR/I");
-    BaselineTree->Branch("dphiISRI",&dphiISRI,"dphiISRI/F");
-    BaselineTree->Branch("RISR",&RISR,"RISR/F");
-    BaselineTree->Branch("PTISR",&PTISR,"PTISR/F");
-    BaselineTree->Branch("PTI",&PTI,"PTI/F");
-    BaselineTree->Branch("PTCM",&PTCM,"PTCM/F");
-    BaselineTree->Branch("MJ",&MJ,"MJ/F");
-    BaselineTree->Branch("is3Lep3Jet",&is3Lep3Jet,"is3Lep3Jet/I");
-    BaselineTree->Branch("is4Lep3Jet",&is4Lep3Jet,"is4Lep3Jet/I");
-    BaselineTree->Branch("lept1sign_VR",&lept1sign_VR,"lept1sign_VR/I");
-    BaselineTree->Branch("lept2sign_VR",&lept2sign_VR,"lept2sign_VR/I");
-    BaselineTree->Branch("lept1Pt_VR",&lept1Pt_VR,"lept1Pt_VR/F");
-    BaselineTree->Branch("lept2Pt_VR",&lept2Pt_VR,"lept2Pt_VR/F");
-    BaselineTree->Branch("MZ_VR",&MZ_VR,"MZ_VR/F");
-    BaselineTree->Branch("MJ_VR",&MJ_VR,"MJ_VR/F");
-    BaselineTree->Branch("RISR_VR",&RISR_VR,"RISR_VR/F");
-    BaselineTree->Branch("PTISR_VR",&PTISR_VR,"PTISR_VR/F");
-    BaselineTree->Branch("PTI_VR",&PTI_VR,"PTI_VR/F");
-    BaselineTree->Branch("PTCM_VR",&PTCM_VR,"PTCM_VR/F");
-    BaselineTree->Branch("dphiISRI_VR",&dphiISRI_VR,"dphiISRI_VR/F");
     BaselineTree->Branch("METl",&METl,"METl/F");
     BaselineTree->Branch("METt",&METt,"METt/F");
-    BaselineTree->Branch("MET_phi",&MET_phi,"MET_phi/F");
-    BaselineTree->Branch("MET_softTerm",&MET_softTerm,"MET_softTerm/F");
-    BaselineTree->Branch("MET_softPhi",&MET_softPhi,"MET_softPhi/F");
     BaselineTree->Branch("DPhi_2Lep",&DPhi_2Lep,"DPhi_2Lep/F");
     BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
     BaselineTree->Branch("DR_Wmin2Jet",&DR_Wmin2Jet,"DR_Wmin2Jet/F");
     BaselineTree->Branch("DR_J0J1",&DR_J0J1,"DR_J0J1/F");
-    BaselineTree->Branch("DPhi_METJetLeading",&DPhi_METJetLeading,"DPhi_METJetLeading/F");
-    BaselineTree->Branch("DPhi_METJetSecond",&DPhi_METJetSecond,"DPhi_METJetSecond/F");
     BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton,"DPhi_METPhoton/F");
     BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading,"DPhi_METLepLeading/F");
     BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond,"DPhi_METLepSecond/F");
     BaselineTree->Branch("DPhi_METLepMin",&DPhi_METLepMin,"DPhi_METLepMin/F");
     BaselineTree->Branch("MinDPhi_PhotonJet",&MinDPhi_PhotonJet,"MinDPhi_PhotonJet/F");
-    BaselineTree->Branch("HT",&HT,"HT/F");
-    BaselineTree->Branch("Z_pt",&Z_pt,"Z_pt/F");
     BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
+    // 2019 RJR analysis variables -------------------------
     BaselineTree->Branch("channel",&channel,"channel/I");
     BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
     BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
     BaselineTree->Branch("Z_phi",&Z_phi,"Z_phi/F");
-    BaselineTree->Branch("bjet_n",&bjet_n,"bjet_n/I");
-    BaselineTree->Branch("jet_n",&jet_n,"jet_n/I");
     BaselineTree->Branch("mj0j1",&mj0j1,"mj0j1/F");
     BaselineTree->Branch("W01_pt",&W01_pt,"W01_pt/F");
     BaselineTree->Branch("DPhi_METW01",&DPhi_METW01,"DPhi_METW01/F");
@@ -285,10 +200,9 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     BaselineTree->Branch("Wmin_eta",&Wmin_eta,"Wmin_eta/F");
     BaselineTree->Branch("DPhi_METWmin",&DPhi_METWmin,"DPhi_METWmin/F");
     BaselineTree->Branch("DPhi_WminZ",&DPhi_WminZ,"DPhi_WminZ/F");
-    BaselineTree->Branch("EventNumber",&EventNumber,"EventNumber/I");
-    BaselineTree->Branch("RunNumber",&RunNumber,"RunNumber/I");
     BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
 
+    TH1D* hist_cutflow_raw = new TH1D("hist_cutflow_raw","",8,0,8);
     hist_cutflow_raw->SetStats(0);
     hist_cutflow_raw->GetXaxis()->SetBinLabel(1, "2lep");
     hist_cutflow_raw->GetXaxis()->SetBinLabel(2, "flavor");
@@ -299,6 +213,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     hist_cutflow_raw->GetXaxis()->SetBinLabel(7, "mll");
     hist_cutflow_raw->GetXaxis()->SetBinLabel(8, "prompt");
 
+    TH1D* hist_cutflow_weight = new TH1D("hist_cutflow_weight","",8,0,8);
     hist_cutflow_weight->SetStats(0);
     hist_cutflow_weight->GetXaxis()->SetBinLabel(1, "2lep");
     hist_cutflow_weight->GetXaxis()->SetBinLabel(2, "flavor");
@@ -309,12 +224,16 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     hist_cutflow_weight->GetXaxis()->SetBinLabel(7, "mll");
     hist_cutflow_weight->GetXaxis()->SetBinLabel(8, "prompt");
 
+    TH1D* hist_METl_Pt[bin_size];
+    TH1D* hist_METt_Pt[bin_size];
     for (int bin=0;bin<bin_size;bin++) {
         hist_METl_Pt[bin] = new TH1D(TString("hist_METl_Pt_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         hist_METl_Pt[bin]->SetStats(0);
         hist_METt_Pt[bin] = new TH1D(TString("hist_METt_Pt_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         hist_METt_Pt[bin]->SetStats(0);
     }
+
+    TH1D* hist_Mll_dPt[dpt_bin_size];
 
     TH1D* hist_low_njet = new TH1D("hist_low_njet","",bin_size,njet_bin);
     TH1D* hist_low_nbjet = new TH1D("hist_low_nbjet","",bin_size,njet_bin);
@@ -323,30 +242,20 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     TH1D* hist_low_ht = new TH1D("hist_low_ht","",bin_size,ht_bin);
 
     //-----------------------------
-    // these variables do not go to output
-    //-----------------------------
-    float n_3jet = 0;
-    float Wtruth_corr = 0;
-    float Wmin_corr = 0;
-    float W12_corr = 0;
-    float W80_corr = 0;
-    float W01_corr = 0;
-    float Wjigsaw_corr = 0;
-
-    //-----------------------------
     // loop over events
     //-----------------------------
 
     Long64_t nentries = inputTree->GetEntries();
-
     //nentries = 1000;
+
+    float N_passMET100 = 0.;
+
     for (Long64_t i=0;i<nentries;i+=event_interval) {
 
         if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
         inputTree->GetEntry(i);
 
         if (MET>100) N_passMET100 += 1; 
-        if (jet_n>=3 && MET>150) n_3jet += 1;
 
         if ( nLep_signal  != 2                 ) continue; // exactly 2 signal leptons
         if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
@@ -372,16 +281,6 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         if( channel < 0 ) continue; // require exactly 2 signal leptons and corresponding triggers
         if( is_OS != 1  ) continue; // require opposite-sign
         if( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
-
-        int njet = hist_low_njet->FindBin(jet_n)-1;
-        if (jet_n>njet_bin[bin_size]) njet = bin_size-1;
-        int nbjet = hist_low_nbjet->FindBin(bjet_n)-1;
-        if (bjet_n>njet_bin[bin_size]) nbjet = bin_size-1;
-        int pt = hist_low_pt->FindBin(Z_pt)-1;
-        int smpt = hist_sm_pt->FindBin(Z_pt)-1;
-        if (Z_pt>pt_bin[bin_size]) pt = bin_size-1;
-        int ht = hist_low_ht->FindBin(HT)-1;
-        if (HT>ht_bin[bin_size]) ht = bin_size-1;
 
         //---------------------------------------------
         // here we compute the MET parallel and perpendicular components

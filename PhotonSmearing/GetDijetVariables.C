@@ -1,3 +1,4 @@
+int channel;
 Int_t EventNumber;
 Int_t RunNumber;
 double totalWeight = 0.;
