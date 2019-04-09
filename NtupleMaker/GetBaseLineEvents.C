@@ -1,7 +1,6 @@
 #include "../Settings.C"
 #include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
-#include "InputVariables.C"
 #include "../PhotonSmearing/GetDijetVariables.C"
 
 using namespace std;
@@ -94,7 +93,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     Bool_t trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "I");
     float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET", &MET, "F");
     float MET_loose; CopyBranch(inputTree, BaselineTree, "met_Et_loose", "MET_loose", &MET_loose, "F");
-    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "MET_tight", &MET, "F");
+    //float MET_tight; CopyBranch(inputTree, BaselineTree, "met_Et", "MET_tight", &MET_tight, "F");
     float MET_tighter; CopyBranch(inputTree, BaselineTree, "met_Et_tighter", "MET_tighter", &MET_tighter, "F");
     float MET_tenacious; CopyBranch(inputTree, BaselineTree, "met_Et_tenacious", "MET_tenacious", &MET_tenacious, "F");
     Bool_t is2Lep2Jet; CopyBranch(inputTree, BaselineTree, "is2Lep2Jet", "is2Lep2Jet", &is2Lep2Jet, "I");
@@ -137,50 +136,41 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     Float_t Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Z_pt", &Z_pt, "F");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "jet_n", &jet_n, "I");
     Int_t bjet_n; CopyBranch(inputTree, BaselineTree, "nBJet30_MV2c10_FixedCutBEff_77", "bjet_n", &bjet_n, "I");
-    //std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
-    //std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
-    //std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lep_pT", &lep_pT, "std::vector<float>");
-    //std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
-    //std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
-    //std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "std::vector<float>");
-    //std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "std::vector<float>");
-    //std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "std::vector<float>");
-    //std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jet_m", &jet_m, "std::vector<float>");
-    SetInputBranch(inputTree, "lepFlavor", &lepFlavor); BaselineTree->Branch("lepFlavor","std::vector<int>",&lepFlavor);
-    SetInputBranch(inputTree, "lepCharge", &lepCharge); BaselineTree->Branch("lepCharge","std::vector<int>",&lepCharge);
-    SetInputBranch(inputTree, "lepPt", &lep_pT); BaselineTree->Branch("lep_pT","std::vector<float>",&lep_pT);
-    SetInputBranch(inputTree, "lepEta", &lep_eta); BaselineTree->Branch("lep_eta","std::vector<float>",&lep_eta);
-    SetInputBranch(inputTree, "lepPhi", &lep_phi); BaselineTree->Branch("lep_phi","std::vector<float>",&lep_phi);
-    SetInputBranch(inputTree, "jetPt", &jet_pT); BaselineTree->Branch("jet_pT","std::vector<float>",&jet_pT);
-    SetInputBranch(inputTree, "jetEta", &jet_eta); BaselineTree->Branch("jet_eta","std::vector<float>",&jet_eta);
-    SetInputBranch(inputTree, "jetPhi", &jet_phi); BaselineTree->Branch("jet_phi","std::vector<float>",&jet_phi);
-    SetInputBranch(inputTree, "jetM", &jet_m); BaselineTree->Branch("jet_m","std::vector<float>",&jet_m);
+    std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
+    std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
+    std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lep_pT", &lep_pT, "std::vector<float>");
+    std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
+    std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
+    std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "std::vector<float>");
+    std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "std::vector<float>");
+    std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "std::vector<float>");
+    std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jet_m", &jet_m, "std::vector<float>");
 
     //-----------------------------
     // add new branches and histograms
     //-----------------------------
 
+    float METl; BaselineTree->Branch("METl",&METl,"METl/F");
+    float METt; BaselineTree->Branch("METt",&METt,"METt/F");
+    float DPhi_2Lep; BaselineTree->Branch("DPhi_2Lep",&DPhi_2Lep,"DPhi_2Lep/F");
+    float DR_2Lep; BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
+    float DPhi_METPhoton; BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton,"DPhi_METPhoton/F");
+    float DPhi_METLepLeading; BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading,"DPhi_METLepLeading/F");
+    float DPhi_METLepSecond; BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond,"DPhi_METLepSecond/F");
+    float DPhi_METLepMin; BaselineTree->Branch("DPhi_METLepMin",&DPhi_METLepMin,"DPhi_METLepMin/F");
+    float MinDPhi_PhotonJet; BaselineTree->Branch("MinDPhi_PhotonJet",&MinDPhi_PhotonJet,"MinDPhi_PhotonJet/F");
+    int channel; BaselineTree->Branch("channel",&channel,"channel/I");
+    int is_OS; BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
+    float Z_eta; BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
+    float Z_phi; BaselineTree->Branch("Z_phi",&Z_phi,"Z_phi/F");
+    double totalWeight; BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
+    // dijet variables
     BaselineTree->Branch("DPhi_METNonWJet",&DPhi_METNonWJet,"DPhi_METNonWJet/F");
     BaselineTree->Branch("NonWJet_pT",&NonWJet_pT,"NonWJet_pT/F");
     BaselineTree->Branch("DPhi_METNonWminJet",&DPhi_METNonWminJet,"DPhi_METNonWminJet/F");
     BaselineTree->Branch("NonWminJet_pT",&NonWminJet_pT,"NonWminJet_pT/F");
-    BaselineTree->Branch("METl",&METl,"METl/F");
-    BaselineTree->Branch("METt",&METt,"METt/F");
-    BaselineTree->Branch("DPhi_2Lep",&DPhi_2Lep,"DPhi_2Lep/F");
-    BaselineTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
     BaselineTree->Branch("DR_Wmin2Jet",&DR_Wmin2Jet,"DR_Wmin2Jet/F");
     BaselineTree->Branch("DR_J0J1",&DR_J0J1,"DR_J0J1/F");
-    BaselineTree->Branch("DPhi_METPhoton",&DPhi_METPhoton,"DPhi_METPhoton/F");
-    BaselineTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading,"DPhi_METLepLeading/F");
-    BaselineTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond,"DPhi_METLepSecond/F");
-    BaselineTree->Branch("DPhi_METLepMin",&DPhi_METLepMin,"DPhi_METLepMin/F");
-    BaselineTree->Branch("MinDPhi_PhotonJet",&MinDPhi_PhotonJet,"MinDPhi_PhotonJet/F");
-    BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
-    // 2019 RJR analysis variables -------------------------
-    BaselineTree->Branch("channel",&channel,"channel/I");
-    BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
-    BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
-    BaselineTree->Branch("Z_phi",&Z_phi,"Z_phi/F");
     BaselineTree->Branch("mj0j1",&mj0j1,"mj0j1/F");
     BaselineTree->Branch("W01_pt",&W01_pt,"W01_pt/F");
     BaselineTree->Branch("DPhi_METW01",&DPhi_METW01,"DPhi_METW01/F");
@@ -190,7 +180,6 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     BaselineTree->Branch("Wmin_eta",&Wmin_eta,"Wmin_eta/F");
     BaselineTree->Branch("DPhi_METWmin",&DPhi_METWmin,"DPhi_METWmin/F");
     BaselineTree->Branch("DPhi_WminZ",&DPhi_WminZ,"DPhi_WminZ/F");
-    BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
 
     TH1D* hist_cutflow_raw = new TH1D("hist_cutflow_raw","",8,0,8);
     hist_cutflow_raw->SetStats(0);
@@ -236,7 +225,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     //-----------------------------
 
     Long64_t nentries = inputTree->GetEntries();
-    //nentries = 1000;
+    nentries = 1000;
 
     float N_passMET100 = 0.;
 
@@ -305,12 +294,12 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
         TLorentzVector tst_4vec;
         tst_4vec.SetPtEtaPhiM(MET_softTerm,0,MET_softPhi,0);
-        DPhi_TSTLepLeading = fabs(tst_4vec.DeltaPhi(lep0_4vec));
-        DPhi_TSTLepSecond = fabs(tst_4vec.DeltaPhi(lep1_4vec));
-        DPhi_TSTLepMin = min(DPhi_TSTLepLeading,DPhi_TSTLepSecond);
-        MinDR_Lep0Jet = 1000.;
-        MinDR_Lep1Jet = 1000.;
-        MinDR_PhotonJet = 1000.;
+        float DPhi_TSTLepLeading = fabs(tst_4vec.DeltaPhi(lep0_4vec));
+        float DPhi_TSTLepSecond = fabs(tst_4vec.DeltaPhi(lep1_4vec));
+        float DPhi_TSTLepMin = min(DPhi_TSTLepLeading,DPhi_TSTLepSecond);
+        float MinDR_Lep0Jet = 1000.;
+        float MinDR_Lep1Jet = 1000.;
+        float MinDR_PhotonJet = 1000.;
         MinDPhi_PhotonJet = 1000.;
         TLorentzVector jet_4vec;
         for (unsigned int j=0;j<jet_pT->size();j++) {
@@ -335,7 +324,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
         DPhi_MET_LepJet = lep1_4vec.DeltaR(met_4vec);
         if (min_DPhi_MET_LepJet>DPhi_MET_LepJet) min_DPhi_MET_LepJet = DPhi_MET_LepJet;
-        MET_rel = MET;
+        float MET_rel = MET;
         if (min_DPhi_MET_LepJet<TMath::Pi()/2.) MET_rel = MET*TMath::Sin(min_DPhi_MET_LepJet);
 
         //---------------------------------------------
@@ -343,10 +332,9 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         //---------------------------------------------
         z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
         met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
-        GetDijetVariables(z_4vec,met_4vec);
+        GetDijetVariables(z_4vec, met_4vec, jet_pT, jet_eta, jet_phi, jet_m);
 
         BaselineTree->Fill();     
-
     }
 
     std::cout << "write output..." << std::endl;
@@ -367,5 +355,4 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     std::cout << "done." << std::endl;
     outputFile.Close();
     delete inputFile;
-
 }

@@ -1,93 +1,3 @@
-int channel;
-Int_t EventNumber;
-Int_t RunNumber;
-double totalWeight = 0.;
-int pt = 0; // pT bin for reweighting
-int smpt = 0; // pT bin for smearing
-int ht = 0;
-int njet = 0;
-int nbjet = 0;
-Int_t jet_n;
-Int_t bjet_n;
-float HT = 0.;
-float truthGamma_pt = 0.;
-float truthGamma_phi = 0.;
-float truthGamma_eta = 0.;
-Float_t gamma_pt = 0.;
-Float_t gamma_ht = 0.;
-float gamma_eta = 0.;
-float gamma_phi = 0.;
-float gamma_dR = 0.;
-float MET;
-//-------------------------------
-//Variables for 2019 RJR analysis
-//-------------------------------
-float MET_loose;
-float MET_tight;
-float MET_tighter;
-float MET_tenacious;
-Int_t trigMatch_2LTrigOR;
-Int_t is2Lep2Jet;
-Int_t is2L2JInt;
-int nBJet20_MV2c10_FixedCutBEff_77;
-float mjj;
-Float_t mll_RJ;
-Float_t R_minH2P_minH3P;
-Float_t RPT_HT5PP;
-Float_t dphiVP;
-Float_t H2PP;
-Float_t H5PP;
-int nJet20;
-Float_t minDphi;
-Float_t MZ;
-Int_t NjS;
-Int_t NjISR;
-Float_t dphiISRI;
-Float_t RISR;
-Float_t PTISR;
-Float_t PTI;
-Float_t PTCM;
-Float_t MJ;
-Int_t is3Lep3Jet;
-Int_t is4Lep3Jet;
-Int_t lept1sign_VR;
-Int_t lept2sign_VR;
-Float_t lept1Pt_VR;
-Float_t lept2Pt_VR;
-Float_t MZ_VR;
-Float_t MJ_VR;
-Float_t RISR_VR;
-Float_t PTISR_VR;
-Float_t PTI_VR;
-Float_t PTCM_VR;
-Float_t dphiISRI_VR;
-//-------------------------------------
-float MET_phi;
-float DPhi_METJetLeading;
-float DPhi_METJetSecond;
-float MinDPhi_PhotonJet;
-
-// new variables to be added to ntuple
-int lep_n = 0;
-int dpt = 0;
-int pt_smear = 0;
-int met_smear = 0;
-int dphi_smear = 0;
-float HTincl = 0.;
-Float_t mll = 0.;
-float smear_shift = 0.;
-float gamma_pt_smear = 0.;
-float gamma_ht_smear = 0.;
-float gamma_phi_smear = 0.;
-float MET_smear;
-float MET_phi_smear;
-float DPhi_METJetLeading_smear;
-float DPhi_METJetSecond_smear;
-float DPhi_METLepLeading_smear;
-float DPhi_METLepSecond_smear;
-float METl_smear = 0.;
-float METt_smear = 0.;
-float DPhi_METPhoton_smear = 0.;
 float mj1j2 = 0.;
 float DR_J1J2 = 0.;
 float DR_Wmin2Jet = 0.;
@@ -118,49 +28,12 @@ float DPhi_METNonWJet = 0.;
 float NonWJet_pT = 0.;
 float DPhi_METNonW12Jet = 0.;
 float NonW12Jet_pT = 0.;
-
-float MT2W;
-
 int W_j0 = 0;
 int W_j1 = 0;
 int Wmin_j0 = 0;
 int Wmin_j1 = 0;
 
-int    is_OS   = 0;
-float  Z_eta   = 0.0;
-float  Z_phi   = 0.0;
-int    el_n    = 0;
-int    mu_n    = 0;
-float MET_rel = 0.;
-float METl = 0.;
-float METt = 0.;
-float DPhi_2Lep = 0.;
-float DR_2Lep = 0.;
-float DPhi_METPhoton = 0.;
-float DPhi_METLepLeading = 0.;
-float DPhi_METLepSecond = 0.;
-float DPhi_METLepMin = 0.;
-float DPhi_TSTLepLeading = 0.;
-float DPhi_TSTLepSecond = 0.;
-float DPhi_TSTLepMin = 0.;
-float MinDR_Lep0Jet = 0.;
-float MinDR_Lep1Jet = 0.;
-float MinDR_PhotonJet = 0.;
-float FS_ee_weight = 0.;
-float FS_mm_weight = 0.;
-std::vector<int>* jet_isPrompt = new std::vector<int>(10);
-// following are variables from Jigsaw
-std::vector<int>* lep_MetHsph = new std::vector<int>(10);
-std::vector<int>* jet_MetHsph = new std::vector<int>(10);
-float DPhi_METISR = 0.;
-float ISR_pT = 0.;
-float ISR_eta = 0.;
-float ISR_phi = 0.;
-float Jigsaw_ZMass = 0.;
-float Jigsaw_WMass = 0.;
-float DPhi_METJigsawW = 0.;
-
-void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec) {
+void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vector<float>* jet_pT, std::vector<float>* jet_eta, std::vector<float>* jet_phi, std::vector<float>* jet_m) {
 	
 	TLorentzVector obj_4vec;
 	TLorentzVector isr_4vec;

@@ -10,7 +10,6 @@
 //-----------------------------------------------------------------------------------------------
 
 #include "../Settings.C"
-#include "../NtupleMaker/InputVariables.C"
 #include "../CommonFunctions/CommonLibraries.C"
 #include "../CommonFunctions/CommonFunctions.C"
 #include "GetDijetVariables.C"
@@ -290,16 +289,24 @@ void GetPhotonSmearing(string label, string ch, string isData, string period, in
     T->SetBranchAddress("PTI_VR",           &PTI_VR  );
     T->SetBranchAddress("PTCM_VR",           &PTCM_VR   );
     T->SetBranchAddress("dphiISRI_VR",           &dphiISRI_VR );
+    std::vector<int>* lepFlavor = new std::vector<int>(10);
+    std::vector<int>* lepCharge = new std::vector<int>(10);
+    std::vector<float>* lep_pT = new std::vector<float>(10);
+    std::vector<float>* lep_eta = new std::vector<float>(10);
+    std::vector<float>* lep_phi = new std::vector<float>(10);
     T->SetBranchAddress("lepFlavor",                  &lepFlavor );
     T->SetBranchAddress("lepCharge",                 &lepCharge );
-    //------------------------------------------------------
+    T->SetBranchAddress("lep_pT_raw"          ,&lep_pT           );
     T->SetBranchAddress("METl_raw"             ,&METl              );
     T->SetBranchAddress("METt_raw"             ,&METt              );
     T->SetBranchAddress("MET_phi_raw"         ,&MET_phi          );
     T->SetBranchAddress("DPhi_METJetLeading_raw"         ,&DPhi_METJetLeading          );
     T->SetBranchAddress("DPhi_METJetSecond_raw"          ,&DPhi_METJetSecond           );
     T->SetBranchAddress("MinDPhi_PhotonJet"          ,&MinDPhi_PhotonJet           );
-    T->SetBranchAddress("lep_pT_raw"          ,&lep_pT           );
+    std::vector<float>* jet_pT = new std::vector<float>(10);
+    std::vector<float>* jet_eta = new std::vector<float>(10);
+    std::vector<float>* jet_phi = new std::vector<float>(10);
+    std::vector<float>* jet_m = new std::vector<float>(10);
     T->SetBranchAddress("jet_pT"          ,&jet_pT           );
     T->SetBranchAddress("jet_eta"         ,&jet_eta          );
     T->SetBranchAddress("jet_phi"         ,&jet_phi          );
@@ -565,7 +572,7 @@ void GetPhotonSmearing(string label, string ch, string isData, string period, in
         //---------------------------------------------
         TLorentzVector z_4vec;
         z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
-        GetDijetVariables(z_4vec,met_4vec_smear);
+        GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
 
         lep_pT->clear();
         lep_eta->clear();
