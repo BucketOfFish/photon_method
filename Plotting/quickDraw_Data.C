@@ -1,9 +1,10 @@
 #include "../Settings.C"
 #include "../CommonFunctions/CommonLibraries.C"
+#include "Cuts.C"
 
 using namespace std;
 
-void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , string var = "MET_tenacious" , bool VgSubtracted = false , string smearing_mode = "NoSmear" , bool normalize = true ) {
+void quickDraw_Data(string period = "data15-16", string channel = "ee", string var = "MET_tenacious", string smearing_mode = "NoSmear" , bool normalize = true ) {
 
     if( TString(var).Contains("pt") ) normalize = false;
     if( TString(var).Contains("HT") ) normalize = false;
@@ -14,7 +15,7 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     gStyle->SetOptStat(0);
 
     //-----------------------------------------------
-    // define filenames
+    // load files
     //-----------------------------------------------
 
     // set up labels
@@ -91,50 +92,23 @@ void quickDraw_Data( string period = "data15-16" , string channel  = "ee" , stri
     // define selections
     //-----------------------------------------------
 
-    //TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && MET<200 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n==0");
-    TCut Zselection("jet_n >= 2 && MET<200 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && mjj<60 || mjj>100 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && HT>800");
-    TCut Zweight("totalWeight");
-    TCut lumi1516("36100");
-    TCut lumi17("44000");
-
-    //TCut gselection("lep_pT[0]>25 && lep_pT[1]>25 && jet_n>=2  && bjet_n==0");
-    TCut gselection("jet_n>=2 && mjj<60 || mjj>100 && lep_pT[0]>25 && lep_pT[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && HT>800");
-
-    //TCut vgselection("jet_n>=2  && bjet_n==0");
-    TCut vgselection("jet_n>=2");
-    //TCut ZCR("MET<60.0");
-    TCut CR("MET<60.0");
-
-    TCut VR("jet_n>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lep_pT[0]>25 && lep_pT[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100");  
-
-    // TCut ee("trigMatch_1L2LTrig && (lepFlavor[0] == 1 && lepFlavor[1] == 1)");
-    // TCut mm("lepFlavor[0] == 2 && lepFlavor[1] == 2");
-    // TCut em("trigMatch_1L2LTrig && ( (lepFlavor[0] == 1 && lepFlavor[1] == 2) || (lepFlavor[0] == 2 && lepFlavor[1] == 1) )");
-
-    TCut ee("channel==1");
-    TCut mm("channel==0");
-    TCut em("channel==2 || channel==3");
-
-    if     ( TString(channel).EqualTo("ee") ) Zselection += ee;
-    else if( TString(channel).EqualTo("mm") ) Zselection += mm;
-    else if( TString(channel).EqualTo("em") ) Zselection += em;
+    if     ( TString(channel).EqualTo("ee") ) cuts::Zselection += cuts::ee;
+    else if( TString(channel).EqualTo("mm") ) cuts::Zselection += cuts::mm;
+    else if( TString(channel).EqualTo("em") ) cuts::Zselection += cuts::em;
     else{
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
 
-    if( TString(period).EqualTo("data15-16") ) Zweight *= lumi1516;
-    if( TString(period).EqualTo("data17")    ) Zweight *= lumi17;
+    if( TString(period).EqualTo("data15-16") ) cuts::Zweight *= cuts::lumi1516;
+    if( TString(period).EqualTo("data17")    ) cuts::Zweight *= cuts::lumi17;
 
-    TCut weight_g    = "totalWeight";
-    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2"; //2-STEP
-
-   cout << "VR selection         " << VR.GetTitle()  << endl;
-    cout << "Z selection          " << Zselection.GetTitle()  << endl;  
-    cout << "Z weight             " << Zweight.GetTitle()     << endl;
-    cout << "g selection          " << gselection.GetTitle()  << endl;
-    cout << "g weight             " << weight_g.GetTitle()    << endl;
-    cout << "g weight (reweight)  " << weight_g_rw.GetTitle() << endl;
+    cout << "VR selection         " << cuts::VR.GetTitle()  << endl;
+    cout << "Z selection          " << cuts::Zselection.GetTitle()  << endl;  
+    cout << "Z weight             " << cuts::Zweight.GetTitle()     << endl;
+    cout << "g selection          " << cuts::gselection.GetTitle()  << endl;
+    cout << "g weight             " << cuts::weight_g.GetTitle()    << endl;
+    cout << "g weight (reweight)  " << cuts::weight_g_rw.GetTitle() << endl;
 
     //-----------------------------------------------
     // define and draw histograms

@@ -1,5 +1,6 @@
 #include "../Settings.C"
 #include "../CommonFunctions/CommonLibraries.C"
+#include "Cuts.C"
 
 using namespace std;
 
@@ -10,7 +11,7 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     gStyle->SetOptStat(0);
 
     //-----------------------------------------------
-    // define filenames
+    // load files
     //-----------------------------------------------
 
     string Zfilename      = ntuple_path + "ZMC16a/Zjets_merged_processed.root";
@@ -40,22 +41,13 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     // Define selections
     //-----------------------------------------------
 
-    TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n == 0");
-
-    TCut ee("channel==1");
-    TCut mm("channel==0");
-    TCut em("channel==2 || channel==3");
-    if     ( TString(channel).EqualTo("ee") ) Zselection += ee;
-    else if( TString(channel).EqualTo("mm") ) Zselection += mm;
-    else if( TString(channel).EqualTo("em") ) Zselection += em;
+    if     ( TString(channel).EqualTo("ee") ) cuts::Zselection += cuts::ee;
+    else if( TString(channel).EqualTo("mm") ) cuts::Zselection += cuts::mm;
+    else if( TString(channel).EqualTo("em") ) cuts::Zselection += cuts::em;
     else{
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
-
-    TCut gselection("jet_n>=2 && lep_pT[0]>25 && lep_pT[1]>25 && bjet_n == 0");
-
-    TCut CR("MET<60.0");
 
     //-----------------------------------------------
     // Set weights 
@@ -66,15 +58,11 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     if( TString(period).EqualTo("data17")    ) lumi = TCut("44100");
     if( TString(period).EqualTo("data18")    ) lumi = TCut("64610");
 
-    TCut Zweight = "totalWeight*36100"; //change luminosity according to data year
-    TCut weight_g    = "totalWeight*36100";
-    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2*36100";
-
-    cout << "Z selection          " << Zselection.GetTitle()  << endl;  
-    cout << "Z weight             " << Zweight.GetTitle()     << endl;
-    cout << "g selection          " << gselection.GetTitle()  << endl;
-    cout << "g weight             " << weight_g.GetTitle()    << endl;
-    cout << "g weight (reweight)  " << weight_g_rw.GetTitle() << endl;
+    cout << "Z selection          " << cuts::Zselection.GetTitle()  << endl;  
+    cout << "Z weight             " << cuts::Zweight.GetTitle()     << endl;
+    cout << "g selection          " << cuts::gselection.GetTitle()  << endl;
+    cout << "g weight             " << cuts::weight_g.GetTitle()    << endl;
+    cout << "g weight (reweight)  " << cuts::weight_g_rw.GetTitle() << endl;
     cout << "luminosity           " << lumi.GetTitle()       << endl;
 
     //-----------------------------------------------
@@ -129,11 +117,11 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
         hg_rw = new TH1F("hg_rw", "", nbins, xmin, xmax);
     }
 
-    Ztree->Draw(Form("%s>>hZ",var.c_str())       , Zselection*Zweight      , "goff");
+    Ztree->Draw(Form("%s>>hZ",var.c_str())       , cuts::Zselection*cuts::Zweight*lumi      , "goff");
 
     if( !DF ){
-        //gtree->Draw(Form("%s>>hg",var.c_str())     , gselection*weight_g     , "goff");
-        gtree->Draw(Form("%s>>hg_rw",var.c_str())  , gselection*weight_g_rw  , "goff");
+        //gtree->Draw(Form("%s>>hg",var.c_str())     , cuts::gselection*cuts::weight_g*lumi     , "goff");
+        gtree->Draw(Form("%s>>hg_rw",var.c_str())  , cuts::gselection*cuts::weight_g_rw*lumi  , "goff");
     }
 
     cout << "" << endl;
