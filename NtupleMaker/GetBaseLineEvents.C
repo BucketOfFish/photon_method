@@ -225,7 +225,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     //-----------------------------
 
     Long64_t nentries = inputTree->GetEntries();
-    nentries = 1000;
+    //nentries = 1000;
 
     float N_passMET100 = 0.;
 

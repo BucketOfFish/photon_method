@@ -6,12 +6,6 @@ TH1D* z_jetmetl[bin_size];
 
 TH1D* hist_low_pt = new TH1D("hist_low_pt","",bin_size,sm_pt_bin);
 
-double totalWeightF = 0.;
-float METlF = 0.;
-float HTF = 0.;
-float gZ_pt;
-int gchannel;
-
 // SMEARING METHODS:
 // 0 : no smearing
 // 4 : R21 MC smearing
@@ -45,21 +39,14 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  tZ              = (TTree*)fZ.Get("BaselineTree");
         tZ->SetBranchStatus("*", 0);
-        tZ->SetBranchStatus("totalWeight", 1);
-        tZ->SetBranchStatus("jet_n", 1);
-        tZ->SetBranchStatus("bjet_n", 1);
-        tZ->SetBranchStatus("Z_pt", 1);
-        //tZ->SetBranchStatus("HT", 1);
-        tZ->SetBranchStatus("mll", 1);
-        tZ->SetBranchStatus("METl", 1);
-        tZ->SetBranchAddress("totalWeight" ,&totalWeightF);
-        tZ->SetBranchAddress("jet_n" ,&jet_n);
-        tZ->SetBranchAddress("bjet_n" ,&bjet_n);
-        tZ->SetBranchAddress("Z_pt" ,&gZ_pt);
-        //tZ->SetBranchAddress("HT" ,&HT);
-        tZ->SetBranchAddress("mll" ,&mll);
-        tZ->SetBranchAddress("METl" ,&METl);
-        tZ->SetBranchAddress("channel" ,&gchannel);
+        double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
+        int jet_n; SetInputBranch(tZ, "jet_n" ,&jet_n);
+        int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
+        float gZ_pt; SetInputBranch(tZ, "Z_pt" ,&gZ_pt);
+        //float HT; SetInputBranch(tZ, "HT" ,&HT);
+        float mll; SetInputBranch(tZ, "mll" ,&mll);
+        float METl; SetInputBranch(tZ, "METl" ,&METl);
+        int gchannel; SetInputBranch(tZ, "channel" ,&gchannel);
         for (int entry=0;entry<tZ->GetEntries();entry++) {
             tZ->GetEntry(entry);
             if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
@@ -68,9 +55,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
             int pt = hist_low_pt->FindBin(gZ_pt)-1;
             if (jet_n!=1) continue;
             if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METlF,totalWeightF);
+            z_metl[pt]->Fill(METl,totalWeight);
             if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METlF,totalWeightF);
+            z_jetmetl[pt]->Fill(METl,totalWeight);
         }
 
         //tZ->Close()
@@ -87,21 +74,14 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  ttt              = (TTree*)ftt.Get("BaselineTree");
         ttt->SetBranchStatus("*", 0);
-        ttt->SetBranchStatus("totalWeight", 1);
-        ttt->SetBranchStatus("jet_n", 1);
-        ttt->SetBranchStatus("bjet_n", 1);
-        ttt->SetBranchStatus("Z_pt", 1);
-        //ttt->SetBranchStatus("HT", 1);
-        ttt->SetBranchStatus("mll", 1);
-        ttt->SetBranchStatus("METl", 1);
-        ttt->SetBranchAddress("totalWeight" ,&totalWeightF);
-        ttt->SetBranchAddress("jet_n" ,&jet_n);
-        ttt->SetBranchAddress("bjet_n" ,&bjet_n);
-        ttt->SetBranchAddress("Z_pt" ,&gZ_pt);
-        //ttt->SetBranchAddress("HT" ,&HT);
-        ttt->SetBranchAddress("mll" ,&mll);
-        ttt->SetBranchAddress("METl" ,&METlF);
-        ttt->SetBranchAddress("channel" ,&gchannel);
+        SetInputBranch(ttt, "totalWeight" ,&totalWeight);
+        SetInputBranch(ttt, "jet_n" ,&jet_n);
+        SetInputBranch(ttt, "bjet_n" ,&bjet_n);
+        SetInputBranch(ttt, "Z_pt" ,&gZ_pt);
+        //SetInputBranch(ttt, "HT" ,&HT);
+        SetInputBranch(ttt, "mll" ,&mll);
+        SetInputBranch(ttt, "METl" ,&METl);
+        SetInputBranch(ttt, "channel" ,&gchannel);
         for (int entry=0;entry<ttt->GetEntries();entry++) {
             ttt->GetEntry(entry);
             if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
@@ -110,9 +90,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
             int pt = hist_low_pt->FindBin(gZ_pt)-1;
             if (jet_n!=1) continue;
             if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METlF,-1.*lumi*totalWeightF);
+            z_metl[pt]->Fill(METl,-1.*lumi*totalWeight);
             if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METlF,-1.*lumi*totalWeightF);
+            z_jetmetl[pt]->Fill(METl,-1.*lumi*totalWeight);
         }
         //ttt->Close();
         ftt.Close();
@@ -124,21 +104,14 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  tvv              = (TTree*)fvv.Get("BaselineTree");
         tvv->SetBranchStatus("*", 0);
-        tvv->SetBranchStatus("totalWeight", 1);
-        tvv->SetBranchStatus("jet_n", 1);
-        tvv->SetBranchStatus("bjet_n", 1);
-        tvv->SetBranchStatus("Z_pt", 1);
-        //tvv->SetBranchStatus("HT", 1);
-        tvv->SetBranchStatus("mll", 1);
-        tvv->SetBranchStatus("METl", 1);
-        tvv->SetBranchAddress("totalWeight" ,&totalWeightF);
-        tvv->SetBranchAddress("jet_n" ,&jet_n);
-        tvv->SetBranchAddress("bjet_n" ,&bjet_n);
-        tvv->SetBranchAddress("Z_pt" ,&gZ_pt);
-        //tvv->SetBranchAddress("HT" ,&HT);
-        tvv->SetBranchAddress("mll" ,&mll);
-        tvv->SetBranchAddress("METl" ,&METlF);
-        tvv->SetBranchAddress("channel" ,&gchannel);
+        SetInputBranch(tvv, "totalWeight" ,&totalWeight);
+        SetInputBranch(tvv, "jet_n" ,&jet_n);
+        SetInputBranch(tvv, "bjet_n" ,&bjet_n);
+        SetInputBranch(tvv, "Z_pt" ,&gZ_pt);
+        //SetInputBranch(tvv, "HT" ,&HT);
+        SetInputBranch(tvv, "mll" ,&mll);
+        SetInputBranch(tvv, "METl" ,&METl);
+        SetInputBranch(tvv, "channel" ,&gchannel);
         for (int entry=0;entry<tvv->GetEntries();entry++) {
             tvv->GetEntry(entry);
             if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
@@ -147,9 +120,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
             int pt = hist_low_pt->FindBin(gZ_pt)-1;
             if (jet_n!=1) continue;
             if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METlF,-1.*lumi*totalWeightF);
+            z_metl[pt]->Fill(METl,-1.*lumi*totalWeight);
             if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METlF,-1.*lumi*totalWeightF);
+            z_jetmetl[pt]->Fill(METl,-1.*lumi*totalWeight);
         }
         //tvv->Close();
         fvv.Close();
@@ -167,20 +140,13 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         cout << "Setting photon branches" << endl;
         tPhoton->SetBranchStatus("*", 0);
-        tPhoton->SetBranchStatus("totalWeight", 1);
-        tPhoton->SetBranchStatus("jet_n", 1);
-        tPhoton->SetBranchStatus("bjet_n", 1);
-        tPhoton->SetBranchStatus("gamma_pt", 1);
-        tPhoton->SetBranchStatus("gamma_ht", 1);
-        //tPhoton->SetBranchStatus("HT", 1);
-        tPhoton->SetBranchStatus("METl_raw", 1);
-        tPhoton->SetBranchAddress("totalWeight" ,&totalWeight);
-        tPhoton->SetBranchAddress("jet_n" ,&jet_n);
-        tPhoton->SetBranchAddress("bjet_n" ,&bjet_n);
-        tPhoton->SetBranchAddress("gamma_pt" ,&gamma_pt);
-        tPhoton->SetBranchAddress("gamma_ht" ,&gamma_ht);
-        //tPhoton->SetBranchAddress("HT" ,&HT);
-        tPhoton->SetBranchAddress("METl_raw" ,&MET);
+        SetInputBranch(tPhoton, "totalWeight" ,&totalWeight);
+        SetInputBranch(tPhoton, "jet_n" ,&jet_n);
+        SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
+        float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
+        float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
+        //SetInputBranch(tPhoton, "HT" ,&HT);
+        SetInputBranch(tPhoton, "METl_raw" ,&METl);
         cout << "Done setting photon branches" << endl;
         for (int entry=0;entry<tPhoton->GetEntries();entry++) {
             tPhoton->GetEntry(entry);
@@ -217,27 +183,16 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  tZ = (TTree*)fZ.Get("BaselineTree");
         tZ->SetBranchStatus("*", 0);
-        tZ->SetBranchStatus("totalWeight", 1);
-        tZ->SetBranchStatus("jet_n", 1);
-        tZ->SetBranchStatus("bjet_n", 1);
-        tZ->SetBranchStatus("Z_pt", 1);
-        //tZ->SetBranchStatus("Z_truthPt", 1);
-        tZ->SetBranchStatus("HT", 1);
-        tZ->SetBranchStatus("mll", 1);
-        tZ->SetBranchStatus("METl", 1);
-        tZ->SetBranchStatus("RunNumber", 1);
-        tZ->SetBranchStatus("EventNumber", 1);
-        tZ->SetBranchAddress("totalWeight" ,&totalWeight);
-        tZ->SetBranchAddress("jet_n" ,&jet_n);
-        tZ->SetBranchAddress("bjet_n" ,&bjet_n);
-        tZ->SetBranchAddress("Z_pt" ,&Z_ptD);
-        //tZ->SetBranchAddress("Z_truthPt" ,&Z_truthPt);
-        tZ->SetBranchAddress("HT" ,&HT);
-        tZ->SetBranchAddress("mll" ,&mllD);
-        tZ->SetBranchAddress("METl" ,&METl);
-        tZ->SetBranchAddress("RunNumber" ,&RunNumber);
-        tZ->SetBranchAddress("EventNumber" ,&EventNumber);
-        tZ->SetBranchAddress("channel" ,&gchannel);
+        float totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
+        int jet_n; SetInputBranch(tZ, "jet_n" ,&jet_n);
+        int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
+        float gZ_pt; SetInputBranch(tZ, "Z_pt" ,&gZ_pt);
+        float HT; SetInputBranch(tZ, "HT" ,&HT);
+        float mll; SetInputBranch(tZ, "mll" ,&mll);
+        float METl; SetInputBranch(tZ, "METl" ,&METl);
+        int RunNumber; SetInputBranch(tZ, "RunNumber" ,&RunNumber);
+        int EventNumber; SetInputBranch(tZ, "EventNumber" ,&EventNumber);
+        int gchannel; SetInputBranch(tZ, "channel" ,&gchannel);
         for (int entry=0;entry<tZ->GetEntries();entry++) {
             tZ->GetEntry(entry);
 
@@ -265,22 +220,13 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  tPhoton              = (TTree*)fPhoton.Get("BaselineTree");
         tPhoton->SetBranchStatus("*", 0);
-        tPhoton->SetBranchStatus("totalWeight", 1);
-        tPhoton->SetBranchStatus("jet_n", 1);
-        tPhoton->SetBranchStatus("bjet_n", 1);
-        tPhoton->SetBranchStatus("gamma_pt", 1);
-        tPhoton->SetBranchStatus("gamma_ht", 1);
-        //tPhoton->SetBranchStatus("truthGamma_pt", 1);
-        tPhoton->SetBranchStatus("HT", 1);
-        tPhoton->SetBranchStatus("METl_raw", 1);
-        tPhoton->SetBranchAddress("totalWeight" ,&totalWeight);
-        tPhoton->SetBranchAddress("jet_n" ,&jet_n);
-        tPhoton->SetBranchAddress("bjet_n" ,&bjet_n);
-        tPhoton->SetBranchAddress("gamma_pt" ,&gamma_pt);
-        tPhoton->SetBranchAddress("gamma_ht" ,&gamma_ht);
-        //tPhoton->SetBranchAddress("truthGamma_pt" ,&truthGamma_pt);
-        tPhoton->SetBranchAddress("HT" ,&HT);
-        tPhoton->SetBranchAddress("METl_raw" ,&METl);
+        SetInputBranch(tPhoton, "totalWeight" ,&totalWeight);
+        SetInputBranch(tPhoton, "jet_n" ,&jet_n);
+        SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
+        float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
+        float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
+        SetInputBranch(tPhoton, "HT" ,&HT);
+        SetInputBranch(tPhoton, "METl_raw" ,&METl);
         for (int entry=0;entry<tPhoton->GetEntries();entry++) {
             tPhoton->GetEntry(entry);
             if (gamma_pt<50.) continue;
