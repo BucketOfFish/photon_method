@@ -1,4 +1,5 @@
 #include "../CommonFunctions/CommonLibraries.C"
+#include "../CommonFunctions/CommonCuts.C"
 
 using namespace std;
 
@@ -63,29 +64,22 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     cout << "photon entries       " << chg->GetEntries()      << endl;
 
     // define selections and weights
-    TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n==0");
-
-    TCut ee("channel==1");
-    TCut mm("channel==0");
-
-    if ( TString(channel).EqualTo("ee") ) Zselection += ee;
-    else if ( TString(channel).EqualTo("mm") ) Zselection += mm;
+    if ( TString(channel).EqualTo("ee") ) cuts::Zselection += ee;
+    else if ( TString(channel).EqualTo("mm") ) cuts::Zselection += mm;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
 
-    TCut gselection("lep_pT[0]>25 && lep_pT[1]>25 && jet_n>=2 && bjet_n == 0");
-    TCut weight("totalWeight");
     TCut lumi("1.0");
 
     if( TString(period).EqualTo("data15-16") ) lumi = TCut("36200");
     if( TString(period).EqualTo("data17")    ) lumi = TCut("43800");
     if( TString(period).EqualTo("data18")    ) lumi = TCut("36200");
 
-    cout << "Z selection          " << Zselection.GetTitle() << endl;
-    cout << "g selection          " << gselection.GetTitle() << endl;
-    cout << "weight               " << weight.GetTitle()     << endl;
+    cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
+    cout << "g selection          " << cuts::gselection.GetTitle() << endl;
+    cout << "weight               " << cuts::Zweight.GetTitle()     << endl;
     cout << "lumi                 " << lumi.GetTitle()       << endl;
 
     // define histograms
@@ -100,27 +94,27 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
 
     TCut RunRange("");
     if( TString(period).EqualTo("data17")    ){
-        RunRange = TCut("RandomRunNumber < 348000");  
+        RunRange = TCut("RunNumber < 348000");  
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
     }
 
     // fill histograms: HT -step1
     if (step == 1) {
-        chdata-> Draw("min(HT,999)>>hdata"  ,Zselection       ,"goff");
-        chtt->   Draw("min(HT,999)>>htt"    ,Zselection*RunRange*weight*lumi,"goff");
-        chvv->   Draw("min(HT,999)>>hvv"    ,Zselection*RunRange*weight*lumi,"goff");
-        chzjets->Draw("min(HT,999)>>hz"     ,Zselection*RunRange*weight*lumi,"goff");
-        chg    ->Draw("min(HT,999)>>histoG" ,gselection*weight,"goff");
+        chdata-> Draw("min(HT,999)>>hdata"  ,cuts::Zselection       ,"goff");
+        chtt->   Draw("min(HT,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chvv->   Draw("min(HT,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chzjets->Draw("min(HT,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chg    ->Draw("min(HT,999)>>histoG" ,cuts::gselection*cuts::weight_g,"goff");
     }
 
     // fill histograms: Z_pt -step2
     else if (step == 2) {
         TCut g_rw("ptreweight_step1"); // from step 1
-        chdata-> Draw("min(Z_pt,999)>>hdata"  ,Zselection       ,"goff");
-        chtt->   Draw("min(Z_pt,999)>>htt"    ,Zselection*RunRange*weight*lumi,"goff");
-        chvv->   Draw("min(Z_pt,999)>>hvv"    ,Zselection*RunRange*weight*lumi,"goff");
-        chzjets->Draw("min(Z_pt,999)>>hz"     ,Zselection*RunRange*weight*lumi,"goff");
-        chg    ->Draw("min(Z_pt,999)>>histoG" ,gselection*weight*g_rw,"goff");
+        chdata-> Draw("min(Z_pt,999)>>hdata"  ,cuts::Zselection       ,"goff");
+        chtt->   Draw("min(Z_pt,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chvv->   Draw("min(Z_pt,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chzjets->Draw("min(Z_pt,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chg    ->Draw("min(Z_pt,999)>>histoG" ,gselection*cuts::weight_g*g_rw,"goff");
     }
 
     cout << "data integral        " << hdata->Integral()   << endl;

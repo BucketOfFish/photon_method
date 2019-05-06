@@ -80,8 +80,8 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
         outputTree->GetEntry(i);
 
         float gamma_pt_truncated = gamma_pt;
-        if( gamma_pt_truncated < 40   ) gamma_pt_truncated = 41;
-        if( gamma_pt_truncated > 1000 ) gamma_pt_truncated = 999;
+        if( gamma_pt_truncated < 40   ) gamma_pt_truncated = 40;
+        if( gamma_pt_truncated > 1000 ) gamma_pt_truncated = 1000;
 
         int ptbin = hreweight->FindBin( gamma_pt_truncated );
 

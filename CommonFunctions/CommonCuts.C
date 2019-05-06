@@ -1,14 +1,13 @@
 namespace cuts{
-    //TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && MET<200 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n==0");
-    TCut Zselection("jet_n >= 2 && MET<200 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && mjj<60 || mjj>100 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && HT>800");
-    //TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n == 0");
 
-    //TCut gselection("lep_pT[0]>25 && lep_pT[1]>25 && jet_n>=2  && bjet_n==0");
-    TCut gselection("jet_n>=2 && mjj<60 || mjj>100 && lep_pT[0]>25 && lep_pT[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && HT>800");
-    //TCut gselection("jet_n>=2 && lep_pT[0]>25 && lep_pT[1]>25 && bjet_n == 0");
+    TCut Zselection("mll>81 && mll<101 && jet_n >= 2 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && bjet_n==0");
+    //TCut Zselection("jet_n >= 2 && MET<200 && is_OS && lep_pT[0]>25.0 && lep_pT[1]>25.0 && mjj<60 || mjj>100 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && HT>800");
 
-    //TCut vgselection("jet_n>=2  && bjet_n==0");
+    TCut gselection("lep_pT[0]>25 && lep_pT[1]>25 && jet_n>=2 && bjet_n == 0");
+    //TCut gselection("jet_n>=2 && mjj<60 || mjj>100 && lep_pT[0]>25 && lep_pT[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && HT>800");
+
     TCut vgselection("jet_n>=2");
+    //TCut vgselection("jet_n>=2  && bjet_n==0");
 
     //TCut ZCR("MET<60.0");
     TCut CR("MET<60.0");
