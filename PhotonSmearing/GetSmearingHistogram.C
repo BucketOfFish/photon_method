@@ -144,7 +144,7 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         SetInputBranch(tPhoton, "jet_n" ,&jet_n);
         SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
         float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
-        float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
+        //float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
         //SetInputBranch(tPhoton, "HT" ,&HT);
         SetInputBranch(tPhoton, "METl_raw" ,&METl);
         cout << "Done setting photon branches" << endl;
@@ -183,15 +183,13 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
         TTree*  tZ = (TTree*)fZ.Get("BaselineTree");
         tZ->SetBranchStatus("*", 0);
-        float totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
+        double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
         int jet_n; SetInputBranch(tZ, "jet_n" ,&jet_n);
         int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
         float gZ_pt; SetInputBranch(tZ, "Z_pt" ,&gZ_pt);
         float HT; SetInputBranch(tZ, "HT" ,&HT);
         float mll; SetInputBranch(tZ, "mll" ,&mll);
         float METl; SetInputBranch(tZ, "METl" ,&METl);
-        int RunNumber; SetInputBranch(tZ, "RunNumber" ,&RunNumber);
-        int EventNumber; SetInputBranch(tZ, "EventNumber" ,&EventNumber);
         int gchannel; SetInputBranch(tZ, "channel" ,&gchannel);
         for (int entry=0;entry<tZ->GetEntries();entry++) {
             tZ->GetEntry(entry);
@@ -224,7 +222,7 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         SetInputBranch(tPhoton, "jet_n" ,&jet_n);
         SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
         float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
-        float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
+        //float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
         SetInputBranch(tPhoton, "HT" ,&HT);
         SetInputBranch(tPhoton, "METl_raw" ,&METl);
         for (int entry=0;entry<tPhoton->GetEntries();entry++) {

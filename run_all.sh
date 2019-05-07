@@ -17,18 +17,18 @@ lsetup "root 6.14.04-x86_64-slc6-gcc62-opt"
 
 #cd ..
 
-## Smear photons
+# Smear photons
 
-#cd PhotonSmearing/
+cd PhotonSmearing/
 
-#root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",4)'
-#root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","ee","MC","data15-16",0)'
-#root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",0)'
-#root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",5)'
-#root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",0)'
-#root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","ee","Data","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",4)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","ee","MC","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",5)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","ee","Data","data15-16",0)'
 
-#cd ..
+cd ..
 
 ## Do reweighting
 
@@ -54,15 +54,15 @@ lsetup "root 6.14.04-x86_64-slc6-gcc62-opt"
 
 #cd ..
 
-# Make analysis plots
+## Make analysis plots
 
-cd Plotting/
+#cd Plotting/
 
-root -l -b -q 'quickDraw_MC.C("data15-16","ee","MET","NoSmear")'
-root -l -b -q 'quickDraw_MC.C("data15-16","mm","MET","NoSmear")'
-root -l -b -q 'quickDraw_Data.C("data15-16","ee","MET","NoSmear")'
-root -l -b -q 'quickDraw_Data.C("data15-16","mm","MET","NoSmear")'
-root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","ee","MET","NoSmear","gdata")'
-root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","mm","MET","NoSmear","gdata")'
+#root -l -b -q 'quickDraw_MC.C("data15-16","ee","MET","NoSmear")'
+#root -l -b -q 'quickDraw_MC.C("data15-16","mm","MET","NoSmear")'
+#root -l -b -q 'quickDraw_Data.C("data15-16","ee","MET","NoSmear")'
+#root -l -b -q 'quickDraw_Data.C("data15-16","mm","MET","NoSmear")'
+#root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","ee","MET","NoSmear","gdata")'
+#root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","mm","MET","NoSmear","gdata")'
 
-cd ..
+#cd ..

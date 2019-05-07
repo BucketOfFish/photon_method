@@ -1,5 +1,3 @@
-double lumi = 36100.;
-
 std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/Ntuples/";
 std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/SmearedNtuples/";
 std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/ReweightedNtuples/";
