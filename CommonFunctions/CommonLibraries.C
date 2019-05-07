@@ -42,5 +42,6 @@
 #include "TGraphErrors.h"
 #include "TStyle.h"
 #include "TLine.h"
+#include "TRandom.h"
 
 #endif
