@@ -1,6 +1,6 @@
-#include "../Settings.C"
-#include "../CommonFunctions/CommonLibraries.C"
-#include "../CommonFunctions/CommonCuts.C"
+#include "../Common/Settings.C"
+#include "../Common/CommonLibraries.C"
+#include "../Common/CommonCuts.C"
 
 using namespace std;
 

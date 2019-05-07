@@ -1,5 +1,6 @@
-#include "../CommonFunctions/CommonLibraries.C"
-#include "../CommonFunctions/CommonCuts.C"
+#include "../Common/Settings.C"
+#include "../Common/CommonLibraries.C"
+#include "../Common/CommonCuts.C"
 
 using namespace std;
 
@@ -35,7 +36,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     string tt_filename     = ntuple_path + mcperiod + "ttbar_merged_processed.root";
     string vv_filename     = ntuple_path + mcperiod + "diboson_merged_processed.root";
     string zjets_filename  = ntuple_path + mcperiod + "Zjets_merged_processed.root";
-    string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root";//Vg subtracted 
+    string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
 
     cout << "Opening data file    " << data_filename   << endl;
     cout << "Opening ttbar file   " << tt_filename     << endl;
@@ -64,28 +65,20 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     cout << "photon entries       " << chg->GetEntries()      << endl;
 
     // define selections and weights
-    if ( TString(channel).EqualTo("ee") ) cuts::Zselection += ee;
-    else if ( TString(channel).EqualTo("mm") ) cuts::Zselection += mm;
+    if ( TString(channel).EqualTo("ee") ) cuts::Zselection += cuts::ee;
+    else if ( TString(channel).EqualTo("mm") ) cuts::Zselection += cuts::mm;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
 
-    TCut lumi("1.0");
-
-    if( TString(period).EqualTo("data15-16") ) lumi = TCut("36200");
-    if( TString(period).EqualTo("data17")    ) lumi = TCut("43800");
-    if( TString(period).EqualTo("data18")    ) lumi = TCut("36200");
-
+    float lumi = GetLumi(period);
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
     cout << "g selection          " << cuts::gselection.GetTitle() << endl;
     cout << "weight               " << cuts::Zweight.GetTitle()     << endl;
-    cout << "lumi                 " << lumi.GetTitle()       << endl;
+    cout << "lumi                 " << lumi       << endl;
 
     // define histograms
-    const unsigned int nptbins = 16;
-    double ptbins[nptbins+1] = {40, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 850, 1000};
-
     TH1F* hdata  = new TH1F("hdata"  ,"",nptbins,ptbins);
     TH1F* htt    = new TH1F("htt"    ,"",nptbins,ptbins);
     TH1F* hvv    = new TH1F("hvv"    ,"",nptbins,ptbins);
@@ -98,12 +91,14 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
     }
 
+    TCut lumi_cut = TCut(TString(to_string(lumi)));
+
     // fill histograms: HT -step1
     if (step == 1) {
         chdata-> Draw("min(HT,999)>>hdata"  ,cuts::Zselection       ,"goff");
-        chtt->   Draw("min(HT,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
-        chvv->   Draw("min(HT,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
-        chzjets->Draw("min(HT,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
+        chtt->   Draw("min(HT,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
+        chvv->   Draw("min(HT,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
+        chzjets->Draw("min(HT,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
         chg    ->Draw("min(HT,999)>>histoG" ,cuts::gselection*cuts::weight_g,"goff");
     }
 
@@ -111,10 +106,10 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     else if (step == 2) {
         TCut g_rw("ptreweight_step1"); // from step 1
         chdata-> Draw("min(Z_pt,999)>>hdata"  ,cuts::Zselection       ,"goff");
-        chtt->   Draw("min(Z_pt,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
-        chvv->   Draw("min(Z_pt,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
-        chzjets->Draw("min(Z_pt,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi,"goff");
-        chg    ->Draw("min(Z_pt,999)>>histoG" ,gselection*cuts::weight_g*g_rw,"goff");
+        chtt->   Draw("min(Z_pt,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
+        chvv->   Draw("min(Z_pt,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
+        chzjets->Draw("min(Z_pt,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
+        chg    ->Draw("min(Z_pt,999)>>histoG" ,cuts::gselection*cuts::weight_g*g_rw,"goff");
     }
 
     cout << "data integral        " << hdata->Integral()   << endl;
@@ -164,6 +159,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     leg->Draw();
     can->Print(Form("%sGetSimpleReweightingHistograms_%s_%s_%s_2L.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),smearing_mode.c_str()));
 
+    //--- take data and remove MC htt and MC hvv
     TH1F* histoZ = (TH1F*) hdata->Clone("histoZ");
     histoZ->Add( htt , -1.0 );
     histoZ->Add( hvv , -1.0 );

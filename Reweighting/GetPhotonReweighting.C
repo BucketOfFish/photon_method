@@ -1,29 +1,14 @@
-/*
------------------------------------------------------------------------------------------------
-This script takes the outputs from GetBaseLineEvents.C and GetPhotonEvents.C and GetPhotonSmearing.C, and makes photon reweighting factors.
-The parameters of the function GetPhotonReweighting(string label, string ch, int isData, int smearing_method, int step) are:
-label: takes as an input the dataset year as data15-16, data17 or data18
-ch: which dilepton channel you are smearing the photon events to (ee,mm)
-isData: 0 (MC) or 1 (data)
-step: the latest version of this code is split into two steps (1) reweight with HT, then (2) reweight with Pt_z. First run with step = 1, then step = 2
-example of code running command: root -l -b 'GetPhotonReweighting.C+("data15-16","mm",0,0)'
------------------------------------------------------------------------------------------------
-*/
-
-#include "../Settings.C"
-#include "../CommonFunctions/CommonLibraries.C"
-#include "../CommonFunctions/CommonFunctions.C"
+#include "../Common/Settings.C"
+#include "../Common/CommonLibraries.C"
+#include "../Common/CommonFunctions.C"
 #include "GetSimpleReweightingHistograms.C"
 
 using namespace std;
 
-vector<string> noSampleWeight;
-vector<string> noEventWeight;
-
 void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, int step) {
 
     //---------------------------------------------
-    // standard 1-d reweighting array 
+    // 1-d reweighting histogram 
     //---------------------------------------------
 
     TH1F* hreweight = GetSimpleReweightingHistograms(periodlabel, ch, smearing_mode, step);
@@ -84,9 +69,7 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
         if( gamma_pt_truncated > 1000 ) gamma_pt_truncated = 1000;
 
         int ptbin = hreweight->FindBin( gamma_pt_truncated );
-
         ptreweight = hreweight->GetBinContent(ptbin);
-
         b_ptreweight->Fill();
     }
 

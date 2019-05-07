@@ -1,6 +1,6 @@
-#include "../Settings.C"
-#include "../CommonFunctions/CommonLibraries.C"
-#include "../CommonFunctions/CommonFunctions.C"
+#include "../Common/Settings.C"
+#include "../Common/CommonLibraries.C"
+#include "../Common/CommonFunctions.C"
 #include "MT2.h"
 
 using namespace std;
@@ -541,6 +541,7 @@ void GetPhotonSmearing(string label, string ch, string isData, string period, in
 
     TH1::SetDefaultSumw2();
 
+    string photon_tag = "";
     if (smearing_method == 0) photon_tag = "_NoSmear";
     if (smearing_method == 4) photon_tag = "_McSmear";
     if (smearing_method == 5) photon_tag = "_DataSmear";

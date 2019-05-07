@@ -20,5 +20,5 @@ float GetLumi(TString period) {
     if (period.Contains("mc16e") || period.Contains("data18")) lumi = 60000; // "mc16cd_2018"? <UPDATE>
     else if (period.Contains("mc16cd") || period.Contains("data17")) lumi = 44000;
     else if (period.Contains("mc16a") || period.Contains("data15-16")) lumi = 36100;
-    return lumi
+    return lumi;
 }
