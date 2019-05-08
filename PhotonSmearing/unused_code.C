@@ -66,7 +66,6 @@
     float NonWJet_pT; BaselineTree->Branch("NonWJet_pT", &NonWJet_pT, "NonWJet_pT/F");
     float DPhi_METNonWminJet; BaselineTree->Branch("DPhi_METNonWminJet", &DPhi_METNonWminJet, "DPhi_METNonWminJet/F");
     float NonWminJet_pT; BaselineTree->Branch("NonWminJet_pT", &NonWminJet_pT, "NonWminJet_pT/F");
-    float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
 
     //-----------------------------
     // make histograms
@@ -109,7 +108,6 @@
     TH1D* hist_zmet_htincl = new TH1D("hist_zmet_htincl", "", bin_size, ht_bin); hist_zmet_htincl->SetStats(0);
     TH1D* hist_bveto_pt_smear = new TH1D("hist_bveto_pt_smear", "", bin_size, sm_pt_bin); hist_bveto_pt_smear->SetStats(0);
     TH1D* hist_bveto_htincl = new TH1D("hist_bveto_htincl", "", bin_size, ht_bin); hist_bveto_htincl->SetStats(0);
-    TH1D* hist_low_met = new TH1D("hist_low_met", "", bin_size, met_bin); hist_low_met->SetStats(0);
     TH1D* hist_low_dphi = new TH1D("hist_low_dphi", "", bin_size, dphi_bin); hist_low_dphi->SetStats(0);
 
     //-----------------------------
@@ -321,3 +319,24 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
 	NonWJet_pT = isr_4vec.Pt();
 
 }
+
+    //-----------------------------
+    // smearing
+    //-----------------------------
+
+    for (int bin=0;bin<bin_size;bin++) {
+        g_metl[bin]->Write();
+        z_metl[bin]->Write();
+        z_metl_2j[bin]->Write();
+        g_metl_smear[bin]->Write();
+        g_metl_smear_2j[bin]->Write();
+        smear_final[bin]->Write();
+        if (smearing_method != 0) {
+            g_resp[bin]->Write();
+            z_resp[bin]->Write();
+            smear_raw[bin]->Write();
+            smear_fft_re[bin]->Write();
+            smear_fft_im[bin]->Write();
+            smear_fft_amp[bin]->Write();
+        }
+    }

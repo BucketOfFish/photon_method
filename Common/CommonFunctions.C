@@ -1,3 +1,6 @@
+#ifndef COMMON_FUNCTIONS
+#define COMMON_FUNCTIONS
+
 template<class variableType>
 void SetInputBranch(TTree* inputTree, string branchName, variableType variablePointer) {
     inputTree->SetBranchStatus(branchName.c_str(), 1);
@@ -22,3 +25,5 @@ float GetLumi(TString period) {
     else if (period.Contains("mc16a") || period.Contains("data15-16")) lumi = 36100;
     return lumi;
 }
+
+#endif
