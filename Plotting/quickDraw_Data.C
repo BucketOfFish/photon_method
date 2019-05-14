@@ -1,16 +1,18 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonCuts.C"
+#include "../Common/CommonFunctions.C"
 
 using namespace std;
 
-void quickDraw_Data(string period = "data15-16", string channel = "ee", string var = "MET_tenacious", string smearing_mode = "NoSmear" , bool normalize = true ) {
-
-    if( TString(var).Contains("pt") ) normalize = false;
-    if( TString(var).Contains("HT") ) normalize = false;
+void quickDraw_Data(string period = "data15-16", string channel = "ee", string var = "MET_tenacious", string smearing_mode = "NoSmear") {
 
     bool DF = TString(channel).EqualTo("em");
-    if( DF ) normalize = false;
+
+    bool normalize = true;
+    if (TString(var).Contains("pt")) normalize = false;
+    if (TString(var).Contains("HT")) normalize = false;
+    if (DF) normalize = false;
 
     gStyle->SetOptStat(0);
 
@@ -18,30 +20,16 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     // load files
     //-----------------------------------------------
 
-    // set up labels
-    string mcdir      = "";
-    string gdatalabel = "";
-    if     ( TString(period).Contains("data15-16") ){
-        mcdir    = "ZMC16a/";
-        gdatalabel = "data15-16";
-    }
-    else if( TString(period).Contains("data17")    ){
-        mcdir    = "ZMC16cd/";
-        gdatalabel = "data17";
-    }
-    else if( TString(period).Contains("data18")    ){
-        mcdir    = "ZMC16cd/";
-        gdatalabel = "data18";
-    }
+    string mcdir = "";
+    if (TString(period).Contains("data15-16")) mcdir = "ZMC16a/";
+    else if (TString(period).Contains("data17")) mcdir = "ZMC16cd/";
+    else if (TString(period).Contains("data18")) mcdir = "ZMC16cd/";
 
     string Zfilename      = ntuple_path + "zdata/data15-16_merged_processed.root";
     string tt_filename    = ntuple_path + mcdir + "ttbar_merged_processed.root";
     string vv_filename    = ntuple_path + mcdir + "diboson_merged_processed.root";
     string z_filename     = ntuple_path + mcdir + "Zjets_merged_processed.root";
-    //string o_filename     = ntuple_path + mcdir + "triboson_higgs_topOther_merged_processed.root";
-    //string gfilename      = ntuple_path + "gdata/" + period + VgString + "_" + channel + "_" + smearing_mode + ".root";
     string gfilename      = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
-    //string vg_filename    = ntuple_path + "gmc/Vgamma_merged_processed.root";
 
     cout << "period               " << period        << endl;
     cout << "channel              " << channel       << endl;
@@ -50,43 +38,23 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     cout << "tt filename          " << tt_filename   << endl;
     cout << "vv filename          " << vv_filename   << endl;
     cout << "Z+jets filename      " << z_filename    << endl;
-    //cout << "other filename       " << o_filename    << endl;
-    //cout << "Vg filename          " << vg_filename   << endl;
     cout << "g filename           " << gfilename     << endl;
-    cout << "DF?                  " << DF            << endl;
 
     //-----------------------------------------------
     // add files to TChain
     //-----------------------------------------------
 
-    TChain * gtree = new TChain("BaselineTree");
-    if( !DF ) gtree->Add( gfilename.c_str() );
-
-    TChain * Ztree = new TChain("BaselineTree");
-    Ztree->Add( Zfilename.c_str() );
-
-    TChain* chtt = new TChain("BaselineTree");
-    chtt->Add( tt_filename.c_str() );
-
-    TChain* chz = new TChain("BaselineTree");
-    chz->Add( z_filename.c_str() );
-
-    //TChain* cho = new TChain("BaselineTree");
-    //cho->Add( o_filename.c_str() );
-
-    TChain* chvv = new TChain("BaselineTree");
-    chvv->Add( vv_filename.c_str() );
-
-    // TChain* chvg = new TChain("BaselineTree");
-    //chvg->Add( vg_filename.c_str() );
+    TChain * gtree = new TChain("BaselineTree"); if (!DF) gtree->Add( gfilename.c_str() );
+    TChain * Ztree = new TChain("BaselineTree"); Ztree->Add( Zfilename.c_str() );
+    TChain* chtt = new TChain("BaselineTree"); chtt->Add( tt_filename.c_str() );
+    TChain* chz = new TChain("BaselineTree"); chz->Add( z_filename.c_str() );
+    TChain* chvv = new TChain("BaselineTree"); chvv->Add( vv_filename.c_str() );
 
     cout << "g entries            " << gtree->GetEntries()  << endl;
     cout << "Z data entries       " << Ztree->GetEntries()  << endl;
     cout << "ttbar entries        " << chtt->GetEntries()   << endl;
     cout << "diboson entries      " << chvv->GetEntries()   << endl;
     cout << "Z+jets entries       " << chz->GetEntries()    << endl;
-    //cout << "other entries        " << cho->GetEntries()    << endl;
-    //cout << "Vg entries           " << chvg->GetEntries()   << endl;
 
     //-----------------------------------------------
     // define selections
@@ -100,8 +68,8 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
         exit(0);
     }
 
-    if( TString(period).EqualTo("data15-16") ) cuts::Zweight *= cuts::lumi1516;
-    if( TString(period).EqualTo("data17")    ) cuts::Zweight *= cuts::lumi17;
+    TCut lumi_cut = TCut(TString(to_string(GetLumi(period))));
+    cuts::Zweight *= lumi_cut;
 
     cout << "VR selection         " << cuts::VR.GetTitle()  << endl;
     cout << "Z selection          " << cuts::Zselection.GetTitle()  << endl;  
@@ -113,6 +81,8 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     //-----------------------------------------------
     // define and draw histograms
     //-----------------------------------------------
+
+    //--- set histogram binning
 
     std::tuple<string, int, float, float> plot_settings;
 
@@ -143,75 +113,45 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     float xmin = std::get<2>(plot_settings);
     float xmax = std::get<3>(plot_settings);
 
-    // initialize histograms
+    //--- initialize histograms
+
+    TH1F *hZ, *hg, *htt, *hvv, *hz, *hg_rw;
 
     const unsigned int nptbins = 16;
     double ptbins[nptbins+1] = {40, 75, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500, 600, 700, 850, 1000};
-
-    TH1F* hZ    ;//= new TH1F();    
-    TH1F* hg    ;//= new TH1F();    
-    TH1F* htt   ;//= new TH1F();   
-    TH1F* hvv   ;//= new TH1F();
-    TH1F* hz    ;//= new TH1F();
-    //TH1F* ho    ;//= new TH1F();
-    //TH1F* hvg   ;//= new TH1F();
-    //TH1F* hvg_rw;//= new TH1F();   
-    TH1F* hg_rw ;//= new TH1F(); 
-
-    if( TString(var).EqualTo("Z_pt") ){
+    if ( TString(var).EqualTo("Z_pt") || TString(var).EqualTo("HT") ) {
         hZ     = new TH1F("hZ"     , "" , nptbins , ptbins );
         hg     = new TH1F("hg"     , "" , nptbins , ptbins );
         htt    = new TH1F("htt"    , "" , nptbins , ptbins );
         hvv    = new TH1F("hvv"    , "" , nptbins , ptbins );
         hz     = new TH1F("hz"     , "" , nptbins , ptbins );
-        //ho     = new TH1F("ho"     , "" , nptbins , ptbins );
-        //hvg    = new TH1F("hvg"    , "" , nptbins , ptbins );
-        //hvg_rw = new TH1F("hvg_rw" , "" , nptbins , ptbins );
         hg_rw  = new TH1F("hg_rw"  , "" , nptbins , ptbins );
     }
-
-    else if( TString(var).EqualTo("HT") ){
-        hZ     = new TH1F("hZ"     , "" , nptbins , ptbins );
-        hg     = new TH1F("hg"     , "" , nptbins , ptbins );
-        htt    = new TH1F("htt"    , "" , nptbins , ptbins );
-        hvv    = new TH1F("hvv"    , "" , nptbins , ptbins );
-        hz     = new TH1F("hz"     , "" , nptbins , ptbins );
-        //ho     = new TH1F("ho"     , "" , nptbins , ptbins );
-        //hvg    = new TH1F("hvg"    , "" , nptbins , ptbins );
-        //hvg_rw = new TH1F("hvg_rw" , "" , nptbins , ptbins );
-        hg_rw  = new TH1F("hg_rw"  , "" , nptbins , ptbins );
-    }
-
-    else{
+    else {
         hZ     = new TH1F("hZ"     , "" , nbins , xmin , xmax );
         hg     = new TH1F("hg"     , "" , nbins , xmin , xmax );
         htt    = new TH1F("htt"    , "" , nbins , xmin , xmax );
         hvv    = new TH1F("hvv"    , "" , nbins , xmin , xmax );
         hz     = new TH1F("hz"     , "" , nbins , xmin , xmax );
-        //ho     = new TH1F("ho"     , "" , nbins , xmin , xmax );
-        //hvg    = new TH1F("hvg"    , "" , nbins , xmin , xmax );
-        //hvg_rw = new TH1F("hvg_rw" , "" , nbins , xmin , xmax );
         hg_rw  = new TH1F("hg_rw"  , "" , nbins , xmin , xmax );
     }
 
-    Ztree->Draw(Form("%s>>hZ",var.c_str())       , Zselection              , "goff");
-    chtt-> Draw(Form("%s>>htt",var.c_str())      , Zselection*Zweight      , "goff");
-    chz->  Draw(Form("%s>>hz",var.c_str())       , Zselection*Zweight      , "goff");
-    //cho->  Draw(Form("%s>>ho",var.c_str())       , Zselection*Zweight      , "goff");
-    chvv-> Draw(Form("%s>>hvv",var.c_str())      , Zselection*Zweight      , "goff");
+    //--- draw histograms
 
-    if( !DF ){
-        gtree->Draw(Form("%s>>hg",var.c_str())     , gselection*weight_g     , "goff");
-        gtree->Draw(Form("%s>>hg_rw",var.c_str())  , gselection*weight_g_rw  , "goff");
+    Ztree->Draw(Form("%s>>hZ", var.c_str()), cuts::Zselection, "goff");
+    chtt-> Draw(Form("%s>>htt", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+    chz->  Draw(Form("%s>>hz", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+    chvv-> Draw(Form("%s>>hvv", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+
+    if (!DF) {
+        gtree->Draw(Form("%s>>hg", var.c_str()), cuts::gselection*cuts::weight_g, "goff");
+        gtree->Draw(Form("%s>>hg_rw", var.c_str()), cuts::gselection*cuts::weight_g_rw, "goff");
     }
 
     cout << "Z data integral      " << hZ->Integral()  << endl;
     cout << "tt MC integral       " << htt->Integral()  << endl;
     cout << "Z+jets MC integral   " << hz->Integral()  << endl;
-    //cout << "other MC integral    " << ho->Integral()  << endl;
     cout << "VV MC integral       " << hvv->Integral()  << endl;
-    //cout << "Vg MC integral       " << hvg->Integral()  << endl;
-    //cout << "Vg MC integral (rw)  " << hvg_rw->Integral()  << endl;
     cout << "g data raw integral  " << hg->Integral()  << endl;
     cout << "g data rw integral   " << hg_rw->Integral()  << endl;
 
@@ -219,22 +159,21 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     // normalize Z to MET<60 GeV region
     //-----------------------------------------------
 
-    if( normalize ){
+    if (normalize) {
 
-        cout << "normalize to CR    " << CR.GetTitle()         << endl;
+        cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
-        TH1F* hZnorm    = new TH1F("hZnorm",   "",1,0,1);
-        TH1F* hgnorm    = new TH1F("hgnorm",   "",1,0,1);
-        TH1F* hgrwnorm  = new TH1F("hgrwnorm", "",1,0,1);
-        TH1F* httnorm   = new TH1F("httnorm",  "",1,0,1);
-        TH1F* hvvnorm   = new TH1F("hvvnorm",  "",1,0,1);
+        TH1F* hZnorm    = new TH1F("hZnorm", "", 1, 0, 1);
+        TH1F* hgnorm    = new TH1F("hgnorm", "", 1, 0, 1);
+        TH1F* hgrwnorm  = new TH1F("hgrwnorm", "", 1, 0, 1);
+        TH1F* httnorm   = new TH1F("httnorm", "", 1, 0, 1);
+        TH1F* hvvnorm   = new TH1F("hvvnorm", "", 1, 0, 1);
 
-        Ztree->Draw("0.5>>hZnorm"     , Zselection+CR                , "goff");
-        chtt-> Draw("0.5>>httnorm"    , (Zselection+CR)*Zweight      , "goff");
-        chvv-> Draw("0.5>>hvvnorm"    , (Zselection+CR)*Zweight      , "goff");
-
-        gtree->Draw("0.5>>hgnorm"     , (gselection+CR)*weight_g     , "goff");
-        gtree->Draw("0.5>>hgrwnorm"   , (gselection+CR)*weight_g_rw  , "goff");
+        Ztree->Draw("0.5>>hZnorm", cuts::Zselection+cuts::CR, "goff");
+        chtt-> Draw("0.5>>httnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        chvv-> Draw("0.5>>hvvnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        gtree->Draw("0.5>>hgnorm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
+        gtree->Draw("0.5>>hgrwnorm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
 
         float SF   = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgnorm->Integral();
         float SFrw = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgrwnorm->Integral();
@@ -244,10 +183,9 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
 
         hg->Scale(SF);
         hg_rw->Scale(SFrw);
-
     }
 
-    if( TString(var).EqualTo("Z_pt") ) hg->Scale( hg_rw->Integral() / hg->Integral() );
+    if ( TString(var).EqualTo("Z_pt") ) hg->Scale( hg_rw->Integral() / hg->Integral() );
 
     //-----------------------------------------------
     // make pretty plots
@@ -257,24 +195,20 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     cout << "2L data                " << hZ->Integral(11,15)     << endl;
     cout << "g data (reweighted)    " << hg_rw->Integral(11,15)  << endl;
     cout << "g data (raw)           " << hg->Integral(11,15)     << endl;
-    //cout << "Vg MC                  " << hvg->Integral(11,15)    << endl;
     cout << "VV MC                  " << hvv->Integral(11,15)    << endl;
     cout << "tt MC                  " << htt->Integral(11,15)    << endl;
-    //cout << "other MC               " << ho->Integral(11,15)     << endl;
     cout << "Z+jets MC              " << hz->Integral(11,15)     << endl;
 
     cout << "MET150-200" << endl;
     cout << "2L data                " << hZ->Integral(16,21)     << endl;
     cout << "g data (reweighted)    " << hg_rw->Integral(16,21)  << endl;
     cout << "g data (raw)           " << hg->Integral(16,21)     << endl;
-    //cout << "Vg MC                  " << hvg->Integral(16,21)    << endl;
     cout << "VV MC                  " << hvv->Integral(16,21)    << endl;
     cout << "tt MC                  " << htt->Integral(16,21)    << endl;
-    //cout << "other MC               " << ho->Integral(16,21)     << endl;
     cout << "Z+jets MC              " << hz->Integral(16,21)     << endl;
 
+    //--- make canvas and draw 2L data vs. MC plot
 
-    // make canvas and draw 2L data vs. MC plot
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
 
@@ -295,9 +229,6 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     htt->SetLineColor(1);
     htt->SetFillColor(kRed-2);
 
-    //ho->SetLineColor(1);
-    //ho->SetFillColor(kMagenta-2);
-
     hvv->SetLineColor(1);
     hvv->SetFillColor(kGreen-2);
 
@@ -306,7 +237,6 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
 
     hg->Add(htt);
     hg->Add(hvv);
-    //hg->Add(ho);
 
     hg->SetLineColor(4);
     hg->SetLineWidth(1);
@@ -314,14 +244,12 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
 
     hz->Add(htt);
     hz->Add(hvv);
-    //hz->Add(ho);
 
     hz->SetLineColor(2);
     hz->SetLineWidth(1);
     hz->SetLineStyle(7);
 
     THStack *mcstack = new THStack("mcstack","mcstack");
-    //mcstack->Add(ho);
     mcstack->Add(htt);
     mcstack->Add(hvv);
     if( !DF ) mcstack->Add(hg_rw);
@@ -339,7 +267,6 @@ void quickDraw_Data(string period = "data15-16", string channel = "ee", string v
     }
     leg->AddEntry(hvv,"VV","f");
     leg->AddEntry(htt,"t#bar{t}+tW","f");
-    //leg->AddEntry(ho,"Other MC","f");
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
     leg->Draw();

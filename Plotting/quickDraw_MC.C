@@ -230,6 +230,6 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    can->Print(Form((plots_path + "mm_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
+    can->Print(Form("%s", (plots_path + "mm_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
 
 }
