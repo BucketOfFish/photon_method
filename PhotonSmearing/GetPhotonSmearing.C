@@ -74,9 +74,10 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     int bjet_n; CopyBranch(inputTree, BaselineTree, "bjet_n", "bjet_n", &bjet_n, "I");
     float gamma_pt; CopyBranch(inputTree, BaselineTree, "gamma_pt", "gamma_pt",  &gamma_pt, "F");
     float gamma_eta; CopyBranch(inputTree, BaselineTree, "gamma_eta", "Z_eta",  &gamma_eta, "F");
-    float METl; CopyBranch(inputTree, BaselineTree, "METl_raw", "METl", &METl, "F");
-    float METt; CopyBranch(inputTree, BaselineTree, "METt_raw", "METt", &METt, "F");
+    float METl; CopyBranch(inputTree, BaselineTree, "METl_raw", "METl_raw", &METl, "F");
+    float METt; CopyBranch(inputTree, BaselineTree, "METt_raw", "METt_raw", &METt, "F");
     float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
+    float MET_raw; CopyBranch(inputTree, BaselineTree, "MET_raw", "MET_raw", &MET_raw, "F");
 
     std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
     std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
@@ -225,7 +226,7 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
         float photon_smear_t = -gamma_pt_smear*TMath::Sin(photon_smear_phi);
         float METl_smear = METl + photon_smear_l;  // sign of photon_smear is important!!!
         float METt_smear = METt + photon_smear_t;  // sign of photon_smear is important!!!
-        float MET_smear = pow(METl_smear*METl_smear+METt_smear*METt_smear,0.5);
+        MET_smear = pow(METl_smear*METl_smear+METt_smear*METt_smear,0.5);
 
         int pt_smear = hist_sm_pt->FindBin(gamma_pt_smear)-1;
         if (gamma_pt_smear>sm_pt_bin[bin_size]) pt_smear = bin_size-1;
