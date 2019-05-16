@@ -51,7 +51,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         SetInputBranch(inputTree, "pileupWeight", &pileupWeight);
         SetInputBranch(inputTree, "FFWeight", &FFWeight);
     }
-    bool trigMatch_1L2LTrig; SetInputBranch(inputTree, "trigMatch_1L2LTrig", &trigMatch_1L2LTrig);
+    bool trigMatch_1L2LTrigOR; SetInputBranch(inputTree, "trigMatch_1L2LTrigOR", &trigMatch_1L2LTrigOR);
     double totalWeight; BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
 
     //--- event selection
@@ -62,7 +62,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     int is_OS; BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
     std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
     std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
-    std::vector<int>* lepIsoFCTight = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepIsoFCTight", "lepIsoFCTight", &lepCharge, "std::vector<int>");
+    std::vector<int>* lepIsoFCTight = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepIsoFCTight", "lepIsoFCTight", &lepIsoFCTight, "std::vector<int>");
     std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lep_pT", &lep_pT, "std::vector<float>");
     std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
     std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
@@ -87,7 +87,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
     float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
     Int_t bjet_n; CopyBranch(inputTree, BaselineTree, "nBJet30_MV2c10_FixedCutBEff_77", "bjet_n", &bjet_n, "I");
     float HT; CopyBranch(inputTree, BaselineTree, "Ht30", "HT", &HT, "F");
-    Float_t mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
+    float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "std::vector<float>");
     std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "std::vector<float>");
@@ -111,11 +111,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         if ( lep_pT->at(0) < leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
         if ( lep_pT->at(1) < second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
         if ( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
-        if ( !trigMatch_1L2LTrig ) continue; // need 2 lepton trigger
-
-        //--- evaluate weight
-        totalWeight = 1;
-        if (isData == "MC") totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+        if ( !trigMatch_1L2LTrigOR ) continue; // need 2 lepton trigger
 
         //--- determine channel
         channel = -1;
@@ -124,7 +120,7 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         if ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 2 ) channel = 2; // em
         if ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 1 ) channel = 3; // me
 
-        if ( channel < 0 ) continue; // require exactly 2 signal leptons
+        //if ( channel < 0 ) continue; // require exactly 2 signal leptons
 
         //--- determine OS / SS
         is_OS = -1;
@@ -133,6 +129,10 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
 
         if ( is_OS != 1 ) continue; // require opposite-sign
 
+        //--- evaluate weight
+        totalWeight = 1;
+        if (isData == "MC") totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+
         //--- compute 4-vectors of objects
         TLorentzVector lep0_4vec;
         TLorentzVector lep1_4vec;
@@ -140,8 +140,8 @@ void GetBaseLineEvents(string sampleID, string outputName, string pathToNtuples,
         lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
 
         TLorentzVector z_4vec;
-        Z_eta = (lep0vec+lep1vec).Eta();
-        Z_phi = (lep0vec+lep1vec).Phi();
+        Z_eta = (lep0_4vec+lep1_4vec).Eta();
+        Z_phi = (lep0_4vec+lep1_4vec).Phi();
         z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
 
         TLorentzVector met_4vec;
