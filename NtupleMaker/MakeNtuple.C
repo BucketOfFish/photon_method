@@ -100,7 +100,6 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
         BaselineTree->Branch("METt_raw",&METt,"METt/F");
     }
     //--- non-photon
-    Float_t Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Z_pt", &Z_pt, "F");
     float Z_eta, Z_phi, DR_2Lep, DPhi_METPhoton, DPhi_2Lep, DPhi_METLepLeading, DPhi_METLepSecond, DPhi_METLepMin;
     if (!isPhoton) {
         BaselineTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
@@ -146,7 +145,8 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
     double PTISR; CopyBranch(inputTree, BaselineTree, "PTISR", "PTISR", &PTISR, "D");
     double PTISR_VR; CopyBranch(inputTree, BaselineTree, "PTISR_VR", "PTISR_VR", &PTISR_VR, "D");
     double PTI_VR; CopyBranch(inputTree, BaselineTree, "PTI_VR", "PTI_VR", &PTI_VR, "D");
-    float Ptll; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Ptll, "F");
+    //float Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Z_pt", &Z_pt, "F");
+    float Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Z_pt, "F");
     double RISR; CopyBranch(inputTree, BaselineTree, "RISR", "RISR", &RISR, "D");
     double RISR_VR; CopyBranch(inputTree, BaselineTree, "RISR_VR", "RISR_VR", &RISR_VR, "D");
     double RPT_HT5PP; CopyBranch(inputTree, BaselineTree, "RPT_HT5PP", "RPT_HT5PP", &RPT_HT5PP, "D");
