@@ -1,6 +1,7 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonFunctions.C"
+#include "../Common/CommonCuts.C"
 
 using namespace std;
 
@@ -54,8 +55,9 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     }
 
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
+    cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
     cout << "g selection          " << cuts::gselection.GetTitle() << endl;
-    cout << "weight               " << cuts::Zweight.GetTitle() << endl;
+    cout << "g weight             " << cuts::weight_g.GetTitle() << endl;
 
     //--- fill reweighting histograms
     TH1F* hdata  = new TH1F("hdata", "", nptbins, ptbins);
