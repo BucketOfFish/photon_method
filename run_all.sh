@@ -60,11 +60,9 @@ cd ..
 
 cd Plotting/
 
-root -l -b -q 'quickDraw_MC.C("data15-16","ee","MET","NoSmear")'
-root -l -b -q 'quickDraw_MC.C("data15-16","mm","MET","NoSmear")'
-root -l -b -q 'quickDraw_Data.C("data15-16","ee","MET","NoSmear")'
-root -l -b -q 'quickDraw_Data.C("data15-16","mm","MET","NoSmear")'
-root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","ee","MET","NoSmear","gdata")'
-root -l -b -q 'quickDraw_photonPredictionsSR.C("data15-16","mm","MET","NoSmear","gdata")'
+root -l -b -q 'quickDraw_MC.C("data15-16","ee","met_Et","NoSmear")'
+root -l -b -q 'quickDraw_MC.C("data15-16","mm","met_Et","NoSmear")'
+root -l -b -q 'quickDraw_Data.C("data15-16","ee","met_Et","NoSmear")'
+root -l -b -q 'quickDraw_Data.C("data15-16","mm","met_Et","NoSmear")'
 
 cd ..

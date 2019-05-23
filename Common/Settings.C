@@ -1,10 +1,11 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/Ntuples/";
-std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/SmearedNtuples/";
-std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/ReweightedNtuples/";
-std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/Plots/";
+//std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/PAR/Ntuples/";
+std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/Ntuples/";
+std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/SmearedNtuples/";
+std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/ReweightedNtuples/";
+std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/Plots/";
 
 //--- ntuple production
 int event_interval = 1; // use every nth event
@@ -13,6 +14,7 @@ double second_lep_pt_cut = 25.; // also used for smearing
 
 //--- binning for smearing methods
 const int bin_size = 22;
+//double sm_pt_bin[bin_size+1] ={0,50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10,1e10,1e10,1e10,1e10,1e10};
 double sm_pt_bin[bin_size+1] ={50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
 double met_bin[bin_size+1] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
 double dphi_bin[bin_size+1] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};

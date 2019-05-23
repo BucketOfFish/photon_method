@@ -53,11 +53,6 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     // Set weights 
     //-----------------------------------------------
 
-    TCut lumi("1.0");
-    if( TString(period).EqualTo("data15-16") ) lumi = TCut("36100");
-    if( TString(period).EqualTo("data17")    ) lumi = TCut("44100");
-    if( TString(period).EqualTo("data18")    ) lumi = TCut("64610");
-
     cout << "Z selection          " << cuts::Zselection.GetTitle()  << endl;  
     cout << "Z weight             " << cuts::Zweight.GetTitle()     << endl;
     cout << "g selection          " << cuts::gselection.GetTitle()  << endl;
