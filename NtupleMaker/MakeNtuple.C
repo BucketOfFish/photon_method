@@ -249,7 +249,7 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
         }
         else {
             totalWeight = 1;
-            if (isData == "MC") totalWeight = genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+            if (isData == "MC") totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
         }
 
         //--- compute MET parallel and perpendicular components

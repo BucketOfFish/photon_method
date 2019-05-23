@@ -6,84 +6,60 @@ using namespace std;
 
 TH1F* GetSimpleReweightingHistograms(string period, string channel, string smearing_mode, int step ){
 
-    cout << "Doing histograms for period and year " << period << " " << channel << endl;
+    cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
 
-    //--- set up labels
-    string mcdir      = "";
-    string gdatalabel = "";
-    if     ( TString(period).Contains("data15-16") ){
-        mcdir    = "MC16a/";
-        gdatalabel = "data15-16";
-    }
-    else if( TString(period).Contains("data17")    ){
-        mcdir    = "MC16cd/";
-        gdatalabel = "data17";
-    }
-    else if( TString(period).Contains("data18")    ){
-        mcdir    = "MC16cd_2018/";
-        gdatalabel = "data18";
-    }
+    //--- open files and create TChains
+    string mc_folder = "";
+    if (TString(period).Contains("data15-16")) mc_folder = "ZMC16a/";
+    else if (TString(period).Contains("data17")) mc_folder = "ZMC16cd/";
+    else if (TString(period).Contains("data18")) mc_folder = "ZMC16cd/";
 
-    //--- set up MC period
-    string mcperiod = "";
-    if( TString(period).Contains("data15-16") ) mcperiod = "ZMC16a/";
-    if( TString(period).Contains("data17")    ) mcperiod = "ZMC16cd/";
-    if( TString(period).Contains("data18")    ) mcperiod = "ZMC16cd/";
-
-    // set up filenames
-    string data_filename   = ntuple_path + "zdata/" + period + "_merged_processed.root";
-    string tt_filename     = ntuple_path + mcperiod + "ttbar_merged_processed.root";
-    string vv_filename     = ntuple_path + mcperiod + "diboson_merged_processed.root";
-    string zjets_filename  = ntuple_path + mcperiod + "Zjets_merged_processed.root";
+    string data_filename = ntuple_path + "zdata/" + period + "_merged_processed.root";
+    string tt_filename = ntuple_path + mc_folder + "ttbar_merged_processed.root";
+    string vv_filename = ntuple_path + mc_folder + "diboson_merged_processed.root";
+    string zjets_filename = ntuple_path + mc_folder + "Zjets_merged_processed.root";
     string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
 
-    cout << "Opening data file    " << data_filename   << endl;
-    cout << "Opening ttbar file   " << tt_filename     << endl;
-    cout << "Opening diboson file " << vv_filename     << endl;
+    cout << "Opening data file    " << data_filename << endl;
+    cout << "Opening ttbar file   " << tt_filename << endl;
+    cout << "Opening diboson file " << vv_filename << endl;
     cout << "Opening Z+jets file  " << zjets_filename << endl;
     cout << "Opening photon file  " << photon_filename << endl;
 
-    // create TChains
-    TChain* chdata  = new TChain("BaselineTree");
-    TChain* chtt    = new TChain("BaselineTree");
-    TChain* chvv    = new TChain("BaselineTree");
-    TChain* chzjets = new TChain("BaselineTree");
-    TChain* chg     = new TChain("BaselineTree");
+    TChain* tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
+    TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
+    TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
+    TChain* tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
+    TChain* tch_photon = new TChain("BaselineTree"); tch_photon->Add(photon_filename.c_str());
 
-    // add files to TChain and get entries
-    chdata->Add( data_filename.c_str() );
-    chtt->Add( tt_filename.c_str() );
-    chvv->Add( vv_filename.c_str() );
-    chzjets->Add( zjets_filename.c_str() );
-    chg->Add( photon_filename.c_str() );
-
-    cout << "data entries         " << chdata->GetEntries()   << endl;
-    cout << "ttbar entries        " << chtt->GetEntries()     << endl;
-    cout << "diboson entries      " << chvv->GetEntries()     << endl;
-    cout << "Z+jets entries       " << chzjets->GetEntries()  << endl;
-    cout << "photon entries       " << chg->GetEntries()      << endl;
+    cout << "data entries         " << tch_data->GetEntries() << endl;
+    cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
+    cout << "diboson entries      " << tch_vv->GetEntries() << endl;
+    cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
+    cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     // define selections and weights
-    if ( TString(channel).EqualTo("ee") ) cuts::Zselection += cuts::ee;
-    else if ( TString(channel).EqualTo("mm") ) cuts::Zselection += cuts::mm;
+    if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
 
     float lumi = GetLumi(period);
+
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
     cout << "g selection          " << cuts::gselection.GetTitle() << endl;
-    cout << "weight               " << cuts::Zweight.GetTitle()     << endl;
-    cout << "lumi                 " << lumi       << endl;
+    cout << "weight               " << cuts::Zweight.GetTitle() << endl;
+    cout << "lumi                 " << lumi << endl;
 
     // define histograms
-    TH1F* hdata  = new TH1F("hdata"  ,"",nptbins,ptbins);
-    TH1F* htt    = new TH1F("htt"    ,"",nptbins,ptbins);
-    TH1F* hvv    = new TH1F("hvv"    ,"",nptbins,ptbins);
-    TH1F* hz     = new TH1F("hz"     ,"",nptbins,ptbins);
-    TH1F* histoG = new TH1F("histoG" ,"",nptbins,ptbins);    
+    TH1F* hdata  = new TH1F("hdata", "", nptbins, ptbins);
+    TH1F* htt    = new TH1F("htt", "", nptbins, ptbins);
+    TH1F* hvv    = new TH1F("hvv", "", nptbins, ptbins);
+    TH1F* hz     = new TH1F("hz", "", nptbins, ptbins);
+    TH1F* histoG = new TH1F("histoG", "", nptbins, ptbins);    
 
     TCut RunRange("");
     if( TString(period).EqualTo("data17")    ){
@@ -91,32 +67,30 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
     }
 
-    TCut lumi_cut = TCut(TString(to_string(lumi)));
-
     // fill histograms: HT -step1
     if (step == 1) {
-        chdata-> Draw("min(HT,999)>>hdata"  ,cuts::Zselection       ,"goff");
-        chtt->   Draw("min(HT,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chvv->   Draw("min(HT,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chzjets->Draw("min(HT,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chg    ->Draw("min(HT,999)>>histoG" ,cuts::gselection*cuts::weight_g,"goff");
+        tch_data->Draw("min(HT,999)>>hdata", cuts::Zselection, "goff");
+        tch_tt->Draw("min(HT,999)>>htt", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_vv->Draw("min(HT,999)>>hvv", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_zjets->Draw("min(HT,999)>>hz", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_photon->Draw("min(HT,999)>>histoG", cuts::gselection*cuts::weight_g, "goff");
     }
 
     // fill histograms: Z_pt -step2
     else if (step == 2) {
         TCut g_rw("ptreweight_step1"); // from step 1
-        chdata-> Draw("min(Z_pt,999)>>hdata"  ,cuts::Zselection       ,"goff");
-        chtt->   Draw("min(Z_pt,999)>>htt"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chvv->   Draw("min(Z_pt,999)>>hvv"    ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chzjets->Draw("min(Z_pt,999)>>hz"     ,cuts::Zselection*RunRange*cuts::Zweight*lumi_cut,"goff");
-        chg    ->Draw("min(Z_pt,999)>>histoG" ,cuts::gselection*cuts::weight_g*g_rw,"goff");
+        tch_data->Draw("min(Z_pt,999)>>hdata", cuts::Zselection, "goff");
+        tch_tt->Draw("min(Z_pt,999)>>htt", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_vv->Draw("min(Z_pt,999)>>hvv", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_zjets->Draw("min(Z_pt,999)>>hz", cuts::Zselection*RunRange*cuts::Zweight, "goff");
+        tch_photon->Draw("min(Z_pt,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
     }
 
-    cout << "data integral        " << hdata->Integral()   << endl;
-    cout << "ttbar integral       " << htt->Integral()     << endl;
-    cout << "diboson integral     " << hvv->Integral()     << endl;
-    cout << "Z+jets integral      " << hz->Integral()      << endl;
-    cout << "photon integral      " << histoG->Integral()  << endl;
+    cout << "data integral        " << hdata->Integral() << endl;
+    cout << "ttbar integral       " << htt->Integral() << endl;
+    cout << "diboson integral     " << hvv->Integral() << endl;
+    cout << "Z+jets integral      " << hz->Integral() << endl;
+    cout << "photon integral      " << histoG->Integral() << endl;
 
     // make canvas and draw 2L data vs. MC plot
     TCanvas *can = new TCanvas("can","can",600,600);
