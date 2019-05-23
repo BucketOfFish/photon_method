@@ -5,7 +5,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string smearing_mode, int step ){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string isData, string smearing_mode, int step ){
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -20,7 +20,9 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     string tt_filename = ntuple_path + mc_folder + "ttbar_merged_processed.root";
     string vv_filename = ntuple_path + mc_folder + "diboson_merged_processed.root";
     string zjets_filename = ntuple_path + mc_folder + "Zjets_merged_processed.root";
-    string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
+    string photon_filename;
+    if (isData == "Data") photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
+    else photon_filename = reweighting_path + "gmc/" "gmc" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
 
     cout << "Opening data file    " << data_filename << endl;
     cout << "Opening ttbar file   " << tt_filename << endl;
@@ -78,11 +80,11 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string smear
     // step 2: Z_pt
     else if (step == 2) {
         TCut g_rw("ptreweight_step1"); // from step 1
-        tch_data->Draw("min(Z_pt,999)>>hdata", cuts::Zselection, "goff");
-        tch_tt->Draw("min(Z_pt,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
-        tch_vv->Draw("min(Z_pt,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
-        tch_zjets->Draw("min(Z_pt,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
-        tch_photon->Draw("min(Z_pt,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
+        tch_data->Draw("min(Ptll,999)>>hdata", cuts::Zselection, "goff");
+        tch_tt->Draw("min(Ptll,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
+        tch_vv->Draw("min(Ptll,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
+        tch_zjets->Draw("min(Ptll,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
+        tch_photon->Draw("min(Ptll,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
     }
 
     cout << "data integral        " << hdata->Integral() << endl;
@@ -112,7 +114,7 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
     // 1-d reweighting histogram 
     //---------------------------------------------
 
-    TH1F* hreweight = GetSimpleReweightingHistograms(periodlabel, ch, smearing_mode, step);
+    TH1F* hreweight = GetSimpleReweightingHistograms(periodlabel, ch, isData, smearing_mode, step);
     cout << "Got reweighting histogram hratio with integral " << hreweight->Integral() << endl;
 
     //---------------------------------------------
@@ -171,6 +173,7 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
 
         int ptbin = hreweight->FindBin( gamma_pt_truncated );
         ptreweight = hreweight->GetBinContent(ptbin);
+        cout << gamma_pt_truncated << " " << ptbin << " " << ptreweight << endl;
         b_ptreweight->Fill();
     }
 
