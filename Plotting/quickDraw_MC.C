@@ -71,7 +71,7 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
 
     std::tuple<string, int, float, float> plot_settings;
 
-    if (var == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
+    if (var == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
     else if (var == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 20, -200, 200);
     else if (var == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 20, -200, 200);
     else if (var == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
@@ -230,6 +230,6 @@ void quickDraw_MC(string period = "data15-16" , string channel  = "mm" , string 
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    can->Print(Form("%s", (plots_path + "mm_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
+    can->Print(Form("%s", (plots_path + channel + "_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
 
 }
