@@ -1,9 +1,108 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonFunctions.C"
-#include "GetSimpleReweightingHistograms.C"
 
 using namespace std;
+
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string smearing_mode, int step ){
+
+    cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
+    gStyle->SetOptStat(0);
+
+    //--- open files and create TChains
+    string mc_folder = "";
+    if (TString(period).Contains("data15-16")) mc_folder = "ZMC16a/";
+    else if (TString(period).Contains("data17")) mc_folder = "ZMC16cd/";
+    else if (TString(period).Contains("data18")) mc_folder = "ZMC16cd/";
+
+    string data_filename = ntuple_path + "zdata/" + period + "_merged_processed.root";
+    string tt_filename = ntuple_path + mc_folder + "ttbar_merged_processed.root";
+    string vv_filename = ntuple_path + mc_folder + "diboson_merged_processed.root";
+    string zjets_filename = ntuple_path + mc_folder + "Zjets_merged_processed.root";
+    string photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
+
+    cout << "Opening data file    " << data_filename << endl;
+    cout << "Opening ttbar file   " << tt_filename << endl;
+    cout << "Opening diboson file " << vv_filename << endl;
+    cout << "Opening Z+jets file  " << zjets_filename << endl;
+    cout << "Opening photon file  " << photon_filename << endl;
+
+    TChain* tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
+    TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
+    TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
+    TChain* tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
+    TChain* tch_photon = new TChain("BaselineTree"); tch_photon->Add(photon_filename.c_str());
+
+    cout << "data entries         " << tch_data->GetEntries() << endl;
+    cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
+    cout << "diboson entries      " << tch_vv->GetEntries() << endl;
+    cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
+    cout << "photon entries       " << tch_photon->GetEntries() << endl;
+
+    //--- modify event selections and weights
+    if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
+    else {
+        cout << "Unrecognized channel! quitting   " << channel << endl;
+        exit(0);
+    }
+
+    if( TString(period).EqualTo("data17")    ){
+        TCut RunRange = TCut("RunNumber < 348000");  
+        cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
+        cuts::Zselection *= RunRange;
+    }
+
+    cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
+    cout << "g selection          " << cuts::gselection.GetTitle() << endl;
+    cout << "weight               " << cuts::Zweight.GetTitle() << endl;
+
+    //--- fill reweighting histograms
+    TH1F* hdata  = new TH1F("hdata", "", nptbins, ptbins);
+    TH1F* htt    = new TH1F("htt", "", nptbins, ptbins);
+    TH1F* hvv    = new TH1F("hvv", "", nptbins, ptbins);
+    TH1F* hz     = new TH1F("hz", "", nptbins, ptbins);
+    TH1F* histoG = new TH1F("histoG", "", nptbins, ptbins);    
+
+    // step 1: HT
+    if (step == 1) {
+        tch_data->Draw("min(HT,999)>>hdata", cuts::Zselection, "goff");
+        tch_tt->Draw("min(HT,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
+        tch_vv->Draw("min(HT,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
+        tch_zjets->Draw("min(HT,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
+        tch_photon->Draw("min(HT,999)>>histoG", cuts::gselection*cuts::weight_g, "goff");
+    }
+
+    // step 2: Z_pt
+    else if (step == 2) {
+        TCut g_rw("ptreweight_step1"); // from step 1
+        tch_data->Draw("min(Z_pt,999)>>hdata", cuts::Zselection, "goff");
+        tch_tt->Draw("min(Z_pt,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
+        tch_vv->Draw("min(Z_pt,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
+        tch_zjets->Draw("min(Z_pt,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
+        tch_photon->Draw("min(Z_pt,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
+    }
+
+    cout << "data integral        " << hdata->Integral() << endl;
+    cout << "ttbar integral       " << htt->Integral() << endl;
+    cout << "diboson integral     " << hvv->Integral() << endl;
+    cout << "Z+jets integral      " << hz->Integral() << endl;
+    cout << "photon integral      " << histoG->Integral() << endl;
+
+    //--- calculate reweighting ratios
+    TH1F* histoZ = (TH1F*) hdata->Clone("histoZ");
+    histoZ->Add(htt, -1.0);
+    histoZ->Add(hvv, -1.0);
+
+    TH1F* hratio = (TH1F*) histoZ->Clone("hratio");
+    hratio->Divide(histoG);
+
+    cout << "histoG->Integral() " << histoG->Integral() << endl;
+    cout << "histoZ->Integral() " << histoZ->Integral() << endl;
+    cout << "hratio->Integral() " << hratio->Integral() << endl;
+
+    return hratio;
+}
 
 void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, int step) {
 
