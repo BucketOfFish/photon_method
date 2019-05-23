@@ -70,7 +70,6 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     float gamma_phi; inputTree->SetBranchAddress("gamma_phi", &gamma_phi);
 
     double totalWeight; CopyBranch(inputTree, BaselineTree, "totalWeight", "totalWeight", &totalWeight, "D");
-    int jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
     int bjet_n; CopyBranch(inputTree, BaselineTree, "bjet_n", "bjet_n", &bjet_n, "I");
     float gamma_pt; CopyBranch(inputTree, BaselineTree, "gamma_pt", "gamma_pt",  &gamma_pt, "F");
     float gamma_eta; CopyBranch(inputTree, BaselineTree, "gamma_eta", "Z_eta",  &gamma_eta, "F");
@@ -79,17 +78,13 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
     float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
 
-    std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
-    std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
     std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_pT", "jet_pT", &jet_pT, "std::vector<float>");
     std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "std::vector<float>");
     std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_phi", "jet_phi", &jet_phi, "std::vector<float>");
-    std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
 
-    float gamma_pt_smear; BaselineTree->Branch("Z_pt", &gamma_pt_smear, "Z_pt/F");
+    float gamma_pt_smear; BaselineTree->Branch("Ptll", &gamma_pt_smear, "Ptll/F");
     float gamma_phi_smear; BaselineTree->Branch("Z_phi", &gamma_phi_smear, "Z_phi/F");
     int lep_n; BaselineTree->Branch("lep_n", &lep_n, "lep_n/I");
-    float mll; BaselineTree->Branch("mll", &mll, "mll/F");
     float MET_smear; BaselineTree->Branch("met_Et", &MET_smear, "met_Et/F");
     float DPhi_METJetLeading_smear; BaselineTree->Branch("DPhi_METJetLeading", &DPhi_METJetLeading_smear, "DPhi_METJetLeading/F");
     float DPhi_METJetSecond_smear; BaselineTree->Branch("DPhi_METJetSecond", &DPhi_METJetSecond_smear, "DPhi_METJetSecond/F");
@@ -120,7 +115,7 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     double PTISR; CopyBranch(inputTree, BaselineTree, "PTISR", "PTISR", &PTISR, "D");
     double PTISR_VR; CopyBranch(inputTree, BaselineTree, "PTISR_VR", "PTISR_VR", &PTISR_VR, "D");
     double PTI_VR; CopyBranch(inputTree, BaselineTree, "PTI_VR", "PTI_VR", &PTI_VR, "D");
-    float Ptll; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Ptll, "F");
+    //float Ptll; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Ptll, "F");
     double RISR; CopyBranch(inputTree, BaselineTree, "RISR", "RISR", &RISR, "D");
     double RISR_VR; CopyBranch(inputTree, BaselineTree, "RISR_VR", "RISR_VR", &RISR_VR, "D");
     double RPT_HT5PP; CopyBranch(inputTree, BaselineTree, "RPT_HT5PP", "RPT_HT5PP", &RPT_HT5PP, "D");
@@ -140,7 +135,7 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     double lept1Pt_VR; CopyBranch(inputTree, BaselineTree, "lept1Pt_VR", "lept1Pt_VR", &lept1Pt_VR, "D");
     double lept2Pt_VR; CopyBranch(inputTree, BaselineTree, "lept2Pt_VR", "lept2Pt_VR", &lept2Pt_VR, "D");
     double mTl3; CopyBranch(inputTree, BaselineTree, "mTl3", "mTl3", &mTl3, "D");
-    float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "met_Et", &MET, "F");
+    //float MET; CopyBranch(inputTree, BaselineTree, "met_Et", "met_Et", &MET, "F");
     float met_Sign; CopyBranch(inputTree, BaselineTree, "met_Sign", "met_Sign", &met_Sign, "F");
     double minDphi; CopyBranch(inputTree, BaselineTree, "minDphi", "minDphi", &minDphi, "D");
     double mll_RJ; CopyBranch(inputTree, BaselineTree, "mll_RJ", "mll_RJ", &mll_RJ, "D");
@@ -151,11 +146,11 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
+    Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
     std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
     std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
-    std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lepPt", &lep_pT, "std::vector<float>");
+    std::vector<float>* lep_pT = new std::vector<float>(10); BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
-    Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
     Int_t nLep_signal; CopyBranch(inputTree, BaselineTree, "nLep_signal", "nLep_signal", &nLep_signal, "I");
     Int_t nLep_base; CopyBranch(inputTree, BaselineTree, "nLep_base", "nLep_base", &nLep_base, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
@@ -324,9 +319,14 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
         float photon_2LPt = 0;
         //HTincl = HT + photon_2LPt;
         int dpt = hist_low_dpt->FindBin(METl_smear)-1;
-        if (dpt>=0 && pt_smear>=0)
+        if (dpt>=0 && pt_smear>=0) {
             if (hist_Mll_dPt[pt_smear][dpt]->Integral()>0)
                 mll = hist_Mll_dPt[pt_smear][dpt]->GetRandom();
+        }
+
+        // CHECKPOINT
+        if (mll <= 0) // BIG HACK
+            mll = 90; // BIG HACK
 
         //---------------------------------------------
         // compute two lepton kinematics

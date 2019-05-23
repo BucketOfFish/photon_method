@@ -68,11 +68,11 @@ void GetMllHistogram(string ch,string period) {
     tZ->SetBranchStatus("*", 0);
     double totalWeight; SetInputBranch(tZ, "totalWeight", &totalWeight);
     float METl; SetInputBranch(tZ, "METl", &METl);
-    int jet_n; SetInputBranch(tZ, "jet_n", &jet_n);
+    int jet_n; SetInputBranch(tZ, "nJet30", &jet_n);
+    std::vector<float>* tZ_lep_pT = new std::vector<float>(10); SetInputBranch(tZ, "lepPt", &tZ_lep_pT);
     int bjet_n; SetInputBranch(tZ, "bjet_n", &bjet_n);
-    float Z_pt; SetInputBranch(tZ, "Z_pt", &Z_pt);
+    float Z_pt; SetInputBranch(tZ, "Ptll", &Z_pt);
     float mll; SetInputBranch(tZ, "mll", &mll);
-    std::vector<float>* tZ_lep_pT = new std::vector<float>(10); SetInputBranch(tZ, "lep_pT", &tZ_lep_pT);
     int channel; SetInputBranch(tZ, "channel", &channel);
 
     for (int entry=0; entry<tZ->GetEntries(); entry++) {
@@ -136,9 +136,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         TTree*  tZ              = (TTree*)fZ.Get("BaselineTree");
         tZ->SetBranchStatus("*", 0);
         double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
-        int jet_n; SetInputBranch(tZ, "jet_n" ,&jet_n);
+        int jet_n; SetInputBranch(tZ, "nJet30" ,&jet_n);
         int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
-        float gZ_pt; SetInputBranch(tZ, "Z_pt" ,&gZ_pt);
+        float gZ_pt; SetInputBranch(tZ, "Ptll" ,&gZ_pt);
         //float HT; SetInputBranch(tZ, "HT" ,&HT);
         float mll; SetInputBranch(tZ, "mll" ,&mll);
         float METl; SetInputBranch(tZ, "METl" ,&METl);
@@ -171,9 +171,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         TTree*  ttt              = (TTree*)ftt.Get("BaselineTree");
         ttt->SetBranchStatus("*", 0);
         SetInputBranch(ttt, "totalWeight" ,&totalWeight);
-        SetInputBranch(ttt, "jet_n" ,&jet_n);
+        SetInputBranch(ttt, "nJet30" ,&jet_n);
         SetInputBranch(ttt, "bjet_n" ,&bjet_n);
-        SetInputBranch(ttt, "Z_pt" ,&gZ_pt);
+        SetInputBranch(ttt, "Ptll" ,&gZ_pt);
         //SetInputBranch(ttt, "HT" ,&HT);
         SetInputBranch(ttt, "mll" ,&mll);
         SetInputBranch(ttt, "METl" ,&METl);
@@ -201,9 +201,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         TTree*  tvv              = (TTree*)fvv.Get("BaselineTree");
         tvv->SetBranchStatus("*", 0);
         SetInputBranch(tvv, "totalWeight" ,&totalWeight);
-        SetInputBranch(tvv, "jet_n" ,&jet_n);
+        SetInputBranch(tvv, "nJet30" ,&jet_n);
         SetInputBranch(tvv, "bjet_n" ,&bjet_n);
-        SetInputBranch(tvv, "Z_pt" ,&gZ_pt);
+        SetInputBranch(tvv, "Ptll" ,&gZ_pt);
         //SetInputBranch(tvv, "HT" ,&HT);
         SetInputBranch(tvv, "mll" ,&mll);
         SetInputBranch(tvv, "METl" ,&METl);
@@ -280,9 +280,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
         TTree*  tZ = (TTree*)fZ.Get("BaselineTree");
         tZ->SetBranchStatus("*", 0);
         double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
-        int jet_n; SetInputBranch(tZ, "jet_n" ,&jet_n);
+        int jet_n; SetInputBranch(tZ, "nJet30" ,&jet_n);
         int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
-        float gZ_pt; SetInputBranch(tZ, "Z_pt" ,&gZ_pt);
+        float gZ_pt; SetInputBranch(tZ, "Ptll" ,&gZ_pt);
         float HT; SetInputBranch(tZ, "HT" ,&HT);
         float mll; SetInputBranch(tZ, "mll" ,&mll);
         float METl; SetInputBranch(tZ, "METl" ,&METl);
