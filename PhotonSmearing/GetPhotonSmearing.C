@@ -86,8 +86,6 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     float gamma_phi_smear; BaselineTree->Branch("Z_phi", &gamma_phi_smear, "Z_phi/F");
     int lep_n; BaselineTree->Branch("lep_n", &lep_n, "lep_n/I");
     float MET_smear; BaselineTree->Branch("met_Et", &MET_smear, "met_Et/F");
-    float DPhi_METJetLeading_smear; BaselineTree->Branch("DPhi_METJetLeading", &DPhi_METJetLeading_smear, "DPhi_METJetLeading/F");
-    float DPhi_METJetSecond_smear; BaselineTree->Branch("DPhi_METJetSecond", &DPhi_METJetSecond_smear, "DPhi_METJetSecond/F");
     float DPhi_METLepLeading_smear; BaselineTree->Branch("DPhi_METLepLeading", &DPhi_METLepLeading_smear, "DPhi_METLepLeading/F");
     float DPhi_METLepSecond_smear; BaselineTree->Branch("DPhi_METLepSecond", &DPhi_METLepSecond_smear, "DPhi_METLepSecond/F");
     float DPhi_METPhoton_smear; BaselineTree->Branch("DPhi_METPhoton", &DPhi_METPhoton_smear, "DPhi_METPhoton/F");
@@ -297,16 +295,6 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
 
         TLorentzVector met_4vec_smear;
         met_4vec_smear.SetXYZM(METtx+METlx_smear,METty+METly_smear,0,0);
-
-        TLorentzVector jet0_4vec;
-        if (jet_n<1) jet0_4vec.SetPtEtaPhiM(0,0,0,0);
-        else jet0_4vec.SetPtEtaPhiM(jet_pT->at(0),jet_eta->at(0),jet_phi->at(0),jet_m->at(0));
-        DPhi_METJetLeading_smear = fabs(met_4vec_smear.DeltaPhi(jet0_4vec));
-
-        TLorentzVector jet1_4vec;
-        if (jet_n<2) jet1_4vec.SetPtEtaPhiM(0,0,0,0);
-        else jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),jet_m->at(1));
-        DPhi_METJetSecond_smear = fabs(met_4vec_smear.DeltaPhi(jet1_4vec));
 
         DPhi_METPhoton_smear = fabs(TMath::ATan2(METt,METl_smear));
         //int dphi_smear = hist_low_dphi->FindBin(DPhi_METPhoton_smear)-1;
