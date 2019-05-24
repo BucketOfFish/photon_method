@@ -1,14 +1,13 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-//std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/PAR/Ntuples/";
-std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/Ntuples/";
-std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/SmearedNtuples/";
-std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/ReweightedNtuples/";
-std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/HistFitter/Plots/";
+sample_folder = "LepIso"
+std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/Ntuples/";
+std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/SmearedNtuples/";
+std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/ReweightedNtuples/";
+std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/Plots/";
 
 //--- ntuple production
-int event_interval = 1; // use every nth event
 double leading_lep_pt_cut = 25.; // also used for smearing
 double second_lep_pt_cut = 25.; // also used for smearing
 
