@@ -191,7 +191,7 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
 
     Long64_t nentries = inputTree->GetEntries();
 
-    for (Long64_t i=0;i<nentries;i+=event_interval) {
+    for (Long64_t i=0; i<nentries; i++) {
 
         if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
         inputTree->GetEntry(i);
@@ -245,28 +245,16 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
                 totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
                 if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
             }
-            totalWeight = totalWeight*event_interval;
         }
         else {
             totalWeight = 1;
             if (isData == "MC") totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
         }
 
-        //--- compute MET parallel and perpendicular components
-        if (isPhoton) {
-            METt = MET*TMath::Sin(MET_phi-gamma_phi);
-            METl = MET*TMath::Cos(MET_phi-gamma_phi);
-        }
-        else {
-            METt = MET*TMath::Sin(MET_phi-Z_phi);
-            METl = MET*TMath::Cos(MET_phi-Z_phi);
-        }
-
         //--- compute additional features
         if (!isPhoton) {
             //--- compute 4-vectors of objects
-            TLorentzVector lep0_4vec;
-            TLorentzVector lep1_4vec;
+            TLorentzVector lep0_4vec, lep1_4vec;
             lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
             lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
 
@@ -285,6 +273,16 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
             DPhi_METLepLeading = fabs(met_4vec.DeltaPhi(lep0_4vec));
             DPhi_METLepSecond = fabs(met_4vec.DeltaPhi(lep1_4vec));
             DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
+        }
+
+        //--- compute MET parallel and perpendicular components
+        if (isPhoton) {
+            METt = MET*TMath::Sin(MET_phi-gamma_phi);
+            METl = MET*TMath::Cos(MET_phi-gamma_phi);
+        }
+        else {
+            METt = MET*TMath::Sin(MET_phi-Z_phi);
+            METl = MET*TMath::Cos(MET_phi-Z_phi);
         }
 
         BaselineTree->Fill();     
