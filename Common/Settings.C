@@ -1,11 +1,11 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-sample_folder = "LepIso"
-std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/Ntuples/";
-std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/SmearedNtuples/";
-std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/ReweightedNtuples/";
-std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + smaple_folder + "/Plots/";
+sample_folder = "NonLepIso"
+std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/Ntuples/";
+std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/SmearedNtuples/";
+std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/ReweightedNtuples/";
+std::string plots_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/Plots/";
 
 //--- ntuple production
 double leading_lep_pt_cut = 25.; // also used for smearing
