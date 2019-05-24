@@ -1,6 +1,7 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonFunctions.C"
+#include "../Common/CommonCuts.C"
 
 using namespace std;
 
@@ -205,8 +206,8 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
         else {
             if ( nLep_signal  != 2                 ) continue; // exactly 2 signal leptons
             if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
-            if ( lep_pT->at(0) < leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
-            if ( lep_pT->at(1) < second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
+            if ( lep_pT->at(0) < cuts::leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
+            if ( lep_pT->at(1) < cuts::second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
             if ( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
             if ( !trigMatch_1L2LTrigOR ) continue; // need 2 lepton trigger
 
@@ -252,7 +253,12 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
         }
 
         //--- compute additional features
-        if (!isPhoton) {
+        if (isPhoton) {
+            //--- compute MET parallel and perpendicular components
+            METt = MET*TMath::Sin(MET_phi-gamma_phi);
+            METl = MET*TMath::Cos(MET_phi-gamma_phi);
+        }
+        else {
             //--- compute 4-vectors of objects
             TLorentzVector lep0_4vec, lep1_4vec;
             lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
@@ -273,14 +279,8 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
             DPhi_METLepLeading = fabs(met_4vec.DeltaPhi(lep0_4vec));
             DPhi_METLepSecond = fabs(met_4vec.DeltaPhi(lep1_4vec));
             DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
-        }
 
-        //--- compute MET parallel and perpendicular components
-        if (isPhoton) {
-            METt = MET*TMath::Sin(MET_phi-gamma_phi);
-            METl = MET*TMath::Cos(MET_phi-gamma_phi);
-        }
-        else {
+            //--- compute MET parallel and perpendicular components
             METt = MET*TMath::Sin(MET_phi-Z_phi);
             METl = MET*TMath::Cos(MET_phi-Z_phi);
         }

@@ -321,7 +321,7 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
 }
 
     //-----------------------------
-    // smearing
+    // smearing histograms
     //-----------------------------
 
     for (int bin=0;bin<bin_size;bin++) {
@@ -340,3 +340,4 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
             smear_fft_amp[bin]->Write();
         }
     }
+

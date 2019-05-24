@@ -1,6 +1,7 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonFunctions.C"
+#include "../Common/CommonCuts.C"
 #include "MT2.h"
 
 int RebinHistogram(TH1D* hist, int rebin) {
@@ -46,61 +47,10 @@ int RebinHistogram(TH1D* hist, int rebin) {
     return rebin;
 }
 
-TH1D* hist_Mll_dPt[bin_size][dpt_bin_size];
-TH1D* hist_low_dpt = new TH1D("hist_low_dpt","",dpt_bin_size,dpt_bin);
-TH1D* hist_sm_pt = new TH1D("hist_sm_pt","",bin_size,sm_pt_bin);
-
-void GetMllHistogram(string ch,string period) {
-
-    for (int bin0=0; bin0<bin_size; bin0++) {
-        for (int bin1=0; bin1<dpt_bin_size; bin1++) {
-            hist_Mll_dPt[bin0][bin1] = new TH1D(TString("hist_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",mll_bin_size,mll_bin);
-        }
-    }
-
-    cout << "Path is " << ntuple_path << endl;
-
-    string filename = ntuple_path + "/ZMC16a/Zjets_merged_processed.root";
-    cout << "Opening mll histo file : " << filename << endl;
-    TFile fZ(filename.c_str());
-    TTree* tZ = (TTree*)fZ.Get("BaselineTree");
-
-    tZ->SetBranchStatus("*", 0);
-    double totalWeight; SetInputBranch(tZ, "totalWeight", &totalWeight);
-    float METl; SetInputBranch(tZ, "METl", &METl);
-    int jet_n; SetInputBranch(tZ, "nJet30", &jet_n);
-    std::vector<float>* tZ_lep_pT = new std::vector<float>(10); SetInputBranch(tZ, "lepPt", &tZ_lep_pT);
-    int bjet_n; SetInputBranch(tZ, "bjet_n", &bjet_n);
-    float Z_pt; SetInputBranch(tZ, "Ptll", &Z_pt);
-    float mll; SetInputBranch(tZ, "mll", &mll);
-    int channel; SetInputBranch(tZ, "channel", &channel);
-
-    for (int entry=0; entry<tZ->GetEntries(); entry++) {
-        tZ->GetEntry(entry);
-
-        if( TString(ch).EqualTo("ee") && channel != 1 ) continue; // ee
-        if( TString(ch).EqualTo("mm") && channel != 0 ) continue; // ee
-        if (jet_n<2) continue;
-        if (tZ_lep_pT->at(0)<leading_lep_pt_cut) continue;
-        if (tZ_lep_pT->at(1)<second_lep_pt_cut) continue;
-        int pt = hist_sm_pt->FindBin(Z_pt)-1;
-        int dpt = hist_low_dpt->FindBin(METl)-1;
-        if (dpt>=0 && pt>=0) hist_Mll_dPt[pt][dpt]->Fill(mll,totalWeight);
-    }
-
-    fZ.Close();
-
-    for (int bin0=0; bin0<bin_size; bin0++) {
-        for (int bin1=0; bin1<dpt_bin_size; bin1++) {
-            int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1], 0);
-        }
-    }
-}
-
-TH1D* z_metl[bin_size];
-TH1D* z_metl_2j[bin_size];
-TH1D* g_metl[bin_size];
-TH1D* z_jetmetl[bin_size];
+TH1D* z_metl[bins::smearing_bin_size];
+TH1D* z_metl_2j[bins::smearing_bin_size];
+TH1D* g_metl[bins::smearing_bin_size];
+TH1D* z_jetmetl[bins::smearing_bin_size];
 
 void GetSmearingHistogram(string ch, float lumi, string period, int smearing_method) {
 
@@ -111,14 +61,14 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
     cout << "GetSmearingHistogram : smearing_method " << smearing_method << endl;
 
-    for (int bin=0;bin<bin_size;bin++) {
+    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
         z_metl[bin] = new TH1D(TString("z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         z_metl_2j[bin] = new TH1D(TString("z_metl_2j_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         z_jetmetl[bin] = new TH1D(TString("z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         g_metl[bin] = new TH1D(TString("g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
     }
 
-    TH1D* hist_low_pt = new TH1D("hist_low_pt","",bin_size,sm_pt_bin);
+    TH1D* hist_low_pt = new TH1D("hist_low_pt","",bins::smearing_bin_size,bins::pt_bins);
 
     //------------------------------------
     // SMEARING METHOD 5: for R21 data
@@ -335,9 +285,9 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
 }
 
-std::vector<float>* lep_phi = new std::vector<float>(10);
-std::vector<float>* lep_eta = new std::vector<float>(10);
-std::vector<float>* lep_pT = new std::vector<float>(10);
+std::vector<float>* lep_pT = new std::vector<float>(10); 
+std::vector<float>* lep_eta = new std::vector<float>(10); 
+std::vector<float>* lep_phi = new std::vector<float>(10); 
 
 void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 
