@@ -62,11 +62,11 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string isDat
     cout << "g weight             " << cuts::weight_g.GetTitle() << endl;
 
     //--- fill reweighting histograms
-    TH1F* hdata  = new TH1F("hdata", "", nptbins, ptbins);
-    TH1F* htt    = new TH1F("htt", "", nptbins, ptbins);
-    TH1F* hvv    = new TH1F("hvv", "", nptbins, ptbins);
-    TH1F* hz     = new TH1F("hz", "", nptbins, ptbins);
-    TH1F* histoG = new TH1F("histoG", "", nptbins, ptbins);    
+    TH1F* hdata  = new TH1F("hdata", "", bins::nptbins, bins::ptbins);
+    TH1F* htt    = new TH1F("htt", "", bins::nptbins, bins::ptbins);
+    TH1F* hvv    = new TH1F("hvv", "", bins::nptbins, bins::ptbins);
+    TH1F* hz     = new TH1F("hz", "", bins::nptbins, bins::ptbins);
+    TH1F* histoG = new TH1F("histoG", "", bins::nptbins, bins::ptbins);    
 
     // step 1: HT
     if (step == 1) {
@@ -173,7 +173,6 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
 
         int ptbin = hreweight->FindBin( gamma_pt_truncated );
         ptreweight = hreweight->GetBinContent(ptbin);
-        cout << gamma_pt_truncated << " " << ptbin << " " << ptreweight << endl;
         b_ptreweight->Fill();
     }
 
