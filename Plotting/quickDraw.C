@@ -134,11 +134,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
         TH1F* httnorm   = new TH1F("httnorm", "", 1, 0, 1);
         TH1F* hvvnorm   = new TH1F("hvvnorm", "", 1, 0, 1);
 
-        Ztree->Draw("0.5>>hZnorm", cuts::Zselection+cuts::CR, "goff");
-        chtt-> Draw("0.5>>httnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        chvv-> Draw("0.5>>hvvnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        gtree->Draw("0.5>>hgnorm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
-        gtree->Draw("0.5>>hgrwnorm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
+        tch_zdata->Draw("0.5>>hZnorm", cuts::Zselection+cuts::CR, "goff");
+        tch_tt-> Draw("0.5>>httnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        tch_vv-> Draw("0.5>>hvvnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        tch_photon->Draw("0.5>>hgnorm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
+        tch_photon->Draw("0.5>>hgrwnorm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
 
         float SF   = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgnorm->Integral();
         float SFrw = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgrwnorm->Integral();
@@ -146,11 +146,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
         cout << "Scale reweighted Z by    " << SFrw << endl;
         cout << "Scale raw Z by           " << SF   << endl;
 
-        hg->Scale(SF);
-        hg_rw->Scale(SFrw);
+        h_photon->Scale(SF);
+        h_photon_reweighted->Scale(SFrw);
     }
     else if (TString(var).EqualTo("Z_pt")) {
-        hg->Scale(hg_rw->Integral()/hg->Integral());
+        h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
     }
 
     //--- draw histograms

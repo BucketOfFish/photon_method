@@ -6,8 +6,10 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && bjet_n==0");
-    TCut gselection("nJet30>=2 && bjet_n == 0");
+    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && HT>200");
+    TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && HT>200");
+    //TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && bjet_n==0");
+    //TCut gselection("nJet30>=2 && bjet_n == 0");
     TCut vgselection("nJet30>=2");
 
     TCut CR("met_Et<60.0");
