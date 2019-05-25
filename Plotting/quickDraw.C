@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string var="HT", string smearing_mode="NoSmear", string isData="Data", string region="SR") {
+void quickDraw(string period="data15-16", string channel="mm" , string var="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string plotType="Stacked", string region="SR") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -17,18 +17,18 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     else if (TString(period).Contains("data18")) mcdir = "ZMC16cd/";
 
     string zdata_filename= ntuple_path + "zdata/data15-16_merged_processed.root";
-    string photon_filename;
-    if (isData == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
-    else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
     string tt_filename = ntuple_path + mcdir + "ttbar_merged_processed.root";
     string vv_filename = ntuple_path + mcdir + "diboson_merged_processed.root";
     string zmc_filename = ntuple_path + mcdir + "Zjets_merged_processed.root";
+    string photon_filename;
+    if (photonDataOrMC == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
+    else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
 
     cout << "period               " << period << endl;
     cout << "channel              " << channel << endl;
     cout << "smearing mode        " << smearing_mode << endl;
     cout << "Z data filename      " << zdata_filename << endl;
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         cout << "tt filename          " << tt_filename << endl;
         cout << "vv filename          " << vv_filename << endl;
         cout << "Z MC filename        " << zmc_filename << endl;
@@ -49,7 +49,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
     cout << "Z data entries       " << tch_zdata->GetEntries() << endl;
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
         cout << "diboson entries      " << tch_vv->GetEntries() << endl;
         cout << "Z+jets entries       " << tch_zmc->GetEntries() << endl;
@@ -155,7 +155,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     //--- draw histograms
     tch_zdata->Draw(Form("%s>>h_zdata", var.c_str()), cuts::Zselection, "goff");
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         tch_tt->Draw(Form("%s>>h_tt", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
         tch_zmc->Draw(Form("%s>>h_zmc", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
         tch_vv->Draw(Form("%s>>h_vv", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
@@ -167,7 +167,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     cout << "" << endl;
     cout << "Z MC integral      " << h_zdata->Integral() << endl;
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         cout << "tt MC integral       " << h_tt->Integral() << endl;
         cout << "Z+jets MC integral   " << h_zmc->Integral() << endl;
         cout << "VV MC integral       " << h_vv->Integral() << endl;
@@ -181,7 +181,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     cout << "2L data                " << h_zdata->Integral(11,15) << endl;
     cout << "g data (reweighted)    " << h_photon_reweighted->Integral(11,15) << endl;
     cout << "g data (raw)           " << h_photon->Integral(11,15) << endl;
-    if (isData == "MC") {
+    if (plotTypplotType == "Stacked") {
         cout << "VV MC                  " << h_vv->Integral(11,15) << endl;
         cout << "tt MC                  " << h_tt->Integral(11,15) << endl;
         cout << "Z+jets MC              " << h_zmc->Integral(11,15) << endl;
@@ -191,7 +191,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     cout << "2L data                " << h_zdata->Integral(16,21) << endl;
     cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         cout << "VV MC                  " << h_vv->Integral(16,21) << endl;
         cout << "tt MC                  " << h_tt->Integral(16,21) << endl;
         cout << "Z+jets MC              " << h_zmc->Integral(16,21) << endl;
@@ -211,7 +211,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     h_zdata->Draw("E1");
 
     THStack *mcstack = new THStack("mcstack","mcstack");
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
         h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
         h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
@@ -235,13 +235,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     mcstack->Draw("samehist");
     h_zdata->Draw("sameE1");
 
-    if (isData == "MC")
+    if (plotType == "Stacked")
         if( !DF ) h_photon->Draw("samehist");
 
     h_zdata->Draw("axissame");
 
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         leg->AddEntry(h_zdata,"data","lp");
         if(!DF){
             leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
@@ -266,7 +266,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     tex->SetNDC();
     tex->SetTextSize(0.03);
     tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-    if (isData == "Data") {
+    if (plotType == "Comparison") {
         if(TString(period).Contains("data15-16") ) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
         if(TString(period).Contains("data17")    ) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
     }
@@ -282,7 +282,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     TH1F* hratio = (TH1F*) h_zdata->Clone("hratio");
     TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    if (isData == "MC") {
+    if (plotType == "Stacked") {
         hmctot->Add(h_tt);
         hmctot->Add(h_vv);
     }
@@ -301,7 +301,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    if (isData == "Data") {
+    if (plotType == "Comparison") {
         can->Print(Form("%s", (plots_path + channel + "_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
     }
     else {
