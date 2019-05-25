@@ -177,7 +177,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
-    if (plotTypplotType == "Data") {
+    if (photonDataOrMC == "Data") {
         cout << "2L data                " << h_zdata->Integral(11,15) << endl;
         cout << "VV MC                  " << h_vv->Integral(11,15) << endl;
         cout << "tt MC                  " << h_tt->Integral(11,15) << endl;
@@ -196,24 +196,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
-    //--- make plots
-    TCanvas *can = new TCanvas("can","can",600,600);
-    can->cd();
-    TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
-    mainpad->Draw();
-    mainpad->cd();
-    gPad->SetLogy();
-
-    h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
-    h_zdata->GetXaxis()->SetTitle(xtitle.c_str());
-    h_zdata->GetYaxis()->SetTitle("entries / bin");
-    h_zdata->Draw("E1");
-
-    THStack *mcstack = new THStack("mcstack","mcstack");
-    if (photonDataOrMC == "Stacked") {
+    //--- create MC stack
+    THStack *mcstack = new THStack("mcstack", "mcstack");
+    if (photonDataOrMC == "Data") {
         h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
         h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
-        h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
 
         h_photon->Add(h_tt); h_photon->Add(h_vv);
         h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
@@ -223,29 +210,45 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
         mcstack->Add(h_tt);
         mcstack->Add(h_vv);
+
+        h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
     }
     else {
         h_photon_reweighted->SetLineColor(4);
+    }
+    if(!DF) mcstack->Add(h_photon_reweighted);
 
-        mcstack->Draw("samehist");
+    //--- make plots
+    TCanvas *can = new TCanvas("can","can",600,600);
+    can->cd();
+    TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
+    mainpad->Draw();
+    mainpad->cd();
+    gPad->SetLogy();
+
+    mcstack->Draw("hist");
+
+    if (photonDataOrMC == "Data") {
+        if( !DF ) {
+            h_photon->Draw("samehist");
+            h_zmc->Draw("samehist");
+        }
+        h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
+        h_zdata->GetXaxis()->SetTitle(xtitle.c_str());
+        h_zdata->GetYaxis()->SetTitle("entries / bin");
+        h_zdata->Draw("sameE1");
+    }
+    else {
+        h_zmc->Draw("axissame");
     }
 
-    if( !DF ) mcstack->Add(h_photon_reweighted);
-    mcstack->Draw("samehist");
-    h_zdata->Draw("sameE1");
-
-    if (photonDataOrMC == "Stacked")
-        if( !DF ) h_photon->Draw("samehist");
-
-    h_zdata->Draw("axissame");
-
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-    if (photonDataOrMC == "Stacked") {
+    if (photonDataOrMC == "Data") {
         leg->AddEntry(h_zdata,"data","lp");
         if(!DF){
-            leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
             leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
             leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
+            leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
         }
         leg->AddEntry(h_vv, "VV", "f");
         leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
@@ -253,10 +256,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else {
         if(!DF){
             leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
-            leg->AddEntry(h_zdata, "Z+jets (from MC)", "f");
+            leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
         }
     }
 
+    //--- draw legend
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
     leg->Draw();
@@ -265,27 +269,32 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     tex->SetNDC();
     tex->SetTextSize(0.03);
     tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-    if (photonDataOrMC == "Comparison") {
-        if(TString(period).Contains("data15-16") ) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
-        if(TString(period).Contains("data17")    ) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
+    if (photonDataOrMC == "Data") {
+        if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
+        if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
     }
-    if(TString(channel).Contains("ee")       ) tex->DrawLatex(0.6,0.57,"ee events");
-    if(TString(channel).Contains("em")       ) tex->DrawLatex(0.6,0.57,"e#mu events");
-    if(TString(channel).Contains("mm")       ) tex->DrawLatex(0.6,0.57,"#mu#mu events");
+    if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
+    if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
+    if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
 
+    //--- draw ratio
     can->cd();
     TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.8,1.0,1.0);
     ratio_pad->Draw();
     ratio_pad->cd();
     ratio_pad->SetGridy();
 
-    TH1F* hratio = (TH1F*) h_zdata->Clone("hratio");
+    TH1F* hratio;
     TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    if (photonDataOrMC == "Stacked") {
+    if (photonDataOrMC == "Data") {
+        hratio = (TH1F*) h_zdata->Clone("hratio");
         hmctot->Add(h_tt);
         hmctot->Add(h_vv);
     }
-    for( int ibin = 1 ; ibin <= hmctot->GetXaxis()->GetNbins() ; ibin++ ) hmctot->SetBinError(ibin,0.0);
+    else
+        hratio = (TH1F*) h_zmc->Clone("hratio");
+    for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++)
+        hmctot->SetBinError(ibin, 0.0);
     hratio->Divide(hmctot);
 
     hratio->GetXaxis()->SetTitle("");
@@ -300,10 +309,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    if (photonDataOrMC == "Comparison") {
+    if (photonDataOrMC == "Data")
         can->Print(Form("%s", (plots_path + channel + "_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
-    }
-    else {
+    else
         can->Print(Form("%s/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),plot_feature.c_str(),smearing_mode.c_str()));
-    }
 }
