@@ -11,27 +11,27 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     gStyle->SetOptStat(0);
 
     //--- load files
-    string z_data_filename= ntuple_path + "zdata/data15-16_merged_processed.root";
-    string photon_filename;
-    if (isData == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
-    else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
-
     string mcdir = "";
     if (TString(period).Contains("data15-16")) mcdir = "ZMC16a/";
     else if (TString(period).Contains("data17")) mcdir = "ZMC16cd/";
     else if (TString(period).Contains("data18")) mcdir = "ZMC16cd/";
+
+    string zdata_filename= ntuple_path + "zdata/data15-16_merged_processed.root";
+    string photon_filename;
+    if (isData == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
+    else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
     string tt_filename = ntuple_path + mcdir + "ttbar_merged_processed.root";
     string vv_filename = ntuple_path + mcdir + "diboson_merged_processed.root";
-    string z_filename = ntuple_path + mcdir + "Zjets_merged_processed.root";
+    string zmc_filename = ntuple_path + mcdir + "Zjets_merged_processed.root";
 
     cout << "period               " << period << endl;
     cout << "channel              " << channel << endl;
     cout << "smearing mode        " << smearing_mode << endl;
-    cout << "Z data filename      " << z_data_filename << endl;
+    cout << "Z data filename      " << zdata_filename << endl;
     if (isData == "MC") {
         cout << "tt filename          " << tt_filename << endl;
         cout << "vv filename          " << vv_filename << endl;
-        cout << "Z MC filename        " << z_filename << endl;
+        cout << "Z MC filename        " << zmc_filename << endl;
         cout << "photon MC filename   " << photon_filename << endl;
     }
     else {
@@ -42,9 +42,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     //--- add files to TChain
     TChain* tch_photon = new TChain("BaselineTree"); if (!DF) tch_photon->Add(photon_filename.c_str());
-    TChain* tch_zdata = new TChain("BaselineTree"); tch_zdata->Add(z_data_filename.c_str());
+    TChain* tch_zdata = new TChain("BaselineTree"); tch_zdata->Add(zdata_filename.c_str());
     TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-    TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(z_filename.c_str());
+    TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
     TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
 
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
@@ -128,23 +128,23 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     if (!DF && !TString(var).Contains("pt") && !TString(var).Contains("HT")) {
         cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
-        TH1F* hZnorm    = new TH1F("hZnorm", "", 1, 0, 1);
-        TH1F* hgnorm    = new TH1F("hgnorm", "", 1, 0, 1);
-        TH1F* hgrwnorm  = new TH1F("hgrwnorm", "", 1, 0, 1);
-        TH1F* httnorm   = new TH1F("httnorm", "", 1, 0, 1);
-        TH1F* hvvnorm   = new TH1F("hvvnorm", "", 1, 0, 1);
+        TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
+        TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
+        TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
+        TH1F* h_tt_norm = new TH1F("h_tt_norm", "", 1, 0, 1);
+        TH1F* h_vv_norm = new TH1F("h_vv_norm", "", 1, 0, 1);
 
-        tch_zdata->Draw("0.5>>hZnorm", cuts::Zselection+cuts::CR, "goff");
-        tch_tt-> Draw("0.5>>httnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_vv-> Draw("0.5>>hvvnorm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_photon->Draw("0.5>>hgnorm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
-        tch_photon->Draw("0.5>>hgrwnorm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
+        tch_zdata->Draw("0.5>>h_zdata_norm", cuts::Zselection+cuts::CR, "goff");
+        tch_tt-> Draw("0.5>>h_tt_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        tch_vv-> Draw("0.5>>h_vv_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+        tch_photon->Draw("0.5>>h_photon_norm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
+        tch_photon->Draw("0.5>>h_photon_reweighted_norm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
 
-        float SF   = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgnorm->Integral();
-        float SFrw = ( hZnorm->Integral() - httnorm->Integral() - hvvnorm->Integral() ) / hgrwnorm->Integral();
+        float SF = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_norm->Integral();
+        float SFrw = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_reweighted_norm->Integral();
 
         cout << "Scale reweighted Z by    " << SFrw << endl;
-        cout << "Scale raw Z by           " << SF   << endl;
+        cout << "Scale raw Z by           " << SF << endl;
 
         h_photon->Scale(SF);
         h_photon_reweighted->Scale(SFrw);
