@@ -5,10 +5,16 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string var="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string plotType="Stacked", string region="SR") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string region="SR") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
+
+    cout << "period               " << period << endl;
+    cout << "channel              " << channel << endl;
+    cout << "smearing mode        " << smearing_mode << endl;
+    cout << "DF?                  " << DF << endl;
+    cout << "photon data          " << photonDataOrMC << endl;
 
     //--- load files
     string mcdir = "";
@@ -24,36 +30,29 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     if (photonDataOrMC == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
     else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
 
-    cout << "period               " << period << endl;
-    cout << "channel              " << channel << endl;
-    cout << "smearing mode        " << smearing_mode << endl;
-    cout << "Z data filename      " << zdata_filename << endl;
-    if (plotType == "Stacked") {
-        cout << "tt filename          " << tt_filename << endl;
-        cout << "vv filename          " << vv_filename << endl;
-        cout << "Z MC filename        " << zmc_filename << endl;
-        cout << "photon MC filename   " << photon_filename << endl;
+    if (photonDataOrMC == "Data") {
+        cout << "Z data filename      " << zdata_filename << endl;
+        cout << "ttbar filename       " << tt_filename << endl;
+        cout << "diboson filename     " << vv_filename << endl;
     }
-    else {
-        cout << "photon data filename " << photon_filename << endl;
-    }
-    cout << "DF?                  " << DF << endl;
+    cout << "Z MC filename        " << zmc_filename << endl;
+    cout << "photon filename      " << photon_filename << endl;
     cout << "" << endl;
 
     //--- add files to TChain
-    TChain* tch_photon = new TChain("BaselineTree"); if (!DF) tch_photon->Add(photon_filename.c_str());
     TChain* tch_zdata = new TChain("BaselineTree"); tch_zdata->Add(zdata_filename.c_str());
     TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-    TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
     TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
+    TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
+    TChain* tch_photon = new TChain("BaselineTree"); if (!DF) tch_photon->Add(photon_filename.c_str());
 
-    cout << "photon entries       " << tch_photon->GetEntries() << endl;
-    cout << "Z data entries       " << tch_zdata->GetEntries() << endl;
-    if (plotType == "Stacked") {
+    if (photonDataOrMC == "Data") {
+        cout << "Z data entries       " << tch_zdata->GetEntries() << endl;
         cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
         cout << "diboson entries      " << tch_vv->GetEntries() << endl;
-        cout << "Z+jets entries       " << tch_zmc->GetEntries() << endl;
     }
+    cout << "Z MC entries         " << tch_zmc->GetEntries() << endl;
+    cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
     if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
@@ -74,26 +73,26 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     //--- set histogram binning
     std::tuple<string, int, float, float> plot_settings;
 
-    if (var == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
-    else if (var == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
-    else if (var == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 20, -200, 200);
-    else if (var == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 20, -200, 200);
-    else if (var == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
-    else if (var == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
-    else if (var == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
-    else if (var == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
-    else if (var == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
-    else if (var == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
-    else if (var == "bjet_n") plot_settings = std::make_tuple("n_{b-jets}", 4, 0, 4);
-    else if (var == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 1000);
-    else if (var == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
-    else if (var == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
-    else if (var == "lep_pT[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
-    else if (var == "lep_pT[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
-    else if (var == "DPhi_METJetLeading") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
-    else if (var == "DPhi_METJetSecond") plot_settings = std::make_tuple("#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
+    if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
+    else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
+    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 20, -200, 200);
+    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 20, -200, 200);
+    else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
+    else if (plot_feature == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
+    else if (plot_feature == "bjet_n") plot_settings = std::make_tuple("n_{b-jets}", 4, 0, 4);
+    else if (plot_feature == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 1000);
+    else if (plot_feature == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
+    else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
+    else if (plot_feature == "lep_pT[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
+    else if (plot_feature == "lep_pT[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
+    else if (plot_feature == "DPhi_METJetLeading") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "DPhi_METJetSecond") plot_settings = std::make_tuple("#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
     else {
-        cout << "Error! unrecognized variable, need to set binning, quitting! " << var << endl;
+        cout << "Error! unrecognized variable, need to set binning, quitting! " << plot_feature << endl;
         exit(0);
     }
 
@@ -105,34 +104,60 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     //--- initialize histograms
     TH1F *h_zdata, *h_photon, *h_photon_reweighted, *h_tt, *h_vv, *h_zmc;
 
-    if ((var == "Z_pt") || (var == "HT")) {
+    if ((plot_feature == "Ptll") || (plot_feature == "HT")) {
         const unsigned int n_new_bins = 16;
         double new_bins[n_new_bins+1] = {40,75,100,125,150,175,200,250,300,350,400,450,500,600,700,850,1000};
         h_zdata = new TH1F("h_zdata", "", n_new_bins, new_bins);
-        h_photon = new TH1F("h_photon", "", n_new_bins, new_bins);
-        h_photon_reweighted = new TH1F("h_photon_reweighted", "", n_new_bins, new_bins);
         h_tt = new TH1F("h_tt", "", n_new_bins, new_bins);
         h_vv = new TH1F("h_vv", "", n_new_bins, new_bins);
         h_zmc = new TH1F("h_zmc", "", n_new_bins, new_bins);
+        h_photon = new TH1F("h_photon", "", n_new_bins, new_bins);
+        h_photon_reweighted = new TH1F("h_photon_reweighted", "", n_new_bins, new_bins);
     }
     else {
         h_zdata = new TH1F("h_zdata", "", nbins, xmin, xmax);
-        h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
-        h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
         h_tt = new TH1F("h_tt", "", nbins, xmin, xmax);
         h_vv = new TH1F("h_vv", "", nbins, xmin, xmax);
         h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
+        h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
+        h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
     }
 
+    //--- draw histograms
+    if (photonDataOrMC == "Data") {
+        tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), cuts::Zselection, "goff");
+        tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+        tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+    }
+    if (!DF) {
+        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), cuts::gselection*cuts::weight_g, "goff");
+        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), cuts::gselection*cuts::weight_g_rw, "goff");
+    }
+
+    cout << "" << endl;
+    if (photonDataOrMC == "Data") {
+        cout << "Z data integral      " << h_zdata->Integral() << endl;
+        cout << "tt integral          " << h_tt->Integral() << endl;
+        cout << "VV integral          " << h_vv->Integral() << endl;
+    }
+    cout << "Z MC integral        " << h_zmc->Integral() << endl;
+    cout << "g raw integral       " << h_photon->Integral() << endl;
+    cout << "g reweighted int.    " << h_photon_reweighted->Integral() << endl;
+    cout << "" << endl;
+
     //--- normalize Z to MET<60 GeV region
-    if (!DF && !TString(var).Contains("pt") && !TString(var).Contains("HT")) {
+    if (TString(plot_feature).EqualTo("Ptll")) {
+        h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
+    }
+    else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
         cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
         TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
-        TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
-        TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
         TH1F* h_tt_norm = new TH1F("h_tt_norm", "", 1, 0, 1);
         TH1F* h_vv_norm = new TH1F("h_vv_norm", "", 1, 0, 1);
+        TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
+        TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
 
         tch_zdata->Draw("0.5>>h_zdata_norm", cuts::Zselection+cuts::CR, "goff");
         tch_tt-> Draw("0.5>>h_tt_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
@@ -143,59 +168,33 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
         float SF = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_norm->Integral();
         float SFrw = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_reweighted_norm->Integral();
 
-        cout << "Scale reweighted Z by    " << SFrw << endl;
-        cout << "Scale raw Z by           " << SF << endl;
+        cout << "Scale raw photon data by " << SF << endl;
+        cout << "Scale reweighted photon data by " << SFrw << endl;
 
         h_photon->Scale(SF);
         h_photon_reweighted->Scale(SFrw);
     }
-    else if (TString(var).EqualTo("Z_pt")) {
-        h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
-    }
-
-    //--- draw histograms
-    tch_zdata->Draw(Form("%s>>h_zdata", var.c_str()), cuts::Zselection, "goff");
-    if (plotType == "Stacked") {
-        tch_tt->Draw(Form("%s>>h_tt", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
-        tch_zmc->Draw(Form("%s>>h_zmc", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
-        tch_vv->Draw(Form("%s>>h_vv", var.c_str()), cuts::Zselection*cuts::Zweight, "goff");
-    }
-    if (!DF) {
-        tch_photon->Draw(Form("%s>>h_photon", var.c_str()), cuts::gselection*cuts::weight_g, "goff");
-        tch_photon->Draw(Form("%s>>h_photon_reweighted", var.c_str()), cuts::gselection*cuts::weight_g_rw, "goff");
-    }
-
-    cout << "" << endl;
-    cout << "Z MC integral      " << h_zdata->Integral() << endl;
-    if (plotType == "Stacked") {
-        cout << "tt MC integral       " << h_tt->Integral() << endl;
-        cout << "Z+jets MC integral   " << h_zmc->Integral() << endl;
-        cout << "VV MC integral       " << h_vv->Integral() << endl;
-    }
-    cout << "g data raw integral  " << h_photon->Integral() << endl;
-    cout << "g MC rw integral   " << h_photon_reweighted->Integral() << endl;
-    cout << "" << endl;
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
-    cout << "2L data                " << h_zdata->Integral(11,15) << endl;
-    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(11,15) << endl;
-    cout << "g data (raw)           " << h_photon->Integral(11,15) << endl;
-    if (plotTypplotType == "Stacked") {
+    if (plotTypplotType == "Data") {
+        cout << "2L data                " << h_zdata->Integral(11,15) << endl;
         cout << "VV MC                  " << h_vv->Integral(11,15) << endl;
         cout << "tt MC                  " << h_tt->Integral(11,15) << endl;
-        cout << "Z+jets MC              " << h_zmc->Integral(11,15) << endl;
     }
+    cout << "Z+jets MC              " << h_zmc->Integral(11,15) << endl;
+    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(11,15) << endl;
+    cout << "g data (raw)           " << h_photon->Integral(11,15) << endl;
 
     cout << "MET150-200" << endl;
-    cout << "2L data                " << h_zdata->Integral(16,21) << endl;
-    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
-    cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
-    if (plotType == "Stacked") {
+    if (photonDataOrMC == "Data") {
+        cout << "2L data                " << h_zdata->Integral(16,21) << endl;
         cout << "VV MC                  " << h_vv->Integral(16,21) << endl;
         cout << "tt MC                  " << h_tt->Integral(16,21) << endl;
-        cout << "Z+jets MC              " << h_zmc->Integral(16,21) << endl;
     }
+    cout << "Z+jets MC              " << h_zmc->Integral(16,21) << endl;
+    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
+    cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
     //--- make plots
     TCanvas *can = new TCanvas("can","can",600,600);
@@ -211,7 +210,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     h_zdata->Draw("E1");
 
     THStack *mcstack = new THStack("mcstack","mcstack");
-    if (plotType == "Stacked") {
+    if (photonDataOrMC == "Stacked") {
         h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
         h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
         h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
@@ -235,13 +234,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     mcstack->Draw("samehist");
     h_zdata->Draw("sameE1");
 
-    if (plotType == "Stacked")
+    if (photonDataOrMC == "Stacked")
         if( !DF ) h_photon->Draw("samehist");
 
     h_zdata->Draw("axissame");
 
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-    if (plotType == "Stacked") {
+    if (photonDataOrMC == "Stacked") {
         leg->AddEntry(h_zdata,"data","lp");
         if(!DF){
             leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
@@ -266,7 +265,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     tex->SetNDC();
     tex->SetTextSize(0.03);
     tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-    if (plotType == "Comparison") {
+    if (photonDataOrMC == "Comparison") {
         if(TString(period).Contains("data15-16") ) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
         if(TString(period).Contains("data17")    ) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
     }
@@ -282,7 +281,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
 
     TH1F* hratio = (TH1F*) h_zdata->Clone("hratio");
     TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    if (plotType == "Stacked") {
+    if (photonDataOrMC == "Stacked") {
         hmctot->Add(h_tt);
         hmctot->Add(h_vv);
     }
@@ -301,10 +300,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string var="HT",
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    if (plotType == "Comparison") {
+    if (photonDataOrMC == "Comparison") {
         can->Print(Form("%s", (plots_path + channel + "_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
     }
     else {
-        can->Print(Form("%s/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),var.c_str(),smearing_mode.c_str()));
+        can->Print(Form("%s/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),plot_feature.c_str(),smearing_mode.c_str()));
     }
 }
