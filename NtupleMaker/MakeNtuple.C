@@ -207,7 +207,6 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
             if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
             if ( lep_pT->at(0) < cuts::leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
             if ( lep_pT->at(1) < cuts::second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
-            if ( !(lepIsoFCTight->at(0) && lepIsoFCTight->at(1))  ) continue; // leading leptons FCTight
             if ( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
             if ( !trigMatch_1L2LTrigOR ) continue; // need 2 lepton trigger
 
