@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string region="SR") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string additionalZCut="1") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -54,6 +54,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
+    cuts::Zselection += TCut(additionalZCut);
     if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
     else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
     else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
@@ -62,7 +63,6 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         exit(0);
     }
 
-    //if (region == "VR") cout << "VR selection         " << cuts::VR.GetTitle() << endl;
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;  
     cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
     cout << "g selection          " << cuts::gselection.GetTitle() << endl;
@@ -314,7 +314,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     if (photonDataOrMC == "Data")
-        can->Print(Form("%s/%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()), additionalZCut.c_str());
     else
-        can->Print(Form("%s/%s_%s_%s_%s_Compare.pdf", plots_path.c_str(), mcdir.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s_Compare.pdf", plots_path.c_str(), mcdir.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()), additionalZCut.c_str());
 }
