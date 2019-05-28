@@ -13,8 +13,8 @@ namespace cuts {
     double second_lep_pt_cut = 25.; // also used for smearing
 
     //TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && mll>81 && mll<101");
-    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && MET<200");
-    TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && MET<200");
+    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
+    TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
     //TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && bjet_n==0");
     //TCut gselection("nJet30>=2 && bjet_n == 0");
     TCut vgselection("nJet30>=2");

@@ -54,7 +54,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    cuts::Zselection += TCut(additionalZCut);
+    cuts::Zselection += TCut(additionalZCut.c_str());
     if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
     else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
     else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
@@ -72,8 +72,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     //--- set histogram binning
     std::tuple<string, int, float, float> plot_settings;
 
-    if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
-    else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
+    if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 20, -200, 200);
     else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 20, -200, 200);
     else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
@@ -199,7 +199,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
     //--- create MC stack
-    THStack *mcstack = new THStack("mcstack", "mcstack");
+    plotName = "default cuts";
+    if (additionalZCut != "1") plotName += (" && " + additionalZCut);
+    THStack *mcstack = new THStack("mcstack", plotName);
     if (photonDataOrMC == "Data") {
         h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
         h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
@@ -314,7 +316,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     if (photonDataOrMC == "Data")
-        can->Print(Form("%s/%s_%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()), additionalZCut.c_str());
+        can->Print(Form("%s/%s_%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalZCut.c_str()));
     else
-        can->Print(Form("%s/%s_%s_%s_%s_%s_Compare.pdf", plots_path.c_str(), mcdir.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()), additionalZCut.c_str());
+        can->Print(Form("%s/%s_%s_%s_%s_%s_Compare.pdf", plots_path.c_str(), mcdir.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalZCut.c_str()));
 }
