@@ -1,6 +1,5 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
-#include "../Common/CommonCuts.C"
 #include "../Common/CommonFunctions.C"
 
 using namespace std;
@@ -18,14 +17,14 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- load files
     string mcdir = "";
-    if (TString(period).Contains("data15-16")) mcdir = "ZMC16a/";
-    else if (TString(period).Contains("data17")) mcdir = "ZMC16cd/";
-    else if (TString(period).Contains("data18")) mcdir = "ZMC16cd/";
+    if (TString(period).Contains("data15-16")) mcdir = "ZMC16a";
+    else if (TString(period).Contains("data17")) mcdir = "ZMC16cd";
+    else if (TString(period).Contains("data18")) mcdir = "ZMC16cd";
 
     string zdata_filename= ntuple_path + "zdata/data15-16_merged_processed.root";
-    string tt_filename = ntuple_path + mcdir + "ttbar_merged_processed.root";
-    string vv_filename = ntuple_path + mcdir + "diboson_merged_processed.root";
-    string zmc_filename = ntuple_path + mcdir + "Zjets_merged_processed.root";
+    string tt_filename = ntuple_path + mcdir + "/ttbar_merged_processed.root";
+    string vv_filename = ntuple_path + mcdir + "/diboson_merged_processed.root";
+    string zmc_filename = ntuple_path + mcdir + "/Zjets_merged_processed.root";
     string photon_filename;
     if (photonDataOrMC == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
     else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
@@ -82,6 +81,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
+    else if (plot_feature == "nJet30") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
     else if (plot_feature == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
     else if (plot_feature == "bjet_n") plot_settings = std::make_tuple("n_{b-jets}", 4, 0, 4);
     else if (plot_feature == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 1000);
@@ -147,32 +147,34 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "" << endl;
 
     //--- normalize Z to MET<60 GeV region
-    if (TString(plot_feature).EqualTo("Ptll")) {
-        h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
-    }
-    else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
-        cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
+    if (photonDataOrMC == "Data") {
+        if (TString(plot_feature).EqualTo("Ptll")) {
+            h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
+        }
+        else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
+            cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
-        TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
-        TH1F* h_tt_norm = new TH1F("h_tt_norm", "", 1, 0, 1);
-        TH1F* h_vv_norm = new TH1F("h_vv_norm", "", 1, 0, 1);
-        TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
-        TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
+            TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
+            TH1F* h_tt_norm = new TH1F("h_tt_norm", "", 1, 0, 1);
+            TH1F* h_vv_norm = new TH1F("h_vv_norm", "", 1, 0, 1);
+            TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
+            TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
 
-        tch_zdata->Draw("0.5>>h_zdata_norm", cuts::Zselection+cuts::CR, "goff");
-        tch_tt-> Draw("0.5>>h_tt_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_vv-> Draw("0.5>>h_vv_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_photon->Draw("0.5>>h_photon_norm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
-        tch_photon->Draw("0.5>>h_photon_reweighted_norm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
+            tch_zdata->Draw("0.5>>h_zdata_norm", cuts::Zselection+cuts::CR, "goff");
+            tch_tt-> Draw("0.5>>h_tt_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+            tch_vv-> Draw("0.5>>h_vv_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+            tch_photon->Draw("0.5>>h_photon_norm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
+            tch_photon->Draw("0.5>>h_photon_reweighted_norm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
 
-        float SF = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_norm->Integral();
-        float SFrw = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_reweighted_norm->Integral();
+            float SF = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_norm->Integral();
+            float SFrw = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_reweighted_norm->Integral();
 
-        cout << "Scale raw photon data by " << SF << endl;
-        cout << "Scale reweighted photon data by " << SFrw << endl;
+            cout << "Scale raw photon data by " << SF << endl;
+            cout << "Scale reweighted photon data by " << SFrw << endl;
 
-        h_photon->Scale(SF);
-        h_photon_reweighted->Scale(SFrw);
+            h_photon->Scale(SF);
+            h_photon_reweighted->Scale(SFrw);
+        }
     }
 
     //--- print MET integrals
@@ -239,7 +241,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         h_zdata->Draw("sameE1");
     }
     else {
-        h_zmc->Draw("axissame");
+        h_zmc->GetXaxis()->SetTitle(xtitle.c_str());
+        h_zmc->GetYaxis()->SetTitle("entries / bin");
+        h_zmc->Draw("sameE1");
     }
 
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
@@ -310,7 +314,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     if (photonDataOrMC == "Data")
-        can->Print(Form("%s", (plots_path + channel + "_NoSmear_HT_MC_ZptHTreweigh.pdf").c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
     else
-        can->Print(Form("%s/quickData_Data_%s_%s_%s_%s_VR_ht800cut.pdf",plots_path.c_str(),period.c_str(),channel.c_str(),plot_feature.c_str(),smearing_mode.c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_Compare.pdf", plots_path.c_str(), mcdir.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
 }
