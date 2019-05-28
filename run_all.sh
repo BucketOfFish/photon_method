@@ -36,23 +36,10 @@ cd ..
 
 cd Reweighting/
 
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","Data","NoSmear",1)'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","Data","NoSmear",2)'
-
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","NoSmear",1)'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","NoSmear",2)'
-
-#root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","DataSmear",1)' 
-#root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","DataSmear",2)' 
-
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","MC","NoSmear",1)'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","MC","NoSmear",2)'
-
-#root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","McSmear",1)'
-#root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","McSmear",2)'
-
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","NoSmear",1)'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","NoSmear",2)'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","Data","NoSmear","Ptll")'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","NoSmear","Ptll")'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","MC","NoSmear","Ptll")'
+root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","NoSmear","Ptll")'
 
 cd ..
 
@@ -60,9 +47,41 @@ cd ..
 
 cd Plotting/
 
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","MC")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","MC")'
 root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data")'
 root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","Ptll>200")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","Ptll>200")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","Ptll>400")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","Ptll>400")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","HT>200")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","HT>200")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","HT>400")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","HT>400")'
+root -l -b -q 'quickDraw.C("data15-16","ee","METt","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","mm","METl","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","ee","nJet30","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","mm","nJet30","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","ee","bjet_n","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","mm","bjet_n","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","ee","HT","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","mm","HT","NoSmear","Data")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>200")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>200")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>400")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>400")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>200")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>200")'
+root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>400")'
+root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>400")'
+root -l -b -q 'quickDraw.C("data15-16","ee","METt","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","mm","METl","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","ee","nJet30","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","mm","nJet30","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","ee","bjet_n","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","mm","bjet_n","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","ee","HT","NoSmear","Data","mll>81&&mll<101")'
+root -l -b -q 'quickDraw.C("data15-16","mm","HT","NoSmear","Data","mll>81&&mll<101")'
 
 cd ..

@@ -12,8 +12,7 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    //TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && mll>81 && mll<101");
-    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
+    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && lepIsoFCTight[0] && lepIsoFCTight[1]");
     TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
     //TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && bjet_n==0");
     //TCut gselection("nJet30>=2 && bjet_n == 0");
@@ -37,7 +36,7 @@ namespace cuts {
 
     TCut Zweight("totalWeight");
     TCut weight_g = "totalWeight";
-    TCut weight_g_rw = "totalWeight*ptreweight_step1*ptreweight_step2";
+    TCut weight_g_rw = "totalWeight*reweight_Ptll";
 }
 
 namespace bins {

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string isData, string smearing_mode, int step ){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string isData, string smearing_mode, string reweight_var){
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -67,24 +67,31 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string isDat
     TH1F* hz     = new TH1F("hz", "", bins::nptbins, bins::ptbins);
     TH1F* histoG = new TH1F("histoG", "", bins::nptbins, bins::ptbins);    
 
-    // step 1: HT
-    if (step == 1) {
-        tch_data->Draw("min(HT,999)>>hdata", cuts::Zselection, "goff");
-        tch_tt->Draw("min(HT,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
-        tch_vv->Draw("min(HT,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
-        tch_zjets->Draw("min(HT,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
-        tch_photon->Draw("min(HT,999)>>histoG", cuts::gselection*cuts::weight_g, "goff");
-    }
+    //--- reweighting variable histograms
+    tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::Zselection, "goff");
+    tch_tt->Draw(("min("+reweight_var+",999)>>htt").c_str(), cuts::Zselection*cuts::Zweight, "goff");
+    tch_vv->Draw(("min("+reweight_var+",999)>>hvv").c_str(), cuts::Zselection*cuts::Zweight, "goff");
+    tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::Zselection*cuts::Zweight, "goff");
+    tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::gselection*cuts::weight_g, "goff");
 
-    // step 2: Z_pt
-    else if (step == 2) {
-        TCut g_rw("ptreweight_step1"); // from step 1
-        tch_data->Draw("min(Ptll,999)>>hdata", cuts::Zselection, "goff");
-        tch_tt->Draw("min(Ptll,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
-        tch_vv->Draw("min(Ptll,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
-        tch_zjets->Draw("min(Ptll,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
-        tch_photon->Draw("min(Ptll,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
-    }
+    //// step 1: HT
+    //if (step == 1) {
+        //tch_data->Draw("min(HT,999)>>hdata", cuts::Zselection, "goff");
+        //tch_tt->Draw("min(HT,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_vv->Draw("min(HT,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_zjets->Draw("min(HT,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_photon->Draw("min(HT,999)>>histoG", cuts::gselection*cuts::weight_g, "goff");
+    //}
+
+    //// step 2: Z_pt
+    //else if (step == 2) {
+        //TCut g_rw("ptreweight_step1"); // from step 1
+        //tch_data->Draw("min(Ptll,999)>>hdata", cuts::Zselection, "goff");
+        //tch_tt->Draw("min(Ptll,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_vv->Draw("min(Ptll,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_zjets->Draw("min(Ptll,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
+        //tch_photon->Draw("min(Ptll,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
+    //}
 
     cout << "data integral        " << hdata->Integral() << endl;
     cout << "ttbar integral       " << htt->Integral() << endl;
@@ -107,14 +114,14 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string isDat
     return hratio;
 }
 
-void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, int step) {
+void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, string reweight_var) {
 
     //---------------------------------------------
     // 1-d reweighting histogram 
     //---------------------------------------------
 
-    TH1F* hreweight = GetSimpleReweightingHistograms(periodlabel, ch, isData, smearing_mode, step);
-    cout << "Got reweighting histogram hratio with integral " << hreweight->Integral() << endl;
+    TH1F* h_reweight = GetSimpleReweightingHistograms(periodlabel, ch, isData, smearing_mode, reweight_var);
+    cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -135,25 +142,22 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
         cout << "opening MC file" << endl;
     }
 
-    TFile*  smeared_file              = new TFile(filename.c_str(),"update");          
-    TTree*  outputTree              = (TTree*)smeared_file->Get("BaselineTree");
+    TFile* smeared_file = new TFile(filename.c_str(),"update");          
+    TTree* outputTree = (TTree*)smeared_file->Get("BaselineTree");
 
     cout << endl;
-    cout << "Opening file           : " << filename        << endl;
+    cout << "Opening file           : " << filename << endl;
     cout << "Events in ntuple       : " << outputTree->GetEntries() << endl;
 
     //-----------------------------
     // access existing branch and add new branch
     //-----------------------------
 
-    float gamma_pt = 0.; SetInputBranch(outputTree, "gamma_pt", &gamma_pt);
+    float gamma_var = 0.; SetInputBranch(outputTree, reweight_var, &gamma_var);
 
-    Float_t ptreweight = 0.;
-    TBranch *b_ptreweight;
-    if (step == 1)
-        b_ptreweight = outputTree->Branch("ptreweight_step1",&ptreweight,"ptreweight_step1/F");
-    else if (step == 2)
-        b_ptreweight = outputTree->Branch("ptreweight_step2",&ptreweight,"ptreweight_step2/F");
+    Float_t reweight = 0.;
+    TBranch *b_reweight;
+    b_reweight = outputTree->Branch(("reweight_"+reweight_var).c_str(), &reweight, ("reweight_"+reweight_var+"/F").c_str());
 
     //-----------------------------
     // loop over events and fill new branch
@@ -166,13 +170,14 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
         if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
         outputTree->GetEntry(i);
 
-        float gamma_pt_truncated = gamma_pt;
-        if( gamma_pt_truncated < 40   ) gamma_pt_truncated = 40;
-        if( gamma_pt_truncated > 1000 ) gamma_pt_truncated = 1000;
+        //float gamma_var_truncated = gamma_var;
+        //if(gamma_var_truncated < 40) gamma_var_truncated = 40;
+        //if(gamma_var_truncated > 1000) gamma_var_truncated = 1000;
+        //int ptbin = h_reweight->FindBin( gamma_var_truncated );
 
-        int ptbin = hreweight->FindBin( gamma_pt_truncated );
-        ptreweight = hreweight->GetBinContent(ptbin);
-        b_ptreweight->Fill();
+        int ptbin = h_reweight->FindBin(gamma_var);
+        reweight = h_reweight->GetBinContent(ptbin);
+        b_reweight->Fill();
     }
 
     outputTree->Write();

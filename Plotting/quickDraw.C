@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string additionalZCut="1") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string additionalCut="1") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -50,7 +50,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    cuts::Zselection += TCut(additionalZCut.c_str());
+    cuts::Zselection += TCut(additionalCut.c_str());
     if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
     else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
     else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
@@ -58,6 +58,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
+    cuts::gselection += TCut(additionalCut.c_str());
 
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;  
     cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
@@ -186,7 +187,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- create MC stack
     TString plotName = "default cuts";
-    if (additionalZCut != "1") plotName += (" && " + additionalZCut);
+    if (additionalCut != "1") plotName += (" && " + additionalCut);
 
     THStack *mcstack = new THStack("mcstack", plotName);
 
@@ -275,5 +276,5 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    can->Print(Form("%s/%s_%s_%s_%s_%s_Stack.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalZCut.c_str()));
+    can->Print(Form("%s/%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str()));
 }
