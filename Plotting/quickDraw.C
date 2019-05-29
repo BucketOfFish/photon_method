@@ -1,6 +1,7 @@
 #include "../Common/Settings.C"
 #include "../Common/CommonLibraries.C"
 #include "../Common/CommonFunctions.C"
+#include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
 
@@ -186,10 +187,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
     //--- create MC stack
-    TString plotName = "default cuts";
-    if (additionalCut != "1") plotName += (" && " + additionalCut);
-
-    THStack *mcstack = new THStack("mcstack", plotName);
+    string plotName = "default cuts";
+    if (additionalCut != "1") plotName += ("&&" + additionalCut);
+    boost::replace_all(plotName, "&&", " && ");
+    THStack *mcstack = new THStack("mcstack", plotName.c_str());
 
     h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
     h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
@@ -198,6 +199,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     mcstack->Add(h_vv);
     if(!DF) mcstack->Add(h_photon_reweighted);
 
+    //--- create comparison "stacks"
     h_photon->Add(h_tt); h_photon->Add(h_vv);
     h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
 
@@ -210,19 +212,20 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
     mainpad->Draw();
     mainpad->cd();
-    gPad->SetLogy();
+    mainpad->SetLogy();
 
     mcstack->Draw("hist");
+    mcstack->GetXaxis()->SetTitle(xtitle.c_str());
+    mcstack->GetYaxis()->SetTitle("entries / bin");
 
     if( !DF ) {
         h_photon->Draw("samehist");
         h_zmc->Draw("samehist");
     }
     h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
-    h_zdata->GetXaxis()->SetTitle(xtitle.c_str());
-    h_zdata->GetYaxis()->SetTitle("entries / bin");
     h_zdata->Draw("sameE1");
 
+    //--- draw legend and labels
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     leg->AddEntry(h_zdata,"data","lp");
     if(!DF){
@@ -233,7 +236,6 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     leg->AddEntry(h_vv, "VV", "f");
     leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
 
-    //--- draw legend
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
     leg->Draw();
@@ -276,5 +278,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
     hratio->Draw("E1");
 
-    can->Print(Form("%s/%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str()));
+    //--- save plot
+    if (additionalCut == "1")
+        can->Print(Form("%s/%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
+    else
+        can->Print(Form("%s/%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str()));
 }
