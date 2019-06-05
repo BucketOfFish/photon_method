@@ -79,12 +79,17 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
     std::vector<int>* lepIsoFCTight = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepIsoFCTight", "lepIsoFCTight", &lepIsoFCTight, "std::vector<int>");
     std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
     std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
-    int channel;
-    int is_OS;
+    int channel, is_OS;
     if (!isPhoton) {
-        BaselineTree->Branch("channel",&channel,"channel/I");
-        BaselineTree->Branch("is_OS",&is_OS,"is_OS/I");
+        BaselineTree->Branch("channel", &channel, "channel/I");
+        BaselineTree->Branch("is_OS", &is_OS, "is_OS/I");
     }
+
+    //--- photon conversion types
+    // 0 = unconverted;
+    // 1 = single track with silicon hit; 2 = single track, no silicon
+    // 3 = double track with silicon hits; 4 = double track, no silicon; 5 = double track, one silicon hit
+    int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
 
     //--- MET components, and DR and DPhi between objects
     float MET_phi; SetInputBranch(inputTree, "met_Phi", &MET_phi);
