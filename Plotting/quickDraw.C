@@ -102,24 +102,24 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     //--- initialize histograms
     TH1F *h_zdata, *h_photon, *h_photon_reweighted, *h_tt, *h_vv, *h_zmc;
 
-    if ((plot_feature == "Ptll") || (plot_feature == "HT")) {
-        const unsigned int n_new_bins = 16;
-        double new_bins[n_new_bins+1] = {40,75,100,125,150,175,200,250,300,350,400,450,500,600,700,850,1000};
-        h_zdata = new TH1F("h_zdata", "", n_new_bins, new_bins);
-        h_tt = new TH1F("h_tt", "", n_new_bins, new_bins);
-        h_vv = new TH1F("h_vv", "", n_new_bins, new_bins);
-        h_zmc = new TH1F("h_zmc", "", n_new_bins, new_bins);
-        h_photon = new TH1F("h_photon", "", n_new_bins, new_bins);
-        h_photon_reweighted = new TH1F("h_photon_reweighted", "", n_new_bins, new_bins);
-    }
-    else {
+    //if ((plot_feature == "Ptll") || (plot_feature == "HT")) {
+        //const unsigned int n_new_bins = 16;
+        //double new_bins[n_new_bins+1] = {40,75,100,125,150,175,200,250,300,350,400,450,500,600,700,850,1000};
+        //h_zdata = new TH1F("h_zdata", "", n_new_bins, new_bins);
+        //h_tt = new TH1F("h_tt", "", n_new_bins, new_bins);
+        //h_vv = new TH1F("h_vv", "", n_new_bins, new_bins);
+        //h_zmc = new TH1F("h_zmc", "", n_new_bins, new_bins);
+        //h_photon = new TH1F("h_photon", "", n_new_bins, new_bins);
+        //h_photon_reweighted = new TH1F("h_photon_reweighted", "", n_new_bins, new_bins);
+    //}
+    //else {
         h_zdata = new TH1F("h_zdata", "", nbins, xmin, xmax);
         h_tt = new TH1F("h_tt", "", nbins, xmin, xmax);
         h_vv = new TH1F("h_vv", "", nbins, xmin, xmax);
         h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
         h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
         h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
-    }
+    //}
 
     //--- draw histograms
     tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), cuts::Zselection, "goff");
@@ -141,10 +141,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "" << endl;
 
     //--- normalize Z to MET<60 GeV region
-    if (TString(plot_feature).EqualTo("Ptll")) {
-        h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
-    }
-    else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
+    //if (TString(plot_feature).EqualTo("Ptll")) {
+        //h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
+    //}
+    //else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
         cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
         TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
@@ -167,7 +167,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
         h_photon->Scale(SF);
         h_photon_reweighted->Scale(SFrw);
-    }
+    //}
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
