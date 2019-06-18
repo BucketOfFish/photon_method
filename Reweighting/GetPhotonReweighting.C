@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string isData, string smearing_mode, string reweight_var){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string photon_filename, string smearing_mode, string reweight_var){
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -19,9 +19,6 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string isDat
     string tt_filename = ntuple_path + mc_folder + "ttbar_merged_processed.root";
     string vv_filename = ntuple_path + mc_folder + "diboson_merged_processed.root";
     string zjets_filename = ntuple_path + mc_folder + "Zjets_merged_processed.root";
-    string photon_filename;
-    if (isData == "Data") photon_filename = reweighting_path + "gdata/" + period + "_merged_processed" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
-    else photon_filename = reweighting_path + "gmc/" "gmc" + "_" + channel + "_" + smearing_mode + ".root"; //Vg subtracted 
 
     cout << "Opening data file    " << data_filename << endl;
     cout << "Opening ttbar file   " << tt_filename << endl;
@@ -114,14 +111,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string isDat
     return hratio;
 }
 
-void GetPhotonReweighting(string periodlabel, string ch, string isData, string smearing_mode, string reweight_var) {
-
-    //---------------------------------------------
-    // 1-d reweighting histogram 
-    //---------------------------------------------
-
-    TH1F* h_reweight = GetSimpleReweightingHistograms(periodlabel, ch, isData, smearing_mode, reweight_var);
-    cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
+void GetPhotonReweighting(string period_label, string channel, string data_or_mc, string smearing_mode, string reweight_var) {
 
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -131,23 +121,30 @@ void GetPhotonReweighting(string periodlabel, string ch, string isData, string s
 
     TH1::SetDefaultSumw2();
 
-    string  filename;
-    if (isData == "Data") {
-        filename = TString(TString(reweighting_path) + "gdata/" + periodlabel + "_merged_processed"  + "_" +TString(ch) + "_" + TString(smearing_mode) + ".root");
+    string photon_filename;
+    if (data_or_mc == "Data") {
+        photon_filename = TString(TString(reweighting_path) + "gdata/" + period_label + "_merged_processed"  + "_" +TString(channel) + "_" + TString(smearing_mode) + ".root");
         cout << "opening data file" << endl;
     }
-    if (isData == "MC") {
-        filename = TString(TString(reweighting_path) + "gmc/gmc_" + TString(ch) + "_" + TString(smearing_mode) + ".root");
+    if (data_or_mc == "MC") {
+        photon_filename = TString(TString(reweighting_path) + "gmc/gmc_" + TString(channel) + "_" + TString(smearing_mode) + ".root");
         cout << "bypassing gdata dir" <<  endl; 
         cout << "opening MC file" << endl;
     }
 
-    TFile* smeared_file = new TFile(filename.c_str(),"update");          
+    TFile* smeared_file = new TFile(photon_filename.c_str(),"update");          
     TTree* outputTree = (TTree*)smeared_file->Get("BaselineTree");
 
     cout << endl;
-    cout << "Opening file           : " << filename << endl;
+    cout << "Opening file           : " << photon_filename << endl;
     cout << "Events in ntuple       : " << outputTree->GetEntries() << endl;
+
+    //---------------------------------------------
+    // 1-d reweighting histogram 
+    //---------------------------------------------
+
+    TH1F* h_reweight = GetSimpleReweightingHistograms(period_label, channel, photon_filename, smearing_mode, reweight_var);
+    cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //-----------------------------
     // access existing branch and add new branch
