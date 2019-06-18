@@ -47,41 +47,18 @@ cd ..
 
 cd Plotting/
 
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","Ptll>200")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","Ptll>200")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","Ptll>400")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","Ptll>400")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","HT>200")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","HT>200")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","HT>400")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","HT>400")'
-root -l -b -q 'quickDraw.C("data15-16","ee","METt","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","mm","METl","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","ee","nJet30","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","mm","nJet30","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","ee","bjet_n","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","mm","bjet_n","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","ee","HT","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","mm","HT","NoSmear","Data")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>200")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>200")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>400")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&Ptll>400")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>200")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>200")'
-root -l -b -q 'quickDraw.C("data15-16","ee","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>400")'
-root -l -b -q 'quickDraw.C("data15-16","mm","met_Et","NoSmear","Data","mll>81&&mll<101&&HT>400")'
-root -l -b -q 'quickDraw.C("data15-16","ee","METt","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","mm","METl","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","ee","nJet30","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","mm","nJet30","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","ee","bjet_n","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","mm","bjet_n","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","ee","HT","NoSmear","Data","mll>81&&mll<101")'
-root -l -b -q 'quickDraw.C("data15-16","mm","HT","NoSmear","Data","mll>81&&mll<101")'
+for CUT in "1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400"
+do
+    for CHANNEL in "ee" "mm"
+    do
+        for FEATURE in "met_Et" "METt" "METl" "nJet30" "bjet_n" "HT"
+        do
+            for PHOTON in "Data" "MC"
+            do
+                sem -j 6 root -l -b -q \''quickDraw.C("data15-16","'$CHANNEL'","'$FEATURE'","NoSmear","'$PHOTON'","'$CUT'")'\'
+            done
+        done
+    done
+done
 
 cd ..

@@ -280,7 +280,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- save plot
     if (additionalCut == "1")
-        can->Print(Form("%s/%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon_"+photonDataOrMC).c_str()));
     else
-        can->Print(Form("%s/%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.pdf", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str(), ("photon_"+photonDataOrMC).c_str()));
 }
