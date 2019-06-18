@@ -78,6 +78,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "Ptll") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "nJet30") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
     else if (plot_feature == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
@@ -280,7 +281,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- save plot
     if (additionalCut == "1")
-        can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon_"+photonDataOrMC).c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon-"+photonDataOrMC).c_str()));
     else
-        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str(), ("photon_"+photonDataOrMC).c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str(), ("photon-"+photonDataOrMC).c_str()));
 }

@@ -58,11 +58,11 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string photo
     cout << "g weight             " << cuts::weight_g.GetTitle() << endl;
 
     //--- fill reweighting histograms
-    TH1F* hdata  = new TH1F("hdata", "", bins::nptbins, bins::ptbins);
-    TH1F* htt    = new TH1F("htt", "", bins::nptbins, bins::ptbins);
-    TH1F* hvv    = new TH1F("hvv", "", bins::nptbins, bins::ptbins);
-    TH1F* hz     = new TH1F("hz", "", bins::nptbins, bins::ptbins);
-    TH1F* histoG = new TH1F("histoG", "", bins::nptbins, bins::ptbins);    
+    TH1F* hdata  = new TH1F("hdata", "", bins::n_reweighting_bins, bins::reweighting_bins);
+    TH1F* htt    = new TH1F("htt", "", bins::n_reweighting_bins, bins::reweighting_bins);
+    TH1F* hvv    = new TH1F("hvv", "", bins::n_reweighting_bins, bins::reweighting_bins);
+    TH1F* hz     = new TH1F("hz", "", bins::n_reweighting_bins, bins::reweighting_bins);
+    TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
 
     //--- reweighting variable histograms
     tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::Zselection, "goff");
@@ -147,7 +147,7 @@ void GetPhotonReweighting(string period_label, string channel, string data_or_mc
     cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //-----------------------------
-    // access existing branch and add new branch
+    // loop over events and fill new branch
     //-----------------------------
 
     float gamma_var = 0.; SetInputBranch(outputTree, reweight_var, &gamma_var);
@@ -156,24 +156,19 @@ void GetPhotonReweighting(string period_label, string channel, string data_or_mc
     TBranch *b_reweight;
     b_reweight = outputTree->Branch(("reweight_"+reweight_var).c_str(), &reweight, ("reweight_"+reweight_var+"/F").c_str());
 
-    //-----------------------------
-    // loop over events and fill new branch
-    //-----------------------------
-
     Long64_t nentries = outputTree->GetEntries();
-
     for (Long64_t i=0; i<nentries; i++) {
 
         if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
         outputTree->GetEntry(i);
 
-        //float gamma_var_truncated = gamma_var;
-        //if(gamma_var_truncated < 40) gamma_var_truncated = 40;
-        //if(gamma_var_truncated > 1000) gamma_var_truncated = 1000;
-        //int ptbin = h_reweight->FindBin( gamma_var_truncated );
+        float gamma_var_truncated = gamma_var;
+        if(gamma_var_truncated < bins::reweighting_bins[0]) gamma_var_truncated = bins::reweighting_bins[0];
+        if(gamma_var_truncated > bins::reweighting_bins[bins::n_reweighting_bins]) gamma_var_truncated = bins::reweighting_bins[bins::n_reweighting_bins];
+        int ptbin = h_reweight->FindBin( gamma_var_truncated );
 
-        int ptbin = h_reweight->FindBin(gamma_var);
-        reweight = h_reweight->GetBinContent(ptbin);
+        int var_bin = h_reweight->FindBin(gamma_var);
+        reweight = h_reweight->GetBinContent(var_bin);
         b_reweight->Fill();
     }
 
