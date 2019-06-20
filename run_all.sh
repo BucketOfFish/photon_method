@@ -6,14 +6,24 @@ lsetup "root 6.14.04-x86_64-slc6-gcc62-opt"
 
 cd NtupleMaker/
 
-root -l -b -q 'MakeNtuple.C("SinglePhoton222_merged_processed","gmc","/eos/atlas/user/y/ycao/SUSY_dataset/JETM4_v1.6/JETM4_mc16a/","MC","SinglePhoton222_NoSys","photon")'
+export PHOTON_MC_PATH='/eos/atlas/user/y/ycao/SUSY_dataset/JETM4_v1.6/JETM4_'
+export PHOTON_DATA_PATH='/eos/atlas/user/y/ycao/SUSY_dataset/JETM4_v1.6/JETM4_Data/'
+export BKG_MC_PATH='/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Bkgs_'
+export BKG_DATA_PATH='/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Data/'
 
-root -l -b -q 'MakeNtuple.C("Zjets_merged_processed","ZMC16a","/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Bkgs_mc16a/","MC","Zjets_NoSys","non-photon")'
-root -l -b -q 'MakeNtuple.C("ttbar_merged_processed","ZMC16a","/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Bkgs_mc16a/","MC","ttbar_NoSys","non-photon")'
-root -l -b -q 'MakeNtuple.C("diboson_merged_processed","ZMC16a","/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Bkgs_mc16a/","MC","diboson_NoSys","non-photon")'
+for PERIOD in "mc16a" "mc16cd" "mc16e"
+do
+    root -l -b -q 'MakeNtuple.C("g_mc","'$PERIOD'","'$PHOTON_MC_PATH$PERIOD'/","SinglePhoton222","SinglePhoton222_NoSys","MC","photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","Zjets","Zjets_NoSys","MC","non-photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","ttbar","ttbar_NoSys","MC","non-photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","diboson","diboson_NoSys","MC","non-photon")'
+done
 
-root -l -b -q 'MakeNtuple.C("data15-16_merged_processed","gdata","/eos/atlas/user/y/ycao/SUSY_dataset/JETM4_v1.6/JETM4_Data/","Data","data15-16","photon")'
-root -l -b -q 'MakeNtuple.C("data15-16_merged_processed","zdata","/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.6/SUSY2/SUSY2_Data/","Data","data","non-photon")'
+for PERIOD in "data15-16" "data17" "data18"
+do
+    root -l -b -q 'MakeNtuple.C("g_data","'$PERIOD'","'$PHOTON_DATA_PATH'","","'$PERIOD'","Data","photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_data","'$PERIOD'","'$BKG_DATA_PATH'","","data","Data","non-photon")'
+done
 
 cd ..
 

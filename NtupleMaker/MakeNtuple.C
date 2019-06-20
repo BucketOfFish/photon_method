@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string sampleID, string outputFolder, string pathToNtuples, string isData, string treeName, string photonOrBackground) {
+void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string treeName, string isData, string photonOrBackground) {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -12,18 +12,18 @@ void MakeNtuple(string sampleID, string outputFolder, string pathToNtuples, stri
 
     TH1::SetDefaultSumw2();
 
-    string filename = Form("%s%s.root",pathToNtuples.c_str(), sampleID.c_str()); 
+    string filename = Form("%s%s_merged_processed.root",pathToNtuples.c_str(), sampleID.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
-    float lumi = GetLumi(pathToNtuples);
+    float lumi = GetLumi(period);
 
     cout << endl;
     cout << "Opening file           : " << filename        << endl;
     cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
 	cout << "using luminosity       : " << lumi          << endl;
 
-    string outfilename = ntuple_path + "/" + outputFolder + "/" + sampleID.c_str() + ".root";
+    string outfilename = ntuple_path + "/" + outputFolder + "/" + period.c_str() + "_" + sampleID.c_str() + ".root";
     cout << "Writing to : " << outfilename << endl;
     TFile outputFile( outfilename.c_str(), "recreate" );
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
