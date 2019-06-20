@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string isData, string treeName, string photonOrBackground) {
+void MakeNtuple(string sampleID, string outputFolder, string pathToNtuples, string isData, string treeName, string photonOrBackground) {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -23,7 +23,7 @@ void MakeNtuple(string sampleID, string outputName, string pathToNtuples, string
     cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
 	cout << "using luminosity       : " << lumi          << endl;
 
-    string outfilename = ntuple_path + "/" + outputName + "/" + sampleID.c_str() + ".root";
+    string outfilename = ntuple_path + "/" + outputFolder + "/" + sampleID.c_str() + ".root";
     cout << "Writing to : " << outfilename << endl;
     TFile outputFile( outfilename.c_str(), "recreate" );
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
