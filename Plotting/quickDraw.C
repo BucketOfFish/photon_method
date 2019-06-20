@@ -218,7 +218,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         h_zdata->Draw("sameE1");
     }
     else {
-        h_zmc->SetLineColor(1); h_zmc->SetFillColor(2); h_zmc->SetLineStyle(1);
+        h_zmc->SetLineColor(1); h_zmc->SetFillColor(42); h_zmc->SetLineStyle(1);
         h_zmc->GetXaxis()->SetTitle(xtitle.c_str());
         h_zmc->GetYaxis()->SetTitle("entries / bin");
         h_zmc->Draw("hist");
@@ -287,6 +287,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++)
         hmctot->SetBinError(ibin, 0.0);
     hratio->Divide(hmctot);
+    hratio->SetMarkerStyle(20);
 
     hratio->GetXaxis()->SetTitle("");
     hratio->GetXaxis()->SetLabelSize(0.);
