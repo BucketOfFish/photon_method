@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string photon_filename, string smearing_mode, string reweight_var){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_or_mc, string photon_filename, string smearing_mode, string reweight_var){
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -71,25 +71,6 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string photo
     tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::Zselection*cuts::Zweight, "goff");
     tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::gselection*cuts::weight_g, "goff");
 
-    //// step 1: HT
-    //if (step == 1) {
-        //tch_data->Draw("min(HT,999)>>hdata", cuts::Zselection, "goff");
-        //tch_tt->Draw("min(HT,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_vv->Draw("min(HT,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_zjets->Draw("min(HT,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_photon->Draw("min(HT,999)>>histoG", cuts::gselection*cuts::weight_g, "goff");
-    //}
-
-    //// step 2: Z_pt
-    //else if (step == 2) {
-        //TCut g_rw("ptreweight_step1"); // from step 1
-        //tch_data->Draw("min(Ptll,999)>>hdata", cuts::Zselection, "goff");
-        //tch_tt->Draw("min(Ptll,999)>>htt", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_vv->Draw("min(Ptll,999)>>hvv", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_zjets->Draw("min(Ptll,999)>>hz", cuts::Zselection*cuts::Zweight, "goff");
-        //tch_photon->Draw("min(Ptll,999)>>histoG", cuts::gselection*cuts::weight_g*g_rw, "goff");
-    //}
-
     cout << "data integral        " << hdata->Integral() << endl;
     cout << "ttbar integral       " << htt->Integral() << endl;
     cout << "diboson integral     " << hvv->Integral() << endl;
@@ -100,6 +81,9 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string photo
     TH1F* histoZ = (TH1F*) hdata->Clone("histoZ");
     histoZ->Add(htt, -1.0);
     histoZ->Add(hvv, -1.0);
+
+    if (data_or_mc == "MC")
+        histoZ = (TH1F*) hz->Clone("histoZ");
 
     TH1F* hratio = (TH1F*) histoZ->Clone("hratio");
     hratio->Divide(histoG);
@@ -143,7 +127,7 @@ void GetPhotonReweighting(string period_label, string channel, string data_or_mc
     // 1-d reweighting histogram 
     //---------------------------------------------
 
-    TH1F* h_reweight = GetSimpleReweightingHistograms(period_label, channel, photon_filename, smearing_mode, reweight_var);
+    TH1F* h_reweight = GetSimpleReweightingHistograms(period_label, channel, data_or_mc, photon_filename, smearing_mode, reweight_var);
     cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //-----------------------------

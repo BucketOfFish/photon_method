@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photonDataOrMC="Data", string additionalCut="1") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photon_data_or_mc="Data", string additional_cut="1") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -14,7 +14,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "channel              " << channel << endl;
     cout << "smearing mode        " << smearing_mode << endl;
     cout << "DF?                  " << DF << endl;
-    cout << "photon data          " << photonDataOrMC << endl;
+    cout << "photon data          " << photon_data_or_mc << endl;
 
     //--- load files
     string mcdir = "";
@@ -27,7 +27,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     string vv_filename = ntuple_path + mcdir + "/diboson_merged_processed.root";
     string zmc_filename = ntuple_path + mcdir + "/Zjets_merged_processed.root";
     string photon_filename;
-    if (photonDataOrMC == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
+    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
     else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
 
     cout << "Z data filename      " << zdata_filename << endl;
@@ -51,7 +51,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    cuts::Zselection += TCut(additionalCut.c_str());
+    cuts::Zselection += TCut(additional_cut.c_str());
     if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
     else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
     else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
@@ -59,7 +59,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
-    cuts::gselection += TCut(additionalCut.c_str());
+    cuts::gselection += TCut(additional_cut.c_str());
 
     cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;  
     cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
@@ -142,33 +142,35 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "" << endl;
 
     //--- normalize Z to MET<60 GeV region
-    //if (TString(plot_feature).EqualTo("Ptll")) {
-        //h_photon->Scale(h_photon_reweighted->Integral()/h_photon->Integral());
-    //}
-    //else if (!DF && !TString(plot_feature).Contains("pt") && !TString(plot_feature).Contains("HT")) {
-        cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
+    cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
-        TH1F* h_zdata_norm = new TH1F("h_zdata_norm", "", 1, 0, 1);
-        TH1F* h_tt_norm = new TH1F("h_tt_norm", "", 1, 0, 1);
-        TH1F* h_vv_norm = new TH1F("h_vv_norm", "", 1, 0, 1);
-        TH1F* h_photon_norm = new TH1F("h_photon_norm", "", 1, 0, 1);
-        TH1F* h_photon_reweighted_norm = new TH1F("h_photon_reweighted_norm", "", 1, 0, 1);
+    TH1F* h_zdata_cr = new TH1F("h_zdata_cr", "", 1, 0, 1);
+    TH1F* h_tt_cr = new TH1F("h_tt_cr", "", 1, 0, 1);
+    TH1F* h_vv_cr = new TH1F("h_vv_cr", "", 1, 0, 1);
+    TH1F* h_zmc_cr = new TH1F("h_zmc_cr", "", 1, 0, 1);
+    TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
+    TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
 
-        tch_zdata->Draw("0.5>>h_zdata_norm", cuts::Zselection+cuts::CR, "goff");
-        tch_tt-> Draw("0.5>>h_tt_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_vv-> Draw("0.5>>h_vv_norm", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-        tch_photon->Draw("0.5>>h_photon_norm", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
-        tch_photon->Draw("0.5>>h_photon_reweighted_norm", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
+    tch_zdata->Draw("0.5>>h_zdata_cr", cuts::Zselection+cuts::CR, "goff");
+    tch_tt-> Draw("0.5>>h_tt_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+    tch_vv-> Draw("0.5>>h_vv_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+    tch_zmc->Draw("0.5>>h_zmc_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
+    tch_photon->Draw("0.5>>h_photon_cr", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
+    tch_photon->Draw("0.5>>h_photon_reweighted_cr", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
 
-        float SF = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_norm->Integral();
-        float SFrw = (h_zdata_norm->Integral() - h_tt_norm->Integral() - h_vv_norm->Integral()) / h_photon_reweighted_norm->Integral();
+    float SF = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
+    float SFrw = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
 
-        cout << "Scale raw photon data by " << SF << endl;
-        cout << "Scale reweighted photon data by " << SFrw << endl;
+    if (photon_data_or_mc == "MC") {
+        SF = h_zmc_cr->Integral() / h_photon_cr->Integral();
+        SFrw = h_zmc_cr->Integral() / h_photon_reweighted_cr->Integral();
+    }
 
-        h_photon->Scale(SF);
-        h_photon_reweighted->Scale(SFrw);
-    //}
+    cout << "Scale raw photon data by " << SF << endl;
+    cout << "Scale reweighted photon data by " << SFrw << endl;
+
+    h_photon->Scale(SF);
+    h_photon_reweighted->Scale(SFrw);
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
@@ -189,7 +191,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- create MC stack
     string plotName = "default cuts";
-    if (additionalCut != "1") plotName += ("&&" + additionalCut);
+    if (additional_cut != "1") plotName += ("&&" + additional_cut);
     boost::replace_all(plotName, "&&", " && ");
     THStack *mcstack = new THStack("mcstack", plotName.c_str());
 
@@ -215,27 +217,42 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     mainpad->cd();
     mainpad->SetLogy();
 
-    mcstack->Draw("hist");
-    mcstack->GetXaxis()->SetTitle(xtitle.c_str());
-    mcstack->GetYaxis()->SetTitle("entries / bin");
+    if (photon_data_or_mc == "Data") {
+        mcstack->Draw("hist");
+        mcstack->GetXaxis()->SetTitle(xtitle.c_str());
+        mcstack->GetYaxis()->SetTitle("entries / bin");
 
-    if( !DF ) {
-        h_photon->Draw("samehist");
-        h_zmc->Draw("samehist");
+        if( !DF ) {
+            h_photon->Draw("samehist");
+            h_zmc->Draw("samehist");
+        }
+        h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
+        h_zdata->Draw("sameE1");
     }
-    h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
-    h_zdata->Draw("sameE1");
+    else {
+        h_zmc->SetLineColor(1); h_zmc->SetFillColor(kRed-2);
+        h_zmc->Draw("hist");
+        h_photon->Draw("samehist");
+        h_photon_reweighted->Draw("samehist");
+    }
 
     //--- draw legend and labels
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-    leg->AddEntry(h_zdata,"data","lp");
-    if(!DF){
+    if (photon_data_or_mc == "Data") {
+        leg->AddEntry(h_zdata,"data","lp");
+        if(!DF){
+            leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
+            leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
+            leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
+        }
+        leg->AddEntry(h_vv, "VV", "f");
+        leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
+    }
+    else {
         leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
         leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
         leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
     }
-    leg->AddEntry(h_vv, "VV", "f");
-    leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
 
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
@@ -245,8 +262,15 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     tex->SetNDC();
     tex->SetTextSize(0.03);
     tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-    if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
-    if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
+    if (photon_data_or_mc == "Data") {
+        if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
+        if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
+    }
+    else {
+        if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"MC16a");
+        if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"MC16cd");
+        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"MC16cd");
+    }
     if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
     if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
     if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
@@ -259,10 +283,16 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     ratio_pad->SetGridy();
 
     TH1F* hratio;
-    TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     hratio = (TH1F*) h_zdata->Clone("hratio");
+    TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     hmctot->Add(h_tt);
     hmctot->Add(h_vv);
+
+    if (photon_data_or_mc == "MC") {
+        hratio = (TH1F*) h_zmc->Clone("hratio");
+        hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
+    }
+
     for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++)
         hmctot->SetBinError(ibin, 0.0);
     hratio->Divide(hmctot);
@@ -270,7 +300,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->GetXaxis()->SetTitle("");
     hratio->GetXaxis()->SetLabelSize(0.);
     hratio->GetYaxis()->SetNdivisions(5);
-    hratio->GetYaxis()->SetTitle("data/bkg");
+    if (photon_data_or_mc == "Data")
+        hratio->GetYaxis()->SetTitle("data/bkg");
+    else
+        hratio->GetYaxis()->SetTitle("Z MC/photon MC");
     hratio->GetYaxis()->SetTitleSize(0.15);
     hratio->GetYaxis()->SetTitleOffset(0.3);
     hratio->GetYaxis()->SetLabelSize(0.15);
@@ -280,8 +313,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     //--- save plot
-    if (additionalCut == "1")
-        can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon-"+photonDataOrMC).c_str()));
+    if (additional_cut == "1")
+        can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon-"+photon_data_or_mc).c_str()));
     else
-        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additionalCut.c_str(), ("photon-"+photonDataOrMC).c_str()));
+        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additional_cut.c_str(), ("photon-"+photon_data_or_mc).c_str()));
 }
