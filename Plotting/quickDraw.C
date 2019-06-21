@@ -17,18 +17,18 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon data          " << photon_data_or_mc << endl;
 
     //--- load files
-    string mcdir = "";
-    if (TString(period).Contains("data15-16")) mcdir = "ZMC16a";
-    else if (TString(period).Contains("data17")) mcdir = "ZMC16cd";
-    else if (TString(period).Contains("data18")) mcdir = "ZMC16cd";
+    string mc_period = "";
+    if (TString(period).Contains("data15-16")) mc_period = "ZMC16a";
+    else if (TString(period).Contains("data17")) mc_period = "ZMC16cd";
+    else if (TString(period).Contains("data18")) mc_period = "ZMC16cd";
 
-    string zdata_filename= ntuple_path + "zdata/data15-16_merged_processed.root";
-    string tt_filename = ntuple_path + mcdir + "/ttbar_merged_processed.root";
-    string vv_filename = ntuple_path + mcdir + "/diboson_merged_processed.root";
-    string zmc_filename = ntuple_path + mcdir + "/Zjets_merged_processed.root";
+    string zdata_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
+    string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
+    string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
+    string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
     string photon_filename;
-    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "gmc/gmc_" + channel + "_" + smearing_mode + ".root";
-    else photon_filename = reweighting_path + "gdata/" + period + "_merged_processed_" + channel + "_" + smearing_mode + ".root";
+    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_" + smearing_mode + ".root";
+    else photon_filename = reweighting_path + "g_data/" + period + "_photon_" + channel + "_" + smearing_mode + ".root";
 
     cout << "Z data filename      " << zdata_filename << endl;
     cout << "ttbar filename       " << tt_filename << endl;
