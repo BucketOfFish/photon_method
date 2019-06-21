@@ -13,6 +13,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     TH1::SetDefaultSumw2();
 
     string filename = Form("%s%s_merged_processed.root",pathToNtuples.c_str(), sampleID.c_str()); 
+    if (sampleID == "photon") filename = Form("%s_merged_processed.root",pathToNtuples.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
     if (treeName == "") treeName = sampleID + "_NoSys";
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());

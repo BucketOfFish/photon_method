@@ -21,8 +21,8 @@ done
 
 for PERIOD in "data15-16" "data17" "data18"
 do
-    root -l -b -q 'MakeNtuple.C("g_data","'$PERIOD'","'$PHOTON_DATA_PATH'","","Data","photon","'$PERIOD'")'
-    root -l -b -q 'MakeNtuple.C("bkg_data","'$PERIOD'","'$BKG_DATA_PATH'","","Data","non-photon","data")'
+    root -l -b -q 'MakeNtuple.C("g_data","'$PERIOD'","'$PHOTON_DATA_PATH'","photon","Data","photon","'$PERIOD'")'
+    root -l -b -q 'MakeNtuple.C("bkg_data","'$PERIOD'","'$BKG_DATA_PATH'","photon","Data","non-photon","data")'
 done
 
 cd ..
@@ -32,11 +32,11 @@ cd ..
 cd PhotonSmearing/
 
 #root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",4)'
-root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","ee","MC","data15-16",0)'
-root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","mc16a","ee",0)'
+root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","mc16a","mm",0)'
 #root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",5)'
-root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","ee","Data","data15-16",0)'
-root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",0)'
+root -l -b -q 'GetPhotonSmearing.C("photon","data15-16","ee",0)'
+root -l -b -q 'GetPhotonSmearing.C("photon","data15-16","mm",0)'
 
 cd ..
 

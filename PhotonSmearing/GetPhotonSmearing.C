@@ -5,7 +5,11 @@
 
 using namespace std;
 
-void GetPhotonSmearing(string label, string channel, string isData, string period, int smearing_method) {
+void GetPhotonSmearing(string label, string period, string channel, int smearing_method) {
+
+    string isData = "MC";
+    if (period.find("data") != std::string::npos)
+        isData = "Data";
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
@@ -20,8 +24,8 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     TH1::SetDefaultSumw2();
 
     string  infilename;
-    if (isData == "MC") infilename = ntuple_path + "gmc/" + label + ".root";
-    else if (isData == "Data") infilename = ntuple_path + "gdata/" + label + ".root";
+    if (isData == "MC") infilename = ntuple_path + "g_mc/" + period + "_" + label + ".root";
+    else if (isData == "Data") infilename = ntuple_path + "g_data/" + period + "_" + label + ".root";
 
     TChain* inputTree = new TChain("BaselineTree");
     inputTree->Add( infilename.c_str() );
@@ -42,8 +46,8 @@ void GetPhotonSmearing(string label, string channel, string isData, string perio
     if (smearing_method == 5) photon_tag = "_DataSmear";
 
     string outfilename;
-    if (isData == "Data") outfilename = TString(TString(smearing_path)+"gdata/" + label + "_"+TString(channel)+TString(photon_tag)+".root"); 
-    if (isData == "MC") outfilename = TString(TString(smearing_path)+"gmc/gmc_"+TString(channel)+TString(photon_tag)+".root"); 
+    if (isData == "Data") outfilename = TString(TString(smearing_path)+"g_data/" + label + "_"+TString(channel)+TString(photon_tag)+".root"); 
+    if (isData == "MC") outfilename = TString(TString(smearing_path)+"g_mc/gmc_"+TString(channel)+TString(photon_tag)+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
