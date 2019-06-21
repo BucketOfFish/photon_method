@@ -221,6 +221,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         h_zmc->SetLineColor(1); h_zmc->SetFillColor(42); h_zmc->SetLineStyle(1);
         h_zmc->GetXaxis()->SetTitle(xtitle.c_str());
         h_zmc->GetYaxis()->SetTitle("entries / bin");
+        h_zmc->SetTitle(plotName.c_str());
         h_zmc->Draw("hist");
         h_photon->Draw("samehist");
         h_photon_reweighted->SetLineWidth(1); h_photon_reweighted->SetFillStyle(0);

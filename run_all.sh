@@ -77,7 +77,10 @@ do
         do
             for PHOTON in "Data" "MC"
             do
-                sem -j 6 root -l -b -q \''quickDraw.C("data15-16","'$CHANNEL'","'$FEATURE'","NoSmear","'$PHOTON'","'$CUT'")'\'
+                for PERIOD in "data15-16" "data17" "data18"
+                do
+                    sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","NoSmear","'$PHOTON'","'$CUT'")'\'
+                done
             done
         done
     done
