@@ -18,9 +18,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- load files
     string mc_period = "";
-    if (TString(period).Contains("data15-16")) mc_period = "ZMC16a";
-    else if (TString(period).Contains("data17")) mc_period = "ZMC16cd";
-    else if (TString(period).Contains("data18")) mc_period = "ZMC16cd";
+    if (TString(period).Contains("data15-16")) mc_period = "mc16a";
+    else if (TString(period).Contains("data17")) mc_period = "mc16cd";
+    else if (TString(period).Contains("data18")) mc_period = "mc16e";
 
     string zdata_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
     string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
