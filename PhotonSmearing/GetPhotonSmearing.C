@@ -41,13 +41,13 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     TH1::SetDefaultSumw2();
 
     string photon_tag = "";
-    if (smearing_method == 0) photon_tag = "_NoSmear";
-    if (smearing_method == 4) photon_tag = "_McSmear";
-    if (smearing_method == 5) photon_tag = "_DataSmear";
+    if (smearing_method == 0) photon_tag = "NoSmear";
+    if (smearing_method == 4) photon_tag = "McSmear";
+    if (smearing_method == 5) photon_tag = "DataSmear";
 
     string outfilename;
-    if (isData == "Data") outfilename = TString(TString(smearing_path)+"g_data/" + label + "_"+TString(channel)+TString(photon_tag)+".root"); 
-    if (isData == "MC") outfilename = TString(TString(smearing_path)+"g_mc/gmc_"+TString(channel)+TString(photon_tag)+".root"); 
+    if (isData == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
+    if (isData == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");

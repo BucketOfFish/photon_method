@@ -10,15 +10,15 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     gStyle->SetOptStat(0);
 
     //--- open files and create TChains
-    string mc_folder = "";
-    if (TString(period).Contains("data15-16")) mc_folder = "ZMC16a/";
-    else if (TString(period).Contains("data17")) mc_folder = "ZMC16cd/";
-    else if (TString(period).Contains("data18")) mc_folder = "ZMC16cd/";
+    string mc_period = "";
+    if (TString(period).Contains("data15-16")) mc_period = "mc16a";
+    else if (TString(period).Contains("data17")) mc_period = "mc16cd";
+    else if (TString(period).Contains("data18")) mc_period = "mc16e";
 
-    string data_filename = ntuple_path + "zdata/" + period + "_merged_processed.root";
-    string tt_filename = ntuple_path + mc_folder + "ttbar_merged_processed.root";
-    string vv_filename = ntuple_path + mc_folder + "diboson_merged_processed.root";
-    string zjets_filename = ntuple_path + mc_folder + "Zjets_merged_processed.root";
+    string data_filename = ntuple_path + "bkg_data/" + period + "_bkg.root";
+    string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
+    string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
+    string zjets_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
 
     cout << "Opening data file    " << data_filename << endl;
     cout << "Opening ttbar file   " << tt_filename << endl;
@@ -46,7 +46,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
         exit(0);
     }
 
-    if( TString(period).EqualTo("data17")    ){
+    if (TString(period).EqualTo("data17")){
         TCut RunRange = TCut("RunNumber < 348000");  
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
         cuts::Zselection *= RunRange;
@@ -95,7 +95,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     return hratio;
 }
 
-void GetPhotonReweighting(string period_label, string channel, string data_or_mc, string smearing_mode, string reweight_var) {
+void GetPhotonReweighting(string period, string channel, string data_or_mc, string smearing_mode, string reweight_var) {
 
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -105,14 +105,18 @@ void GetPhotonReweighting(string period_label, string channel, string data_or_mc
 
     TH1::SetDefaultSumw2();
 
+    string mc_period = "";
+    if (TString(period).Contains("data15-16")) mc_period = "mc16a";
+    else if (TString(period).Contains("data17")) mc_period = "mc16cd";
+    else if (TString(period).Contains("data18")) mc_period = "mc16e";
+
     string photon_filename;
     if (data_or_mc == "Data") {
-        photon_filename = TString(TString(reweighting_path) + "gdata/" + period_label + "_merged_processed"  + "_" +TString(channel) + "_" + TString(smearing_mode) + ".root");
+        photon_filename = TString(reweighting_path+"g_data/"+period+"_photon_"+channel+"_"+smearing_mode+".root");
         cout << "opening data file" << endl;
     }
     if (data_or_mc == "MC") {
-        photon_filename = TString(TString(reweighting_path) + "gmc/gmc_" + TString(channel) + "_" + TString(smearing_mode) + ".root");
-        cout << "bypassing gdata dir" <<  endl; 
+        photon_filename = TString(reweighting_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+"_"+smearing_mode+".root");
         cout << "opening MC file" << endl;
     }
 
@@ -127,7 +131,7 @@ void GetPhotonReweighting(string period_label, string channel, string data_or_mc
     // 1-d reweighting histogram 
     //---------------------------------------------
 
-    TH1F* h_reweight = GetSimpleReweightingHistograms(period_label, channel, data_or_mc, photon_filename, smearing_mode, reweight_var);
+    TH1F* h_reweight = GetSimpleReweightingHistograms(period, channel, data_or_mc, photon_filename, smearing_mode, reweight_var);
     cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //-----------------------------

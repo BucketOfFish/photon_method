@@ -31,12 +31,18 @@ cd ..
 
 cd PhotonSmearing/
 
-#root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222_merged_processed","mm","MC","data15-16",4)'
-root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","mc16a","ee",0)'
-root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","mc16a","mm",0)'
-#root -l -b -q 'GetPhotonSmearing.C("data15-16_merged_processed","mm","Data","data15-16",5)'
-root -l -b -q 'GetPhotonSmearing.C("photon","data15-16","ee",0)'
-root -l -b -q 'GetPhotonSmearing.C("photon","data15-16","mm",0)'
+for CHANNEL in "ee" "mm"
+do
+    for PERIOD in "mc16a" "mc16cd" "mc16e"
+    do
+        root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","'$PERIOD'","'$CHANNEL'",0)'
+    done
+
+    for PERIOD in "data15-16" "data17" "data18"
+    do
+        root -l -b -q 'GetPhotonSmearing.C("photon","'$PERIOD'","'$CHANNEL'",0)'
+    done
+done
 
 cd ..
 
@@ -46,10 +52,16 @@ cd ..
 
 cd Reweighting/
 
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","Data","NoSmear","Ptll")'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","Data","NoSmear","Ptll")'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","ee","MC","NoSmear","Ptll")'
-root -l -b -q 'GetPhotonReweighting.C("data15-16","mm","MC","NoSmear","Ptll")'
+for CHANNEL in "ee" "mm"
+do
+    for PERIOD in "data15-16" "data17" "data18"
+    do
+        for PHOTON in "Data" "MC"
+        do
+            root -l -b -q 'GetPhotonReweighting.C("'$PERIOD'","'$CHANNEL'","'$PHOTON'","NoSmear","Ptll")'
+        done
+    done
+done
 
 cd ..
 
