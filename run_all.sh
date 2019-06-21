@@ -13,16 +13,16 @@ export BKG_DATA_PATH='/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018
 
 for PERIOD in "mc16a" "mc16cd" "mc16e"
 do
-    root -l -b -q 'MakeNtuple.C("g_mc","'$PERIOD'","'$PHOTON_MC_PATH$PERIOD'/","SinglePhoton222","SinglePhoton222_NoSys","MC","photon")'
-    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","Zjets","Zjets_NoSys","MC","non-photon")'
-    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","ttbar","ttbar_NoSys","MC","non-photon")'
-    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","diboson","diboson_NoSys","MC","non-photon")'
+    root -l -b -q 'MakeNtuple.C("g_mc","'$PERIOD'","'$PHOTON_MC_PATH$PERIOD'/","SinglePhoton222","MC","photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","Zjets","MC","non-photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","ttbar","MC","non-photon")'
+    root -l -b -q 'MakeNtuple.C("bkg_mc","'$PERIOD'","'$BKG_MC_PATH$PERIOD'/","diboson","MC","non-photon")'
 done
 
 for PERIOD in "data15-16" "data17" "data18"
 do
-    root -l -b -q 'MakeNtuple.C("g_data","'$PERIOD'","'$PHOTON_DATA_PATH'","","'$PERIOD'","Data","photon")'
-    root -l -b -q 'MakeNtuple.C("bkg_data","'$PERIOD'","'$BKG_DATA_PATH'","","data","Data","non-photon")'
+    root -l -b -q 'MakeNtuple.C("g_data","'$PERIOD'","'$PHOTON_DATA_PATH'","","Data","photon","'$PERIOD'")'
+    root -l -b -q 'MakeNtuple.C("bkg_data","'$PERIOD'","'$BKG_DATA_PATH'","","Data","non-photon","data")'
 done
 
 cd ..

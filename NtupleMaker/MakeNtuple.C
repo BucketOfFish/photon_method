@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string treeName, string isData, string photonOrBackground) {
+void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string isData, string photonOrBackground, string treeName="") {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -14,6 +14,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
     string filename = Form("%s%s_merged_processed.root",pathToNtuples.c_str(), sampleID.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
+    if (treeName == "") treeName = sampleID + "_NoSys";
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
     float lumi = GetLumi(period);
