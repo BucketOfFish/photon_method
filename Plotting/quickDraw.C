@@ -282,6 +282,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     if (photon_data_or_mc == "MC") {
         hratio = (TH1F*) h_zmc->Clone("hratio");
+        hratio->SetTitle("");
         hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     }
 
