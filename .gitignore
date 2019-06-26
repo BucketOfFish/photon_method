@@ -1,2 +1,4 @@
 OutputNtuples/
 Root/plots/
+Studies/*.eps
+*/test*.sh
