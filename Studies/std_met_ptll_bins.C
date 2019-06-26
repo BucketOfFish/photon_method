@@ -38,151 +38,113 @@ void std_met_ptll_bins(string mc_period, string channel, string plot_feature, st
     float xmax = 300;
 
     //--- get standard deviations in bins
-    std::vector<double> feature_bins = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 1000};
+    int n_feature_bins = 20;
+    float feature_bins[20+1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200};
+    vector<float> z_std, photon_std;
 
-    for (int i = 0; i < feature_bins.size()-2; i++) {
-        TString additional_cut = TString(bin_feature + ">" + feature_bins[i] + "&&" + bin_feature + "<" + feature_bins[i+1]);
-        TCut extended_Zselection = cuts::Zselection + TCut(additional_cut);
-        TCut extended_gselection = cuts::gselection + TCut(additional_cut);
+    for (int i = 0; i < n_feature_bins; i++) {
+        string additional_cut = bin_feature + ">" + to_string(int(feature_bins[i])) + "&&" + bin_feature + "<" + to_string(int(feature_bins[i+1]));
+        TCut extended_Zselection = cuts::Zselection + TCut(TString(additional_cut));
+        TCut extended_gselection = cuts::gselection + TCut(TString(additional_cut));
 
         TH1F *h_zmc, *h_photon;
         h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
         h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
+        h_zmc->SetLineColor(1); h_photon->SetLineColor(2);
 
         tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), extended_Zselection*cuts::Zweight, "goff");
         tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), extended_gselection*cuts::weight_g, "goff");
 
-        cout << h_zmc->GetStdDev() << " | " << h_photon->GetStdDev() << endl;
+        TCanvas *can = new TCanvas("can","can",600,600);
+        can->cd();
+        TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,1.0);
+        mainpad->Draw();
+        mainpad->cd();
+
+        float max_y = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
+        h_zmc->GetYaxis()->SetRange(0, max_y);
+        h_photon->GetYaxis()->SetRange(0, max_y);
+
+        h_zmc->SetTitle(TString(plot_feature + " " + additional_cut));
+        h_zmc->Draw("hist");
+        h_photon->Draw("samehist");
+        can->Print(Form("%s_%s_%s_%s.eps", plot_feature.c_str(), mc_period.c_str(), channel.c_str(), additional_cut.c_str()));
+
+        z_std.push_back(h_zmc->GetStdDev());
+        photon_std.push_back(h_photon->GetStdDev());
+
+        delete can;
         delete h_zmc;
         delete h_photon;
     }
 
-    ////--- make plots
-    //string plotName = "default cuts";
-    //if (additional_cut != "1") plotName += ("&&" + additional_cut);
-    //boost::replace_all(plotName, "&&", " && ");
-    //THStack *mcstack = new THStack("mcstack", plotName.c_str());
+    TH1F *h_z_std, *h_photon_std;
+    h_z_std = new TH1F("h_z_std", "", n_feature_bins, feature_bins);
+    h_photon_std = new TH1F("h_photon_std", "", n_feature_bins, feature_bins);
+    h_z_std->SetLineColor(1); h_photon_std->SetLineColor(2);
 
-    //h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
-    //h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
-    //h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
-    //mcstack->Add(h_tt);
-    //mcstack->Add(h_vv);
-    //mcstack->Add(h_photon_reweighted);
+    for (int i = 0; i < n_feature_bins; i++) {
+        h_z_std->SetBinContent(i, z_std[i]);
+        h_photon_std->SetBinContent(i, photon_std[i]);
+    }
 
-    //h_photon->Add(h_tt); h_photon->Add(h_vv);
-    //h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
+    //--- make plots
+    TCanvas *can = new TCanvas("can","can",600,600);
+    can->cd();
+    TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
+    mainpad->Draw();
+    mainpad->cd();
 
-    //h_zmc->Add(h_tt); h_zmc->Add(h_vv);
-    //h_zmc->SetLineColor(2); h_zmc->SetLineWidth(1); h_zmc->SetLineStyle(7);
+    float max_y = max(h_z_std->GetMaximum(), h_photon_std->GetMaximum()) * 1.1;
+    h_z_std->GetYaxis()->SetRange(0, max_y);
+    h_photon_std->GetYaxis()->SetRange(0, max_y);
 
-    //TCanvas *can = new TCanvas("can","can",600,600);
-    //can->cd();
-    //TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
-    //mainpad->Draw();
-    //mainpad->cd();
-    //mainpad->SetLogy();
+    h_z_std->SetTitle(TString(plot_feature + " Standard Deviation"));
+    h_z_std->Draw("hist");
+    h_photon_std->Draw("samehist");
 
-    //if (photon_data_or_mc == "Data") {
-        //mcstack->Draw("hist");
-        //mcstack->GetXaxis()->SetTitle(xtitle.c_str());
-        //mcstack->GetYaxis()->SetTitle("entries / bin");
+    TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
+    leg->AddEntry(h_z_std, "Z+jets (from MC)", "f");
+    leg->AddEntry(h_photon_std, "Z+jets (from #gamma+jets, raw)", "f");
 
-        //h_photon->Draw("samehist");
-        //h_zmc->Draw("samehist");
-        //h_zdata->SetLineColor(1); h_zdata->SetLineWidth(2); h_zdata->SetMarkerStyle(20);
-        //h_zdata->Draw("sameE1");
-    //}
-    //else {
-        //h_zmc->SetLineColor(1); h_zmc->SetFillColor(42); h_zmc->SetLineStyle(1);
-        //h_zmc->GetXaxis()->SetTitle(xtitle.c_str());
-        //h_zmc->GetYaxis()->SetTitle("entries / bin");
-        //h_zmc->SetTitle(plotName.c_str());
-        //h_zmc->Draw("hist");
-        //h_photon->Draw("samehist");
-        //h_photon_reweighted->SetLineWidth(1); h_photon_reweighted->SetFillStyle(0);
-        //h_photon_reweighted->Draw("samehist");
-    //}
+    leg->SetBorderSize(0);
+    leg->SetFillColor(0);
+    leg->Draw();
 
-    ////--- draw legend and labels
-    //TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-    //if (photon_data_or_mc == "Data") {
-        //leg->AddEntry(h_zdata,"data","lp");
-        //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
-        //leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-        //leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
-        //leg->AddEntry(h_vv, "VV", "f");
-        //leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
-    //}
-    //else {
-        //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
-        //leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-        //leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
-    //}
+    TLatex *tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextSize(0.03);
+    tex->DrawLatex(0.6,0.65,"ATLAS Internal");
+    if(TString(mc_period).Contains("mc16a")) tex->DrawLatex(0.6,0.61,"MC16a");
+    if(TString(mc_period).Contains("mc16cd")) tex->DrawLatex(0.6,0.61,"MC16cd");
+    if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16cd");
+    if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
+    if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
+    if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
 
-    //leg->SetBorderSize(0);
-    //leg->SetFillColor(0);
-    //leg->Draw();
+    can->cd();
+    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.8,1.0,1.0);
+    ratio_pad->Draw();
+    ratio_pad->cd();
+    ratio_pad->SetGridy();
 
-    //TLatex *tex = new TLatex();
-    //tex->SetNDC();
-    //tex->SetTextSize(0.03);
-    //tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-    //if (photon_data_or_mc == "Data") {
-        //if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
-        //if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
-    //}
-    //else {
-        //if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"MC16a");
-        //if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"MC16cd");
-        //if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"MC16cd");
-    //}
-    //if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
-    //if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
-    //if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
+    TH1F* hratio;
+    hratio = (TH1F*) h_z_std->Clone("hratio");
+    hratio->SetTitle("");
+    hratio->Divide(h_photon_std);
+    hratio->SetMarkerStyle(20);
 
-    ////--- draw ratio
-    //can->cd();
-    //TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.8,1.0,1.0);
-    //ratio_pad->Draw();
-    //ratio_pad->cd();
-    //ratio_pad->SetGridy();
+    hratio->GetXaxis()->SetTitle("");
+    hratio->GetXaxis()->SetLabelSize(0.);
+    hratio->GetYaxis()->SetNdivisions(5);
+    hratio->GetYaxis()->SetTitle("Z/#gamma");
+    hratio->GetYaxis()->SetTitleSize(0.15);
+    hratio->GetYaxis()->SetTitleOffset(0.3);
+    hratio->GetYaxis()->SetLabelSize(0.15);
+    hratio->SetMinimum(0.0);
+    hratio->SetMaximum(2.0);
+    hratio->GetYaxis()->SetRangeUser(0.0,2.0);
+    hratio->Draw("E1");
 
-    //TH1F* hratio;
-    //hratio = (TH1F*) h_zdata->Clone("hratio");
-    //TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    //hmctot->Add(h_tt);
-    //hmctot->Add(h_vv);
-
-    //if (photon_data_or_mc == "MC") {
-        //hratio = (TH1F*) h_zmc->Clone("hratio");
-        //hratio->SetTitle("");
-        //hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    //}
-
-    //for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++)
-        //hmctot->SetBinError(ibin, 0.0);
-    //hratio->Divide(hmctot);
-    //hratio->SetMarkerStyle(20);
-
-    //hratio->GetXaxis()->SetTitle("");
-    //hratio->GetXaxis()->SetLabelSize(0.);
-    //hratio->GetYaxis()->SetNdivisions(5);
-    //if (photon_data_or_mc == "Data")
-        //hratio->GetYaxis()->SetTitle("data/bkg");
-    //else
-        //hratio->GetYaxis()->SetTitle("Z/#gamma MC");
-    //hratio->GetYaxis()->SetTitleSize(0.15);
-    //hratio->GetYaxis()->SetTitleOffset(0.3);
-    //hratio->GetYaxis()->SetLabelSize(0.15);
-    //hratio->SetMinimum(0.0);
-    //hratio->SetMaximum(2.0);
-    //hratio->GetYaxis()->SetRangeUser(0.0,2.0);
-    //hratio->Draw("E1");
-
-    ////--- save plot
-    //if (additional_cut == "1")
-        //can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon-"+photon_data_or_mc).c_str()));
-    //else
-        //can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additional_cut.c_str(), ("photon-"+photon_data_or_mc).c_str()));
+   can->Print(Form("%s_%s_%s_ratio.eps", plot_feature.c_str(), mc_period.c_str(), channel.c_str()));
 }
