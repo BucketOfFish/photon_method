@@ -44,9 +44,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     // access, copy, and create branches
     //-----------------------------
 
-cout << "CHECKPOINT 1" << endl;
     inputTree->SetBranchStatus("*", 0);
-cout << "CHECKPOINT 2" << endl;
 
     //--- triggers and weights
     Double_t genWeight; SetInputBranch(inputTree, "genWeight", &genWeight);
@@ -94,7 +92,6 @@ cout << "CHECKPOINT 2" << endl;
         BaselineTree->Branch("channel", &channel, "channel/I");
         BaselineTree->Branch("is_OS", &is_OS, "is_OS/I");
     }
-cout << "CHECKPOINT 3" << endl;
 
     //--- photon conversion types
     // 0 = unconverted;
@@ -190,6 +187,7 @@ cout << "CHECKPOINT 3" << endl;
     int nJet20; CopyBranch(inputTree, BaselineTree, "nJet20", "nJet20", &nJet20, "I");
     float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
+    int lepIsPR; CopyBranch(inputTree, BaselineTree, "lepIsPR", "lepIsPR", &lepIsPR, "I");
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
     std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
@@ -205,7 +203,6 @@ cout << "CHECKPOINT 3" << endl;
     // loop over events
     //-----------------------------
 
-cout << "CHECKPOINT 4" << endl;
     Long64_t nentries = inputTree->GetEntries();
 
     for (Long64_t i=0; i<nentries; i++) {

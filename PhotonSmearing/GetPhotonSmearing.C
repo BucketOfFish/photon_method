@@ -137,6 +137,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     int nJet20; CopyBranch(inputTree, BaselineTree, "nJet20", "nJet20", &nJet20, "I");
     float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
+    int lepIsPR; CopyBranch(inputTree, BaselineTree, "lepIsPR", "lepIsPR", &lepIsPR, "I");
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
