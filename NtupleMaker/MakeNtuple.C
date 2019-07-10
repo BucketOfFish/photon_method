@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string isData, string photonOrBackground, string treeName="") {
+void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string photonOrBackground) {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -12,13 +12,19 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
     TH1::SetDefaultSumw2();
 
-    string filename = Form("%s%s_merged_processed.root",pathToNtuples.c_str(), sampleID.c_str()); 
-    if (sampleID == "photon") filename = Form("%s_merged_processed.root",pathToNtuples.c_str()); 
-    TFile* inputFile = TFile::Open(filename.c_str());
-    if (treeName == "") treeName = sampleID + "_NoSys";
-    TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
-
+    bool isData = (sampleID == "data");
+    bool isPhoton = (photonOrBackground == "photon");
     float lumi = GetLumi(period);
+
+    string filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), sampleID.c_str()); 
+    if (isData) filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), period.c_str()); 
+    TFile* inputFile = TFile::Open(filename.c_str());
+    string treeName = sampleID + "_NoSys";
+    if (isData) {
+       if (isPhoton) treeName = period;
+       else treeName = "data";
+    }
+    TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
     cout << endl;
     cout << "Opening file           : " << filename        << endl;
@@ -26,6 +32,10 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 	cout << "using luminosity       : " << lumi          << endl;
 
     string outfilename = ntuple_path + "/" + outputFolder + "/" + period.c_str() + "_" + sampleID.c_str() + ".root";
+    if (isData) {
+       if (isPhoton) outfilename = ntuple_path + "/" + outputFolder + "/" + period.c_str() + "_photon.root";
+       else outfilename = ntuple_path + "/" + outputFolder + "/" + period.c_str() + "_bkg.root";
+    }
     cout << "Writing to : " << outfilename << endl;
     TFile outputFile( outfilename.c_str(), "recreate" );
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -34,11 +44,9 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     // access, copy, and create branches
     //-----------------------------
 
-    bool isPhoton = false;
-    if (photonOrBackground == "photon")
-        isPhoton = true;
-
+cout << "CHECKPOINT 1" << endl;
     inputTree->SetBranchStatus("*", 0);
+cout << "CHECKPOINT 2" << endl;
 
     //--- triggers and weights
     Double_t genWeight; SetInputBranch(inputTree, "genWeight", &genWeight);
@@ -86,6 +94,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
         BaselineTree->Branch("channel", &channel, "channel/I");
         BaselineTree->Branch("is_OS", &is_OS, "is_OS/I");
     }
+cout << "CHECKPOINT 3" << endl;
 
     //--- photon conversion types
     // 0 = unconverted;
@@ -196,6 +205,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     // loop over events
     //-----------------------------
 
+cout << "CHECKPOINT 4" << endl;
     Long64_t nentries = inputTree->GetEntries();
 
     for (Long64_t i=0; i<nentries; i++) {
@@ -248,14 +258,14 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             if (trigMatch_HLT_g140_loose==1 && gamma_pt>(140+5)) totalWeight = trigPrescale_HLT_g140_loose;
             if (totalWeight==0) continue;
 
-            if (isData == "MC") {
+            if (!isData) {
                 totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
                 if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
             }
         }
         else {
             totalWeight = 1;
-            if (isData == "MC") totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+            if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
         }
 
         //--- compute additional features
