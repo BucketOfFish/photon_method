@@ -141,11 +141,11 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
-    std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
-    std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
     BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
     BaselineTree->Branch("lepEta", "std::vector<float>", &lep_eta);
     BaselineTree->Branch("lepPhi", "std::vector<float>", &lep_phi);
+    BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
+    BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
@@ -389,12 +389,8 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             lep_pT->clear();
             lep_eta->clear();
             lep_phi->clear();
-            lep_pT->push_back(0);
-            lep_eta->push_back(0);
-            lep_phi->push_back(0);
-            lep_pT->push_back(0);
-            lep_eta->push_back(0);
-            lep_phi->push_back(0);
+            lep_flavor->clear();
+            lep_charge->clear();
             int ntry = 0;
             while ((lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) && ntry<100) {
                 ntry += 1;
@@ -416,12 +412,18 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             lep_pT->clear();
             lep_eta->clear();
             lep_phi->clear();
+            lep_flavor->clear();
+            lep_charge->clear();
             lep_pT->push_back(50);
             lep_pT->push_back(50);
             lep_eta->push_back(0);
             lep_eta->push_back(0);
             lep_phi->push_back(0);
             lep_phi->push_back(0);
+            lep_flavor->push_back(11); // 11=electron, 13=muon
+            lep_flavor->push_back(11);
+            lep_charge->push_back(-1);
+            lep_charge->push_back(1);
             MT2W = 0;
             DPhi_METLepLeading_smear = 0;
             DPhi_METLepSecond_smear = 0;
