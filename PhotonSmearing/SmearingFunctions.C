@@ -287,8 +287,8 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 std::vector<float>* lep_pT = new std::vector<float>(10); 
 std::vector<float>* lep_eta = new std::vector<float>(10); 
 std::vector<float>* lep_phi = new std::vector<float>(10); 
-std::vector<float>* lep_flavor = new std::vector<int>(10); 
-std::vector<float>* lep_charge = new std::vector<int>(10); 
+std::vector<int>* lep_flavor = new std::vector<int>(10); 
+std::vector<int>* lep_charge = new std::vector<int>(10); 
 
 void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 
