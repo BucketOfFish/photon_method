@@ -284,12 +284,6 @@ void GetSmearingHistogram(string ch, float lumi, string period, int smearing_met
 
 }
 
-std::vector<float>* lep_pT = new std::vector<float>(10); 
-std::vector<float>* lep_eta = new std::vector<float>(10); 
-std::vector<float>* lep_phi = new std::vector<float>(10); 
-std::vector<int>* lep_flavor = new std::vector<int>(10); 
-std::vector<int>* lep_charge = new std::vector<int>(10); 
-
 void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 
     TRandom myRandom;
@@ -299,6 +293,9 @@ void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 	// two leptons are back-to-back.
 	// phi is taken randomly from 0-2pi
 	// theta is taken randomly from 0-pi
+    std::vector<int>* lep_pT = new std::vector<int>(10); 
+    std::vector<int>* lep_eta = new std::vector<int>(10); 
+    std::vector<int>* lep_phi = new std::vector<int>(10); 
 	TLorentzVector lep0_cm_4vec;
 	TLorentzVector lep1_cm_4vec;
 	TVector3 boost_vec;

@@ -141,11 +141,11 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
-    BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
-    BaselineTree->Branch("lepEta", "std::vector<float>", &lep_eta);
-    BaselineTree->Branch("lepPhi", "std::vector<float>", &lep_phi);
-    BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
-    BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
+    std::vector<float>* lep_pT = new std::vector<float>(10); BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
+    std::vector<float>* lep_eta = new std::vector<float>(10); BaselineTree->Branch("lepEta", "std::vector<float>", &lep_eta);
+    std::vector<float>* lep_phi = new std::vector<float>(10); BaselineTree->Branch("lepPhi", "std::vector<float>", &lep_phi);
+    std::vector<int>* lep_flavor = new std::vector<int>(10); BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
+    std::vector<int>* lep_charge = new std::vector<int>(10); BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
