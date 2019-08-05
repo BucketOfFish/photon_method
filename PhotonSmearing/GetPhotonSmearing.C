@@ -141,11 +141,12 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
 
     std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
-    BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
-    BaselineTree->Branch("lepEta", "std::vector<float>", &lep_eta);
-    BaselineTree->Branch("lepPhi", "std::vector<float>", &lep_phi);
-    BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
-    BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
+    std::vector<float>* lep_pT = new std::vector<float>(10); BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
+    std::vector<float>* lep_eta = new std::vector<float>(10); BaselineTree->Branch("lepEta", "std::vector<float>", &lep_eta);
+    std::vector<float>* lep_phi = new std::vector<float>(10); BaselineTree->Branch("lepPhi", "std::vector<float>", &lep_phi);
+    std::vector<int>* lep_flavor = new std::vector<int>(10); BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
+    std::vector<int>* lep_charge = new std::vector<int>(10); BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
+    Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
@@ -378,34 +379,97 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
         }
 
         //---------------------------------------------
+        // set channel and lepton flavors
+        //---------------------------------------------
+        int flavor;
+        if( TString(channel).EqualTo("ee")) {
+            flavor = 1;
+            lepChannel = 1;
+        }
+        else if( TString(channel).EqualTo("mm")) {
+            flavor = 2;
+            lepChannel = 0;
+        }
+
+        //---------------------------------------------
         // compute two lepton kinematics
         //---------------------------------------------
-        bool create_pseudo_leptons = false;
+        TRandom1 myRandom;
+        myRandom.SetSeed(0);
+        bool create_pseudo_leptons = true;
         if (create_pseudo_leptons) {
             TLorentzVector z_4vec;
             z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
+            TVector3 boost_vec = z_4vec.BoostVector();
             //GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
 
-            lep_pT->clear();
-            lep_eta->clear();
-            lep_phi->clear();
-            lep_flavor->clear();
-            lep_charge->clear();
+            TLorentzVector lep0_lab_4vec, lep1_lab_4vec;
             int ntry = 0;
             while ((lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) && ntry<100) {
                 ntry += 1;
-                GetIndividualLeptonInfo(z_4vec);
+
+                // Naive sampling (incorrect)
+                double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
+                double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+
+                // Split leptons in Z rest frame
+                TLorentzVector lep0_cm_4vec, lep1_cm_4vec;
+                if (z_4vec.M()>0.) {
+                    double lep_E_cm = z_4vec.M()/2.;
+                    lep0_cm_4vec.SetPxPyPzE(lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
+                    lep1_cm_4vec.SetPxPyPzE(-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),-lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
+                }
+
+                // Boost to lab frame using smeared photon pT, eta, and phi
+                lep0_lab_4vec = lep0_cm_4vec;
+                lep1_lab_4vec = lep1_cm_4vec;
+                lep0_lab_4vec.Boost(boost_vec);
+                lep1_lab_4vec.Boost(boost_vec);
+                if (lep0_lab_4vec.Pt() < lep1_lab_4vec.Pt()) {
+                    TLorentzVector lep_placeholder = lep1_lab_4vec;
+                    lep1_lab_4vec = lep0_lab_4vec;
+                    lep0_lab_4vec = lep1_lab_4vec;
+                }
+
+                // Select lepton flavor and charge
+                int charge = myRandom.Integer(2)*2-1;
+
+                // Add leptons to event
+                lep_pT->clear();
+                lep_pT->push_back(lep0_lab_4vec.Pt());
+                lep_pT->push_back(lep1_lab_4vec.Pt());
+                lep_eta->clear();
+                lep_eta->push_back(lep0_lab_4vec.Eta());
+                lep_eta->push_back(lep1_lab_4vec.Eta());
+                lep_phi->clear();
+                lep_phi->push_back(lep0_lab_4vec.Phi());
+                lep_phi->push_back(lep1_lab_4vec.Phi());
+                lep_flavor->clear();
+                lep_flavor->push_back(flavor);
+                lep_flavor->push_back(flavor);
+                lep_charge->clear();
+                lep_charge->push_back(charge);
+                lep_charge->push_back(-charge);
+
+                // Checks
+                //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
+                //TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
+                //std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
+                //std::cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << std::endl;
+                //std::cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << std::endl;
+                //std::cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << std::endl;
+                //std::cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << std::endl;
+                //std::cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << std::endl;
+                //std::cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << std::endl;
+                //std::cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << std::endl;
+                //std::cout << "==================================================================================" << std::endl;
             }
 
-            TLorentzVector lep0_4vec;
-            TLorentzVector lep1_4vec;
             lep_n = 2;
-            lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
-            lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
-            MT2W = ComputeMT2(lep0_4vec, lep1_4vec, met_4vec_smear, 0, 0).Compute();
-            DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(lep0_4vec));
-            DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(lep1_4vec));
-            DR_2Lep = lep0_4vec.DeltaR(lep1_4vec);
+            MT2W = ComputeMT2(lep0_lab_4vec, lep1_lab_4vec, met_4vec_smear, 0, 0).Compute();
+            DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(lep0_lab_4vec));
+            DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(lep1_lab_4vec));
+            DR_2Lep = lep0_lab_4vec.DeltaR(lep1_lab_4vec);
         }
         else {
             lep_n = 2;
