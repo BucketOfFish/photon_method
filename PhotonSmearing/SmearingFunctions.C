@@ -292,32 +292,26 @@ std::vector<int>* lep_charge = new std::vector<int>(10);
 
 void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 
-    TRandom myRandom;
-	// Compute two lepton pT in Z boson rest (C.M.) frame.
-	// lepton p = mll/2. in this frame.
-	// mll is derived from the smearing code.
-	// two leptons are back-to-back.
-	// phi is taken randomly from 0-2pi
-	// theta is taken randomly from 0-pi
-	TLorentzVector lep0_cm_4vec;
-	TLorentzVector lep1_cm_4vec;
-	TVector3 boost_vec;
-	TLorentzVector lep0_lab_4vec;
-	TLorentzVector lep1_lab_4vec;
+    TRandom myRandom(0);
+
+    // Split leptons in Z rest frame
+    double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
+    double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+	TLorentzVector lep0_cm_4vec, lep1_cm_4vec;
 	if (z_4vec.M()>0.) {
 		double lep_E_cm = z_4vec.M()/2.;
-		double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
-		double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 		lep0_cm_4vec.SetPxPyPzE(lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
 		lep1_cm_4vec.SetPxPyPzE(-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),-lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
 	}
-	// Now we boost the lepton vectors in the rest frame back to the Lab frame.
-	// We use smeared photon pT, eta and phi, coded in z_4vec
-	boost_vec = z_4vec.BoostVector();
-	lep0_lab_4vec = lep0_cm_4vec;
-	lep1_lab_4vec = lep1_cm_4vec;
+
+	// Boost to lab frame using smeared photon pT, eta, and phi
+	TLorentzVector lep0_lab_4vec = lep0_cm_4vec;
+	TLorentzVector lep1_lab_4vec = lep1_cm_4vec;
+	TVector3 boost_vec = z_4vec.BoostVector();
 	lep0_lab_4vec.Boost(boost_vec);
 	lep1_lab_4vec.Boost(boost_vec);
+
+    // Add leptons to event
 	lep_pT->clear();
 	lep_eta->clear();
 	lep_phi->clear();
@@ -337,98 +331,18 @@ void GetIndividualLeptonInfo(TLorentzVector z_4vec) {
 		lep_eta->push_back(lep0_lab_4vec.Eta());
 		lep_phi->push_back(lep0_lab_4vec.Phi());
 	}
-	// sanity check
-	//TLorentzVector twolep_cm_4vec;
-	//twolep_cm_4vec = lep0_cm_4vec + lep1_cm_4vec;
-	//TLorentzVector twolep_lab_4vec;
-	//twolep_lab_4vec = lep0_lab_4vec + lep1_lab_4vec;
-	//std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
-	//std::cout << "lep0_cm_4vec pT = " << lep0_cm_4vec.Pt() << ", eta = " << lep0_cm_4vec.Eta() << ", phi = " << lep0_cm_4vec.Phi() << std::endl;
-	//std::cout << "lep1_cm_4vec pT = " << lep1_cm_4vec.Pt() << ", eta = " << lep1_cm_4vec.Eta() << ", phi = " << lep1_cm_4vec.Phi() << std::endl;
-	//std::cout << "2lep_cm_4vec pT = " << twolep_cm_4vec.Pt() << ", eta = " << twolep_cm_4vec.Eta() << ", phi = " << twolep_cm_4vec.Phi() << ", M = " << twolep_cm_4vec.M() << std::endl;
-	//std::cout << "lep0_lab_4vec pT = " << lep0_lab_4vec.Pt() << ", eta = " << lep0_lab_4vec.Eta() << ", phi = " << lep0_lab_4vec.Phi() << std::endl;
-	//std::cout << "lep1_lab_4vec pT = " << lep1_lab_4vec.Pt() << ", eta = " << lep1_lab_4vec.Eta() << ", phi = " << lep1_lab_4vec.Phi() << std::endl;
-	//std::cout << "2lep_lab_4vec pT = " << twolep_lab_4vec.Pt() << ", eta = " << twolep_lab_4vec.Eta() << ", phi = " << twolep_lab_4vec.Phi() << ", M = " << twolep_lab_4vec.M() << std::endl;
-	//std::cout << "==================================================================================" << std::endl;
->>>>>>> parent of 47fe710... Moved lepton vector definitions inside main smearing code
-
-std::vector<TLorentzVector>* SplitLeptonsBackup(TLorentzVector z_4vec) {
-
-    double Z_pT = z_4vec.Pt();
-    double Z_E = z_4vec.E();
-    double Z_m = z_4vec.M();
-    double e_m = 0.000511;
-    double m_m = 0.106;
-    double min_pT = min(cuts::leading_lep_pt_cut, cuts::second_lep_pt_cut);
-
-    // Decay into electrons or muons?
-    TRandomMixMax myRandom(0);
-    int l_type = myRandom.Integer(1);
-    double l_m;
-    if (l_type == 0) l_m = e_m;
-    else l_m = m_m;
-
-    // Minimum decay angle in CM frame
-    double l_pT_cm = sqrt(std::pow(Z_m, 2)/4 - std::pow(l_m, 2));
-    double cos_min_theta = (Z_E - 2*sqrt(std::pow(l_m, 2) + std::pow(min_pT, 2))) / Z_pT;
-    double min_theta = 0;
-    if (cos_min_theta < 1) min_theta = acos(cos_min_theta);
-    min_theta = 1;
-    //std::cout << Z_E << " " << Z_pT << " " << Z_m << " " << sqrt(pow(Z_m,2) + pow(Z_pT,2)) << " " << min_pT << " " << (Z_E - 2*sqrt(std::pow(l_m, 2) + std::pow(min_pT, 2))) / Z_pT << std::endl;
-
-    // Lepton decay angle sampling (relative to path of Z flight)
-    double l_phi_cm = myRandom.Rndm() * 2.*TMath::Pi();
-    double l_theta_cm = myRandom.Rndm() * (TMath::Pi()/2-min_theta) + min_theta;
-    double l_eta_cm = -log(tan(l_theta_cm/2));
-
-    // Split γ/Z to two leptons in rest frame
-	TLorentzVector l0_cm_4vec, l1_cm_4vec;
-    //std::cout << z_4vec.Px() << " " << z_4vec.Py() << " " << z_4vec.Pz() << std::endl;
-    std::cout << l_theta_cm << " " << l_eta_cm << " " << l_phi_cm << std::endl;
-    double l_px = l_pT_cm*TMath::Sin(l_theta_cm)*TMath::Cos(l_phi_cm);
-    double l_py = l_pT_cm*TMath::Sin(l_theta_cm)*TMath::Sin(l_phi_cm);
-    double l_pz = l_pT_cm*TMath::Cos(l_theta_cm);
-    l0_cm_4vec.SetPxPyPzE(l_px, l_py, l_pz, Z_m/2);
-    l1_cm_4vec.SetPxPyPzE(-l_px, -l_py, -l_pz, Z_m/2);
-    //l0_cm_4vec.SetPtEtaPhiM(l_pT_cm, l_eta_cm, l_phi_cm, l_m);
-    //l1_cm_4vec.SetPtEtaPhiM(l_pT_cm, -l_eta_cm, l_phi_cm-TMath::Pi(), l_m);
-
-    // Boost to lab frame along direction of Z flight
-    //std::cout << boost_vec.X() << " " << boost_vec.Y() << " " << boost_vec.Z() << std::endl;
-	TLorentzVector l0_lab_4vec = l0_cm_4vec;
-    TLorentzVector l1_lab_4vec = l1_cm_4vec;
-    TVector3 boost_vec = z_4vec.BoostVector();
-	l0_lab_4vec.Boost(boost_vec);
-	l1_lab_4vec.Boost(boost_vec);
-
-    // Rotate angle to frame of detector
-    std::cout << "boost = " << boost_vec.X() << ", " << boost_vec.Y() << ", " << boost_vec.Z() << " - Mag = " << boost_vec.Mag() << std::endl;
-    TLorentzVector z_cm_4vec = z_4vec; 
-    z_cm_4vec.Boost(-boost_vec);
-    std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
-    std::cout << "z_cm_4vec pT = " << z_cm_4vec.Pt() << ", eta = " << z_cm_4vec.Eta() << ", phi = " << z_cm_4vec.Phi() << ", m = " << z_cm_4vec.M() << std::endl;
-    std::cout << acos((cos(z_4vec.Phi())/z_4vec.Gamma())/sqrt(1 - pow(z_4vec.Beta()*cos(z_4vec.Phi()), 2))) << std::endl;
-    std::cout << "----------------------------------------------------------------------------------" << std::endl;
-    //double l_theta_cm = z_4vec.Theta() + l_dtheta*TMath::Cos(l_dphi);
-    //double l_phi_cm = z_4vec.Phi() + l_dtheta*TMath::Sin(l_dphi);
 
 	// Checks
-    TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
-    TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
-    std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
+    //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
+    //TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
+    //std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
     //std::cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << std::endl;
-    std::cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << std::endl;
-    std::cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << std::endl;
-    std::cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << std::endl;
-    std::cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << std::endl;
-    std::cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << std::endl;
-    std::cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << std::endl;
-    std::cout << "==================================================================================" << std::endl;
-
-    // Return leptons
-    std::vector<TLorentzVector>* leptons = new std::vector<TLorentzVector>;
-    leptons->push_back(l0_lab_4vec);
-    leptons->push_back(l1_lab_4vec);
-    return leptons;
+    //std::cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << std::endl;
+    //std::cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << std::endl;
+    //std::cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << std::endl;
+    //std::cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << std::endl;
+    //std::cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << std::endl;
+    //std::cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << std::endl;
+    //std::cout << "==================================================================================" << std::endl;
 }
 
