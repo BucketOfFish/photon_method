@@ -375,7 +375,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             }
         }
         else {
-            mll = gamma_pt;
+            mll = 91.1876;
         }
 
         //---------------------------------------------
@@ -395,7 +395,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
         // compute two lepton kinematics
         //---------------------------------------------
         TRandom1 myRandom;
-        //myRandom.SetSeed(0);
+        myRandom.SetSeed(0);
         bool create_pseudo_leptons = true;
         if (create_pseudo_leptons) {
             TLorentzVector z_4vec;
@@ -403,15 +403,14 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             TVector3 boost_vec = z_4vec.BoostVector();
             //GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
 
-            TLorentzVector lep0_lab_4vec, lep1_lab_4vec;
+            TLorentzVector l0_lab_4vec, l1_lab_4vec;
             int ntry = 0;
-            while ((lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) && ntry<100) {
+            while (ntry<100) {
                 ntry += 1;
 
                 // Naive sampling (incorrect)
                 double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
-                cout << lep_phi_cm << ", " << lep_theta_cm << endl;
 
                 //// Uniform sampling
                 //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
@@ -426,22 +425,23 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
                 //double lep_theta_cm = acos(numerator/denominator);
 
                 // Split leptons in Z rest frame
-                TLorentzVector lep0_cm_4vec, lep1_cm_4vec;
-                if (z_4vec.M()>0.) {
-                    double lep_E_cm = z_4vec.M()/2.;
-                    lep0_cm_4vec.SetPxPyPzE(lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
-                    lep1_cm_4vec.SetPxPyPzE(-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Cos(lep_phi_cm),-lep_E_cm*TMath::Cos(lep_theta_cm)*TMath::Sin(lep_phi_cm),-lep_E_cm*TMath::Sin(lep_theta_cm),lep_E_cm);
-                }
+                TLorentzVector l0_cm_4vec, l1_cm_4vec;
+                double lep_E_cm = z_4vec.M()/2.;
+                double lep_px_cm = lep_E_cm*TMath::Sin(lep_theta_cm)*TMath::Cos(lep_phi_cm);
+                double lep_py_cm = lep_E_cm*TMath::Sin(lep_theta_cm)*TMath::Sin(lep_phi_cm);
+                double lep_pz_cm = lep_E_cm*TMath::Cos(lep_theta_cm);
+                l0_cm_4vec.SetPxPyPzE(lep_px_cm, lep_py_cm, lep_pz_cm, lep_E_cm);
+                l1_cm_4vec.SetPxPyPzE(-lep_px_cm, -lep_py_cm, -lep_pz_cm, lep_E_cm);
 
                 // Boost to lab frame using smeared photon pT, eta, and phi
-                lep0_lab_4vec = lep0_cm_4vec;
-                lep1_lab_4vec = lep1_cm_4vec;
-                lep0_lab_4vec.Boost(boost_vec);
-                lep1_lab_4vec.Boost(boost_vec);
-                if (lep0_lab_4vec.Pt() < lep1_lab_4vec.Pt()) {
-                    TLorentzVector lep_placeholder = lep1_lab_4vec;
-                    lep1_lab_4vec = lep0_lab_4vec;
-                    lep0_lab_4vec = lep1_lab_4vec;
+                l0_lab_4vec = l0_cm_4vec;
+                l1_lab_4vec = l1_cm_4vec;
+                l0_lab_4vec.Boost(boost_vec);
+                l1_lab_4vec.Boost(boost_vec);
+                if (l0_lab_4vec.Pt() < l1_lab_4vec.Pt()) {
+                    TLorentzVector lep_placeholder = l1_lab_4vec;
+                    l1_lab_4vec = l0_lab_4vec;
+                    l0_lab_4vec = lep_placeholder;
                 }
 
                 // Select lepton flavor and charge
@@ -449,20 +449,23 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
 
                 // Add leptons to event
                 lep_pT->clear();
-                lep_pT->push_back(lep0_lab_4vec.Pt());
-                lep_pT->push_back(lep1_lab_4vec.Pt());
+                lep_pT->push_back(l0_lab_4vec.Pt());
+                lep_pT->push_back(l1_lab_4vec.Pt());
                 lep_eta->clear();
-                lep_eta->push_back(lep0_lab_4vec.Eta());
-                lep_eta->push_back(lep1_lab_4vec.Eta());
+                lep_eta->push_back(l0_lab_4vec.Eta());
+                lep_eta->push_back(l1_lab_4vec.Eta());
                 lep_phi->clear();
-                lep_phi->push_back(lep0_lab_4vec.Phi());
-                lep_phi->push_back(lep1_lab_4vec.Phi());
+                lep_phi->push_back(l0_lab_4vec.Phi());
+                lep_phi->push_back(l1_lab_4vec.Phi());
                 lep_flavor->clear();
                 lep_flavor->push_back(flavor);
                 lep_flavor->push_back(flavor);
                 lep_charge->clear();
                 lep_charge->push_back(charge);
                 lep_charge->push_back(-charge);
+
+                // Stop loop if we're ready
+                if (lep_pT->at(0)>cuts::leading_lep_pt_cut && lep_pT->at(1)>cuts::second_lep_pt_cut) break;
 
                 // Checks
                 //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
@@ -479,10 +482,10 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             }
 
             lep_n = 2;
-            MT2W = ComputeMT2(lep0_lab_4vec, lep1_lab_4vec, met_4vec_smear, 0, 0).Compute();
-            DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(lep0_lab_4vec));
-            DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(lep1_lab_4vec));
-            DR_2Lep = lep0_lab_4vec.DeltaR(lep1_lab_4vec);
+            MT2W = ComputeMT2(l0_lab_4vec, l1_lab_4vec, met_4vec_smear, 0, 0).Compute();
+            DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(l0_lab_4vec));
+            DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(l1_lab_4vec));
+            DR_2Lep = l0_lab_4vec.DeltaR(l1_lab_4vec);
         }
         else {
             lep_n = 2;
