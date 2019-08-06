@@ -1,7 +1,7 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-std::string sample_folder = "Default";
+std::string sample_folder = "LeptonDistributions";
 std::string ntuple_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/Ntuples/";
 std::string smearing_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/SmearedNtuples/";
 std::string reweighting_path = "/eos/user/m/mazhang/PhotonMethod/v1.6/" + sample_folder + "/ReweightedNtuples/";
@@ -12,11 +12,11 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    TCut Zselection("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && lepIsoFCTight[0] && lepIsoFCTight[1]");
-    TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
-    //TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType==0");
-    //TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && (PhotonConversionType==1 || PhotonConversionType==2)");
-    //TCut gselection("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType>=3");
+    TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && lepIsoFCTight[0] && lepIsoFCTight[1]");
+    TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
+    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType==0");
+    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && (PhotonConversionType==1 || PhotonConversionType==2)");
+    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType>=3");
 
     TCut CR("met_Et<60.0");
     TCut VR("nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100");  
@@ -26,9 +26,9 @@ namespace cuts {
     TCut mm("channel==0");
     TCut em("channel==2 || channel==3");
 
-    TCut Zweight("totalWeight");
-    TCut weight_g = "totalWeight";
-    TCut weight_g_rw = "totalWeight*reweight_Ptll";
+    TCut bkg_weight("totalWeight");
+    TCut photon_weight("totalWeight");
+    TCut photon_weight_rw("totalWeight*reweight_Ptll");
 }
 
 namespace bins {

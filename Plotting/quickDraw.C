@@ -51,21 +51,21 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    cuts::Zselection += TCut(additional_cut.c_str());
-    if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
-    else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
+    cuts::bkg_baseline += TCut(additional_cut.c_str());
+    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
+    else if (TString(channel).EqualTo("em")) cuts::bkg_baseline += cuts::em;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
-    cuts::gselection += TCut(additional_cut.c_str());
+    cuts::photon_baseline += TCut(additional_cut.c_str());
 
-    cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;  
-    cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
-    cout << "g selection          " << cuts::gselection.GetTitle() << endl;
-    cout << "g weight             " << cuts::weight_g.GetTitle() << endl;
-    cout << "g weight (reweight)  " << cuts::weight_g_rw.GetTitle() << endl;
+    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;  
+    cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
+    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
+    cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
 
     //--- set histogram binning
     std::tuple<string, int, float, float> plot_settings;
@@ -111,13 +111,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
 
     //--- draw histograms
-    tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), cuts::Zselection, "goff");
-    tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
-    tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
+    tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), cuts::bkg_baseline, "goff");
+    tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+    tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
     if (!DF) {
-        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), cuts::Zselection*cuts::Zweight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), cuts::gselection*cuts::weight_g, "goff");
-        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), cuts::gselection*cuts::weight_g_rw, "goff");
+        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), cuts::photon_baseline*cuts::photon_weight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), cuts::photon_baseline*cuts::photon_weight_rw, "goff");
     }
 
     cout << "" << endl;
@@ -139,12 +139,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
     TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
 
-    tch_zdata->Draw("0.5>>h_zdata_cr", cuts::Zselection+cuts::CR, "goff");
-    tch_tt-> Draw("0.5>>h_tt_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-    tch_vv-> Draw("0.5>>h_vv_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-    tch_zmc->Draw("0.5>>h_zmc_cr", (cuts::Zselection+cuts::CR)*cuts::Zweight, "goff");
-    tch_photon->Draw("0.5>>h_photon_cr", (cuts::gselection+cuts::CR)*cuts::weight_g, "goff");
-    tch_photon->Draw("0.5>>h_photon_reweighted_cr", (cuts::gselection+cuts::CR)*cuts::weight_g_rw, "goff");
+    tch_zdata->Draw("0.5>>h_zdata_cr", cuts::bkg_baseline+cuts::CR, "goff");
+    tch_tt-> Draw("0.5>>h_tt_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
+    tch_vv-> Draw("0.5>>h_vv_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
+    tch_zmc->Draw("0.5>>h_zmc_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_cr", (cuts::photon_baseline+cuts::CR)*cuts::photon_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_reweighted_cr", (cuts::photon_baseline+cuts::CR)*cuts::photon_weight_rw, "goff");
 
     float SF = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
     float SFrw = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();

@@ -7,6 +7,8 @@ using namespace std;
 //--- run with:
 //--- root -l -b -q 'std_met_ptll_bins.C("mc16a", "ee", "met_Et", "Ptll")'
 
+//--- Plots standard deviation of MET in Ptll bins
+
 void std_met_ptll_bins(string mc_period, string channel, string plot_feature, string bin_feature) {
 
     gStyle->SetOptStat(0);
@@ -15,9 +17,9 @@ void std_met_ptll_bins(string mc_period, string channel, string plot_feature, st
     string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
     string photon_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
-    if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
-    else if (TString(channel).EqualTo("em")) cuts::Zselection += cuts::em;
+    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
+    else if (TString(channel).EqualTo("em")) cuts::bkg_baseline += cuts::em;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
@@ -44,16 +46,16 @@ void std_met_ptll_bins(string mc_period, string channel, string plot_feature, st
 
     for (int i = 0; i < n_feature_bins; i++) {
         string additional_cut = bin_feature + ">" + to_string(int(feature_bins[i])) + "&&" + bin_feature + "<" + to_string(int(feature_bins[i+1]));
-        TCut extended_Zselection = cuts::Zselection + TCut(TString(additional_cut));
-        TCut extended_gselection = cuts::gselection + TCut(TString(additional_cut));
+        TCut extended_bkg_baseline = cuts::bkg_baseline + TCut(TString(additional_cut));
+        TCut extended_photon_baseline = cuts::photon_baseline + TCut(TString(additional_cut));
 
         TH1F *h_zmc, *h_photon;
         h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
         h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
         h_zmc->SetLineColor(1); h_photon->SetLineColor(2);
 
-        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), extended_Zselection*cuts::Zweight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), extended_gselection*cuts::weight_g, "goff");
+        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), extended_bkg_baseline*cuts::bkg_weight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), extended_photon_baseline*cuts::photon_weight, "goff");
 
         TCanvas *can = new TCanvas("can","can",600,600);
         can->cd();

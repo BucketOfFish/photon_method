@@ -39,8 +39,8 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- modify event selections and weights
-    if (TString(channel).EqualTo("ee")) cuts::Zselection += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::Zselection += cuts::mm;
+    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
@@ -49,13 +49,13 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     if (TString(period).EqualTo("data17")){
         TCut RunRange = TCut("RunNumber < 348000");  
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-        cuts::Zselection *= RunRange;
+        cuts::bkg_baseline *= RunRange;
     }
 
-    cout << "Z selection          " << cuts::Zselection.GetTitle() << endl;
-    cout << "Z weight             " << cuts::Zweight.GetTitle() << endl;
-    cout << "g selection          " << cuts::gselection.GetTitle() << endl;
-    cout << "g weight             " << cuts::weight_g.GetTitle() << endl;
+    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;
+    cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
+    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
 
     //--- fill reweighting histograms
     TH1F* hdata  = new TH1F("hdata", "", bins::n_reweighting_bins, bins::reweighting_bins);
@@ -65,11 +65,11 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
 
     //--- reweighting variable histograms
-    tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::Zselection, "goff");
-    tch_tt->Draw(("min("+reweight_var+",999)>>htt").c_str(), cuts::Zselection*cuts::Zweight, "goff");
-    tch_vv->Draw(("min("+reweight_var+",999)>>hvv").c_str(), cuts::Zselection*cuts::Zweight, "goff");
-    tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::Zselection*cuts::Zweight, "goff");
-    tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::gselection*cuts::weight_g, "goff");
+    tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::bkg_baseline, "goff");
+    tch_tt->Draw(("min("+reweight_var+",999)>>htt").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+    tch_vv->Draw(("min("+reweight_var+",999)>>hvv").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+    tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+    tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::photon_baseline*cuts::photon_weight, "goff");
 
     cout << "data integral        " << hdata->Integral() << endl;
     cout << "ttbar integral       " << htt->Integral() << endl;
