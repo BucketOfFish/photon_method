@@ -48,8 +48,8 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     float xmax = 200;
 
     if (feature == "lepPt") { x_label = "p_{T,#ell} [GeV]"; }
-    else if (feature == "lepEta") { x_label = "#eta_{#ell} [GeV]"; xmin = -10; xmax = 10; }
-    else if (feature == "lepPhi") { x_label = "#phi_{#ell} [GeV]"; xmax = 2*TMath::Pi(); }
+    else if (feature == "lepEta") { x_label = "#eta_{#ell} [GeV]"; xmin = -3; xmax = 3; }
+    else if (feature == "lepPhi") { x_label = "#phi_{#ell} [GeV]"; xmin = -TMath::Pi(); xmax = TMath::Pi(); }
 
     string plot_title = mc_period + " " + channel + " " + feature;
     string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + selection + "_" + distribution + "_comparison.eps";
@@ -62,7 +62,9 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     if (feature == "lepEta") tch_zmc->Draw(Form("%s>>h_zmc", "lep_eta"), Zselection*cuts::bkg_weight, "goff");
     else if (feature == "lepPhi") tch_zmc->Draw(Form("%s>>h_zmc", "lep_phi"), Zselection*cuts::bkg_weight, "goff");
     else tch_zmc->Draw(Form("%s>>h_zmc", feature.c_str()), Zselection*cuts::bkg_weight, "goff");
-    tch_photon->Draw(Form("%s>>h_photon", feature.c_str()), gselection*cuts::photon_weight_rw, "goff");
+    if (feature == "lepEta") tch_photon->Draw(Form("%s>>h_photon", "lep_eta"), gselection*cuts::photon_weight_rw, "goff");
+    else if (feature == "lepPhi") tch_photon->Draw(Form("%s>>h_photon", "lep_phi"), gselection*cuts::photon_weight_rw, "goff");
+    else tch_photon->Draw(Form("%s>>h_photon", feature.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
     float max_y = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRange(0, max_y);
