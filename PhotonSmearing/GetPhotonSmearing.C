@@ -404,25 +404,26 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             //GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
 
             TLorentzVector l0_lab_4vec, l1_lab_4vec;
-            int ntry = 0;
-            while (ntry<100) {
-                ntry += 1;
+            //int ntry = 0;
+            //while (ntry<100) {
+                //ntry += 1;
+            while (true) {
 
-                // Naive sampling (incorrect)
-                double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
-                double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+                //// Naive sampling (incorrect)
+                //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
+                //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 
                 //// Uniform sampling
                 //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
 
-                //// Drell-Yan lepton angular distribution
-                //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
-                //double placeholder_1 = 4-8*myRandom.Rndm();
-                //double placeholder_2 = pow(pow(placeholder_1,2)+4,1/2) + placeholder_1;
-                //double numerator = pow(2,1/3)*pow(placeholder_2,2/3) - 2;
-                //double denominator = pow(2,2/3)*pow(placeholder_2,1/3);
-                //double lep_theta_cm = acos(numerator/denominator);
+                // Drell-Yan lepton angular distribution
+                double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
+                double placeholder_1 = 4-8*myRandom.Rndm();
+                double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
+                double numerator = pow(2.0,1/3)*pow(placeholder_2,2.0/3) - 2;
+                double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
+                double lep_theta_cm = acos(numerator/denominator);
 
                 // Split leptons in Z rest frame
                 TLorentzVector l0_cm_4vec, l1_cm_4vec;

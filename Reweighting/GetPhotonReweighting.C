@@ -20,22 +20,26 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
     string zjets_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
 
-    cout << "Opening data file    " << data_filename << endl;
-    cout << "Opening ttbar file   " << tt_filename << endl;
-    cout << "Opening diboson file " << vv_filename << endl;
-    cout << "Opening Z+jets file  " << zjets_filename << endl;
+    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets, *tch_photon;
+
+    if (data_or_mc == "Data") {
+        cout << "Opening data file    " << data_filename << endl;
+        tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
+        cout << "data entries         " << tch_data->GetEntries() << endl;
+        cout << "Opening ttbar file   " << tt_filename << endl;
+        tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
+        cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
+        cout << "Opening diboson file " << vv_filename << endl;
+        tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
+        cout << "diboson entries      " << tch_vv->GetEntries() << endl;
+    }
+    else {
+        cout << "Opening Z+jets file  " << zjets_filename << endl;
+        tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
+        cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
+    }
     cout << "Opening photon file  " << photon_filename << endl;
-
-    TChain* tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
-    TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-    TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
-    TChain* tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
-    TChain* tch_photon = new TChain("BaselineTree"); tch_photon->Add(photon_filename.c_str());
-
-    cout << "data entries         " << tch_data->GetEntries() << endl;
-    cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
-    cout << "diboson entries      " << tch_vv->GetEntries() << endl;
-    cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
+    tch_photon = new TChain("BaselineTree"); tch_photon->Add(photon_filename.c_str());
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- modify event selections and weights
@@ -64,26 +68,30 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     TH1F* hz     = new TH1F("hz", "", bins::n_reweighting_bins, bins::reweighting_bins);
     TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
 
-    //--- reweighting variable histograms
-    tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::bkg_baseline, "goff");
-    tch_tt->Draw(("min("+reweight_var+",999)>>htt").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-    tch_vv->Draw(("min("+reweight_var+",999)>>hvv").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-    tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-    tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::photon_baseline*cuts::photon_weight, "goff");
+    if (data_or_mc == "Data") {
+        tch_data->Draw(("min("+reweight_var+",999)>>hdata").c_str(), cuts::bkg_baseline, "goff");
+        tch_tt->Draw(("min("+reweight_var+",999)>>htt").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_vv->Draw(("min("+reweight_var+",999)>>hvv").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        cout << "data integral        " << hdata->Integral() << endl;
+        cout << "ttbar integral       " << htt->Integral() << endl;
+        cout << "diboson integral     " << hvv->Integral() << endl;
+    }
+    else {
+        tch_zjets->Draw(("min("+reweight_var+",999)>>hz").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        cout << "Z+jets integral      " << hz->Integral() << endl;
+    }
 
-    cout << "data integral        " << hdata->Integral() << endl;
-    cout << "ttbar integral       " << htt->Integral() << endl;
-    cout << "diboson integral     " << hvv->Integral() << endl;
-    cout << "Z+jets integral      " << hz->Integral() << endl;
+    tch_photon->Draw(("min("+reweight_var+",999)>>histoG").c_str(), cuts::photon_baseline*cuts::photon_weight, "goff");
     cout << "photon integral      " << histoG->Integral() << endl;
 
     //--- calculate reweighting ratios
-    TH1F* histoZ = (TH1F*) hdata->Clone("histoZ");
-    histoZ->Add(htt, -1.0);
-    histoZ->Add(hvv, -1.0);
-
-    if (data_or_mc == "MC")
-        histoZ = (TH1F*) hz->Clone("histoZ");
+    TH1F* histoZ;
+    if (data_or_mc == "Data") {
+        histoZ = (TH1F*) hdata->Clone("histoZ");
+        histoZ->Add(htt, -1.0);
+        histoZ->Add(hvv, -1.0);
+    }
+    else histoZ = (TH1F*) hz->Clone("histoZ");
 
     TH1F* hratio = (TH1F*) histoZ->Clone("hratio");
     hratio->Divide(histoG);
