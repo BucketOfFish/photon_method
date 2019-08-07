@@ -400,13 +400,13 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
         if (create_pseudo_leptons) {
             TLorentzVector z_4vec;
             z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
-            TVector3 boost_vec = z_4vec.BoostVector();
             //GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
 
+            // boost along z axis (since we measure angles in CM relative to boost direction)
+            TVector3 boost_vec_lab = z_4vec.BoostVector();
+            TVector3 boost_vec(0, 0, boost_vec_lab.Mag());
+
             TLorentzVector l0_lab_4vec, l1_lab_4vec;
-            //int ntry = 0;
-            //while (ntry<100) {
-                //ntry += 1;
             while (true) {
 
                 //// Naive sampling (incorrect)
@@ -417,7 +417,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
                 //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
 
-                // Drell-Yan lepton angular distribution
+                // Drell-Yan lepton angular distribution (with Z boost direction as +z)
                 double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 double placeholder_1 = 4-8*myRandom.Rndm();
                 double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
@@ -444,6 +444,12 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
                     l1_lab_4vec = l0_lab_4vec;
                     l0_lab_4vec = lep_placeholder;
                 }
+
+                // Rotate to lab coordinates
+                l0_lab_4vec.RotateY(z_4vec.Theta());
+                l0_lab_4vec.RotateZ(z_4vec.Phi());
+                l1_lab_4vec.RotateY(z_4vec.Theta());
+                l1_lab_4vec.RotateZ(z_4vec.Phi());
 
                 // Select lepton flavor and charge
                 int charge = myRandom.Integer(2)*2-1;
