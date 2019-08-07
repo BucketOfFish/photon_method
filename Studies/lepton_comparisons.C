@@ -62,8 +62,8 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     if (feature == "lepEta") tch_zmc->Draw(Form("%s>>h_zmc", "lep_eta"), Zselection*cuts::bkg_weight, "goff");
     else if (feature == "lepPhi") tch_zmc->Draw(Form("%s>>h_zmc", "lep_phi"), Zselection*cuts::bkg_weight, "goff");
     else tch_zmc->Draw(Form("%s>>h_zmc", feature.c_str()), Zselection*cuts::bkg_weight, "goff");
-    if (feature == "lepEta") tch_photon->Draw(Form("%s>>h_photon", "lep_eta"), gselection*cuts::photon_weight_rw, "goff");
-    else if (feature == "lepPhi") tch_photon->Draw(Form("%s>>h_photon", "lep_phi"), gselection*cuts::photon_weight_rw, "goff");
+    if ((feature == "lepEta") && (distribution != "non-uniform")) tch_photon->Draw(Form("%s>>h_photon", "lep_eta"), gselection*cuts::photon_weight_rw, "goff");
+    else if ((feature == "lepPhi") && (distribution != "non-uniform")) tch_photon->Draw(Form("%s>>h_photon", "lep_phi"), gselection*cuts::photon_weight_rw, "goff");
     else tch_photon->Draw(Form("%s>>h_photon", feature.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
     float max_y = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
