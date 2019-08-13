@@ -43,9 +43,9 @@ namespace bins {
     const int mll_bin_size = 43;
     double mll_bin[mll_bin_size+1] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
 
-    //--- binning for reweighting and plotting
+    //--- binning for reweighting and plotting - Ptll
     const unsigned int n_reweighting_bins = 20;
-    double reweighting_bins[n_reweighting_bins+1] = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 1000};
+    double reweighting_bins[n_reweighting_bins+1] = {40, 45, 50, 55, 60, 70, 80, 100, 120, 140, 160, 180, 200, 220, 260, 280, 300, 350, 400, 600, 1000};
 }
 
 #endif
