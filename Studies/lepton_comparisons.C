@@ -23,7 +23,7 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     string distribution_folder;
     if (distribution == "non-uniform") distribution_folder = "NonuniformSampling";
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
-    else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling";
+    else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectBoostAngle";
     string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/LeptonDistributions/ReweightedNtuples/" + distribution_folder + "/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
@@ -66,9 +66,9 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     else if ((feature == "lepPhi") && (distribution != "non-uniform")) tch_photon->Draw(Form("%s>>h_photon", "lep_phi"), gselection*cuts::photon_weight_rw, "goff");
     else tch_photon->Draw(Form("%s>>h_photon", feature.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
-    float max_y = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
-    h_zmc->GetYaxis()->SetRange(0, max_y);
-    h_photon->GetYaxis()->SetRange(0, max_y);
+    float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
+    h_zmc->GetYaxis()->SetRangeUser(0, ymax);
+    h_photon->GetYaxis()->SetRangeUser(0, ymax);
 
     h_zmc->SetTitle(plot_title.c_str());
 
