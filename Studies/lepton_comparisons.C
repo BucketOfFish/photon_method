@@ -23,7 +23,7 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     string distribution_folder;
     if (distribution == "non-uniform") distribution_folder = "NonuniformSampling";
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
-    else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectBoostAngle";
+    else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
     string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/LeptonDistributions/ReweightedNtuples/" + distribution_folder + "/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
