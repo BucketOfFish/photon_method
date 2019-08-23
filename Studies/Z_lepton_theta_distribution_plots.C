@@ -34,7 +34,7 @@ void Z_lepton_theta_distribution_plots(string mc_period, string channel, string 
     TH1F *h_zmc;
     h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
     h_zmc->SetLineColor(1);
-    tch_zmc->Draw(Form("%s>>h_zmc", "2*TMath::ATan(exp(-lep_eta))"), Zselection*cuts::bkg_weight, "goff");
+    tch_zmc->Draw(Form("%s>>h_zmc", "Z_cm_lep_theta"), Zselection*cuts::bkg_weight, "goff");
 
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();

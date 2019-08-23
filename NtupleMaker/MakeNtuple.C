@@ -199,6 +199,10 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     Int_t nLep_base; CopyBranch(inputTree, BaselineTree, "nLep_base", "nLep_base", &nLep_base, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
+    // lepton angular distribution
+    vector<float> *Z_cm_lep_theta = new vector<float>(2);
+    BaselineTree->Branch("Z_cm_lep_theta","std::vector<float>",&Z_cm_lep_theta);
+
     //-----------------------------
     // loop over events
     //-----------------------------
@@ -280,7 +284,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             TLorentzVector z_4vec;
             Z_eta = (lep0_4vec+lep1_4vec).Eta();
             Z_phi = (lep0_4vec+lep1_4vec).Phi();
-            z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,0);
+            z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,91.1876);
 
             TLorentzVector met_4vec;
             met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
@@ -296,6 +300,22 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             //--- compute MET parallel and perpendicular components
             METt = MET*TMath::Sin(MET_phi-Z_phi);
             METl = MET*TMath::Cos(MET_phi-Z_phi);
+
+            //--- lepton angles in Z rest frame
+            TLorentzVector l0_cm_4vec, l1_cm_4vec;
+            l0_cm_4vec = lep0_4vec;
+            l1_cm_4vec = lep1_4vec;
+            TVector3 boost_vec(0, 0, -z_4vec.BoostVector().Mag());
+            l0_cm_4vec.RotateZ(-z_4vec.Phi());
+            l0_cm_4vec.RotateY(-z_4vec.Theta());
+            l0_cm_4vec.Boost(boost_vec);
+            l1_cm_4vec.RotateZ(-z_4vec.Phi());
+            l1_cm_4vec.RotateY(-z_4vec.Theta());
+            l1_cm_4vec.Boost(boost_vec);
+            //cout << lep0_4vec.Theta() << ", " << lep1_4vec.Theta() << ", (" << l0_cm_4vec.Theta() << ", " << l0_cm_4vec.Phi() << "), (" << l1_cm_4vec.Theta() << ", " << l1_cm_4vec.Phi() << ")" << endl;
+            Z_cm_lep_theta->clear();
+            Z_cm_lep_theta->push_back(l0_cm_4vec.Theta());
+            Z_cm_lep_theta->push_back(l1_cm_4vec.Theta());
         }
 
         BaselineTree->Fill();     
