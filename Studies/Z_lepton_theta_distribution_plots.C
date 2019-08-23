@@ -16,6 +16,7 @@ void Z_lepton_theta_distribution_plots(string mc_period, string channel, string 
     TCut Zselection;
     if (selection == "inclusive") Zselection = TCut("1");
     else if (selection == "baseline") Zselection = cuts::bkg_baseline;
+    else Zselection = cuts::bkg_baseline + (TCut)(TString)selection;
     if (TString(channel).EqualTo("ee")) Zselection += cuts::ee;
     else if (TString(channel).EqualTo("mm")) Zselection += cuts::mm;
     else {
@@ -42,20 +43,36 @@ void Z_lepton_theta_distribution_plots(string mc_period, string channel, string 
     h_zmc->Draw("hist");
 
     //--- plot curves on top
-    TF1 *f1 = new TF1("f1", "1 ++ pow(cos(x),2)", 0, 3.2);
-    h_zmc->Fit(f1);
-    f1->SetTitle("1+cos^{2}(#theta)");
+    TString scale = "25000";
+    //TString scale = "18600";
+    TF1 *f1 = new TF1("f1", scale+"*pow(sin(x), 2)", 0, 3.2);
+    //h_zmc->Fit(f1);
+    f1->SetTitle("sin^{2}(#theta)");
     f1->SetLineWidth(3);
     f1->SetFillStyle(3005);
-    f1->SetLineColor(2);
+    f1->SetLineColor(3);
     f1->Draw("same");
-    TF1 *f2 = new TF1("f2", "1 ++ pow(cos(x),4)", 0, 3.2);
-    h_zmc->Fit(f2);
-    f2->SetTitle("1+cos^{4}(#theta)");
+    TF1 *f2 = new TF1("f2", scale+"*pow(sin(x), 3)", 0, 3.2);
+    //h_zmc->Fit(f2);
+    f2->SetTitle("sin^{3}(#theta)");
     f2->SetLineWidth(3);
     f2->SetFillStyle(3005);
-    f2->SetLineColor(3);
+    f2->SetLineColor(4);
     f2->Draw("same");
+    TF1 *f3 = new TF1("f3", scale+"*pow(sin(x), 4)", 0, 3.2);
+    //h_zmc->Fit(f3);
+    f3->SetTitle("sin^{4}(#theta)");
+    f3->SetLineWidth(3);
+    f3->SetFillStyle(3005);
+    f3->SetLineColor(5);
+    f3->Draw("same");
+    TF1 *f4 = new TF1("f4", scale+"/2*(1 + pow(cos(x), 2)*sin(x))", 0, 3.2);
+    //h_zmc->Fit(f4);
+    f4->SetTitle("(1+cos^{2}(#theta))*sin(#theta)");
+    f4->SetLineWidth(3);
+    f4->SetFillStyle(3005);
+    f4->SetLineColor(6);
+    f4->Draw("same");
     gPad->BuildLegend();
 
     //--- save plot
