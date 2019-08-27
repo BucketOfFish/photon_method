@@ -69,9 +69,9 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
 
     if (data_or_mc == "Data") {
-        tch_data->Draw(("reweight_var>>hdata").c_str(), cuts::bkg_baseline, "goff");
-        tch_tt->Draw(("reweight_var>>htt").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        tch_vv->Draw(("reweight_var>>hvv").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_data->Draw("reweight_var>>hdata", cuts::bkg_baseline, "goff");
+        tch_tt->Draw("reweight_var>>htt", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_vv->Draw("reweight_var>>hvv", cuts::bkg_baseline*cuts::bkg_weight, "goff");
         cout << "data integral        " << hdata->Integral() << endl;
         cout << "ttbar integral       " << htt->Integral() << endl;
         cout << "diboson integral     " << hvv->Integral() << endl;
