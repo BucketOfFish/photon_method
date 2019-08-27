@@ -409,21 +409,23 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
             TLorentzVector l0_lab_4vec, l1_lab_4vec;
             while (true) {
 
+                double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
+
                 //// Naive sampling (incorrect)
-                //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 
                 //// Uniform sampling
-                //double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
                 //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
 
-                // Drell-Yan lepton angular distribution (with Z boost direction as +z)
-                double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
-                double placeholder_1 = 4-8*myRandom.Rndm();
-                double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
-                double numerator = pow(2.0,1/3)*pow(placeholder_2,2.0/3) - 2;
-                double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
-                double lep_theta_cm = acos(numerator/denominator);
+                //// Drell-Yan lepton angular distribution (with Z boost direction as +z)
+                //double placeholder_1 = 4-8*myRandom.Rndm();
+                //double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
+                //double numerator = pow(2.0,1/3)*pow(placeholder_2,2.0/3) - 2;
+                //double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
+                //double lep_theta_cm = acos(numerator/denominator);
+
+                // Sin^3 sampling
+                double lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
 
                 // Split leptons in Z rest frame
                 TLorentzVector l0_cm_4vec, l1_cm_4vec;
