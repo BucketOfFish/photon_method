@@ -43,8 +43,8 @@ void Z_lepton_theta_distribution_plots(string mc_period, string channel, string 
     h_zmc->Draw("hist");
 
     //--- plot curves on top
-    TString scale = "25000";
-    //TString scale = "18600";
+    //TString scale = "25000";
+    TString scale = "18600";
     TF1 *f1 = new TF1("f1", scale+"*pow(sin(x), 2)", 0, 3.2);
     //h_zmc->Fit(f1);
     f1->SetTitle("sin^{2}(#theta)");
@@ -66,7 +66,7 @@ void Z_lepton_theta_distribution_plots(string mc_period, string channel, string 
     f3->SetFillStyle(3005);
     f3->SetLineColor(5);
     f3->Draw("same");
-    TF1 *f4 = new TF1("f4", scale+"/2*(1 + pow(cos(x), 2)*sin(x))", 0, 3.2);
+    TF1 *f4 = new TF1("f4", scale+"*(1+pow(cos(x), 2))*sin(x)", 0, 3.2);
     //h_zmc->Fit(f4);
     f4->SetTitle("(1+cos^{2}(#theta))*sin(#theta)");
     f4->SetLineWidth(3);
