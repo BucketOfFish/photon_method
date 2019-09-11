@@ -86,6 +86,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     float MT2W; BaselineTree->Branch("MT2W", &MT2W, "MT2W/F");
     float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
     int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
+    float lep_theta_cm; BaselineTree->Branch("lep_theta_cm", &lep_theta_cm, "lep_theta_cm/F");
 
     //--- HistFitter branches
     int DatasetNumber; CopyBranch(inputTree, BaselineTree, "DatasetNumber", "DatasetNumber", &DatasetNumber, "I");
@@ -425,7 +426,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
                 //double lep_theta_cm = acos(numerator/denominator);
 
                 // Sin^3 sampling
-                double lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
+                lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
 
                 // Split leptons in Z rest frame
                 TLorentzVector l0_cm_4vec, l1_cm_4vec;
