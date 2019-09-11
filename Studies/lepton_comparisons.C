@@ -9,8 +9,8 @@ using namespace std;
 //--- 1. mc16a, mc16cd
 //--- 2. ee, mm
 //--- 3. inclusive, baseline
-//--- 4. non-uniform, uniform, Drell-Yan
-//--- 5. lepPt, lepEta, lepPhi
+//--- 4. non-uniform, uniform, Drell-Yan, sin3
+//--- 5. lepPt, lepEta, lepPhi, MT2, mll
 
 //--- Compare photon vs. Z lepton distributions for different types of angular distributions
 
@@ -19,12 +19,13 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     gStyle->SetOptStat(0);
 
     //--- load files
-    string zmc_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/LeptonDistributions/Ntuples/bkg_mc/" + mc_period + "_Zjets.root";
+    string zmc_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/Ntuples/bkg_mc/" + mc_period + "_Zjets.root";
     string distribution_folder;
     if (distribution == "non-uniform") distribution_folder = "NonuniformSampling";
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
     else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
-    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/LeptonDistributions/ReweightedNtuples/" + distribution_folder + "/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
+    else if (distribution == "sin3") distribution_folder = "Sin3Sampling";
+    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/ReweightedNtuples/" + distribution_folder + "/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
     TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
@@ -59,12 +60,13 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
     h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
     h_zmc->SetLineColor(1); h_photon->SetLineColor(2);
-    if (feature == "lepEta") tch_zmc->Draw(Form("%s>>h_zmc", "lep_eta"), Zselection*cuts::bkg_weight, "goff");
-    else if (feature == "lepPhi") tch_zmc->Draw(Form("%s>>h_zmc", "lep_phi"), Zselection*cuts::bkg_weight, "goff");
-    else tch_zmc->Draw(Form("%s>>h_zmc", feature.c_str()), Zselection*cuts::bkg_weight, "goff");
-    if ((feature == "lepEta") && (distribution != "non-uniform")) tch_photon->Draw(Form("%s>>h_photon", "lep_eta"), gselection*cuts::photon_weight_rw, "goff");
-    else if ((feature == "lepPhi") && (distribution != "non-uniform")) tch_photon->Draw(Form("%s>>h_photon", "lep_phi"), gselection*cuts::photon_weight_rw, "goff");
-    else tch_photon->Draw(Form("%s>>h_photon", feature.c_str()), gselection*cuts::photon_weight_rw, "goff");
+
+    TString feature_string = feature;
+    if (feature == "lepEta") feature_string = "lep_eta";
+    if (feature == "lepPhi") feature_string = "lep_phi";
+
+    tch_zmc->Draw(Form("%s>>h_zmc", feature_string), Zselection*cuts::bkg_weight, "goff");
+    tch_photon->Draw(Form("%s>>h_photon", feature_string), gselection*cuts::photon_weight_rw, "goff");
 
     float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
