@@ -26,9 +26,9 @@ namespace cuts {
     TCut mm("channel==0");
     TCut em("channel==2 || channel==3");
 
-    TCut bkg_weight("totalWeight");
-    TCut photon_weight("totalWeight");
-    TCut photon_weight_rw("totalWeight*reweight_Ptll");
+    TCut bkg_weight("totalWeight*(totalWeight<100000000000)");
+    TCut photon_weight("totalWeight*(totalWeight<100000000000)");
+    TCut photon_weight_rw("totalWeight*(totalWeight<100000000000)*reweight_Ptll");
 }
 
 namespace bins {
