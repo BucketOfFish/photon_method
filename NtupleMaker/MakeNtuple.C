@@ -263,6 +263,9 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
                 totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
                 if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
             }
+
+            //--- fix for large photon sample spikes
+            if (totalWeight > 100000000000) continue;
         }
         else {
             totalWeight = 1;

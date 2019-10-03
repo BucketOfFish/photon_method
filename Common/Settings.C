@@ -1,7 +1,7 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/";
+std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/";
 std::string ntuple_path =  sample_folder + "Ntuples/";
 std::string smearing_path = sample_folder + "SmearedNtuples/";
 std::string reweighting_path = sample_folder + "ReweightedNtuples/";
@@ -26,9 +26,9 @@ namespace cuts {
     TCut mm("channel==0");
     TCut em("channel==2 || channel==3");
 
-    TCut bkg_weight("totalWeight*(totalWeight<100000000000)");
-    TCut photon_weight("totalWeight*(totalWeight<100000000000)");
-    TCut photon_weight_rw("totalWeight*(totalWeight<100000000000)*reweight_Ptll");
+    TCut bkg_weight("totalWeight");
+    TCut photon_weight("totalWeight");
+    TCut photon_weight_rw("totalWeight*reweight_Ptll");
 }
 
 namespace bins {
