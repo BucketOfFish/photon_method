@@ -3,8 +3,8 @@
 
 using namespace std;
 
-// e.g. root -l -b -q 'Z_lepton_theta_distribution_plots.C("mc16a", "ee", "baseline")'
-void Z_lepton_theta_distribution_plots(string mc_period, string channel, string selection) {
+// e.g. root -l -b -q 'plot_Z_lepton_cm_theta_distribution_vs_functions.C("mc16a", "ee", "baseline")'
+void plot_Z_lepton_cm_theta_distribution_vs_functions(string mc_period, string channel, string selection) {
 
     gStyle->SetOptStat(0);
 

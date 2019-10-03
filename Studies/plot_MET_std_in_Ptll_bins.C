@@ -5,11 +5,11 @@
 using namespace std;
 
 //--- run with:
-//--- root -l -b -q 'std_met_ptll_bins.C("mc16a", "ee", "met_Et", "Ptll")'
+//--- root -l -b -q 'plot_MET_std_in_Ptll_bins.C("mc16a", "ee", "met_Et", "Ptll")'
 
 //--- Plots standard deviation of MET in Ptll bins
 
-void std_met_ptll_bins(string mc_period, string channel, string plot_feature, string bin_feature) {
+void plot_MET_std_in_Ptll_bins(string mc_period, string channel, string plot_feature, string bin_feature) {
 
     gStyle->SetOptStat(0);
 

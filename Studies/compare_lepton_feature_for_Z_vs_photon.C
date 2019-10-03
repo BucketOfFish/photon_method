@@ -5,7 +5,7 @@
 using namespace std;
 
 //--- run with:
-//--- root -l -b -q 'lepton_comparisons.C("mc16a", "ee", "inclusive", "non-uniform", "lepPt")'
+//--- root -l -b -q 'compare_lepton_feature_for_Z_vs_photon.C("mc16a", "ee", "inclusive", "non-uniform", "lepPt")'
 //--- 1. mc16a, mc16cd
 //--- 2. ee, mm
 //--- 3. inclusive, baseline
@@ -14,7 +14,7 @@ using namespace std;
 
 //--- Compare photon vs. Z lepton distributions for different types of angular distributions
 
-void lepton_comparisons(string mc_period, string channel, string selection, string distribution, string feature) {
+void compare_lepton_feature_for_Z_vs_photon(string mc_period, string channel, string selection, string distribution, string feature) {
 
     gStyle->SetOptStat(0);
 
@@ -25,7 +25,7 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
     else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
     else if (distribution == "sin3") distribution_folder = "Sin3Sampling";
-    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/ReweightedNtuples/" + distribution_folder + "/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
+    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/" + distribution_folder + "/ReweightedNtuples/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
     TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
@@ -61,12 +61,12 @@ void lepton_comparisons(string mc_period, string channel, string selection, stri
     h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
     h_zmc->SetLineColor(1); h_photon->SetLineColor(2);
 
-    TString feature_string = feature;
+    string feature_string = feature;
     if (feature == "lepEta") feature_string = "lep_eta";
     if (feature == "lepPhi") feature_string = "lep_phi";
 
-    tch_zmc->Draw(Form("%s>>h_zmc", feature_string), Zselection*cuts::bkg_weight, "goff");
-    tch_photon->Draw(Form("%s>>h_photon", feature_string), gselection*cuts::photon_weight_rw, "goff");
+    tch_zmc->Draw(Form("%s>>h_zmc", feature_string.c_str()), Zselection*cuts::bkg_weight, "goff");
+    tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
     float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
