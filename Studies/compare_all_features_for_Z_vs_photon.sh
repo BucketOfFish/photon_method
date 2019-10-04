@@ -7,8 +7,8 @@
 # source run_all.sh mm mc16cd MT2
 
 CHANNELS=("ee" "mm")
-PERIODS=("mc16a", "mc16cd")
-FEATURES=("lepPt", "lepEta", "lepPhi", "MT2", "mll")
+PERIODS=("mc16a" "mc16cd")
+FEATURES=("lepPt" "lepEta" "lepPhi" "MT2" "mll")
 
 # non-uniform, uniform, Drell-Yan, sin3
 SAMPLING="sin3"
@@ -52,7 +52,7 @@ do
     do
         for FEATURE in "${FEATURES[@]}"
         do
-            root -l -b -q 'compare_lepton_feature_for_Z_vs_photon.C("'$PERIOD'","'$CHANNEL'","baseline","'$SAMPLING'","'$FEATURE'")'
+            root -l -b -q 'compare_feature_for_Z_vs_photon.C("'$PERIOD'","'$CHANNEL'","baseline","'$SAMPLING'","'$FEATURE'")'
         done
     done
 done

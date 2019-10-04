@@ -5,16 +5,16 @@
 using namespace std;
 
 //--- run with:
-//--- root -l -b -q 'compare_lepton_feature_for_Z_vs_photon.C("mc16a", "ee", "inclusive", "non-uniform", "lepPt")'
+//--- root -l -b -q 'compare_feature_for_Z_vs_photon.C("mc16a", "ee", "inclusive", "non-uniform", "lepPt")'
 //--- 1. mc16a, mc16cd
 //--- 2. ee, mm
 //--- 3. inclusive, baseline
 //--- 4. non-uniform, uniform, Drell-Yan, sin3
-//--- 5. lepPt, lepEta, lepPhi, MT2, mll
+//--- 5. lepPt, lepEta, lepPhi, MT2, mll, Ptll
 
-//--- Compare photon vs. Z lepton distributions for different types of angular distributions
+//--- Compare photon vs. Z feature distributions for different types of angular distributions
 
-void compare_lepton_feature_for_Z_vs_photon(string mc_period, string channel, string selection, string distribution, string feature) {
+void compare_feature_for_Z_vs_photon(string mc_period, string channel, string selection, string distribution, string feature) {
 
     gStyle->SetOptStat(0);
 
@@ -51,6 +51,9 @@ void compare_lepton_feature_for_Z_vs_photon(string mc_period, string channel, st
     if (feature == "lepPt") { x_label = "p_{T,#ell} [GeV]"; }
     else if (feature == "lepEta") { x_label = "#eta_{#ell} [GeV]"; xmin = -3; xmax = 3; }
     else if (feature == "lepPhi") { x_label = "#phi_{#ell} [GeV]"; xmin = -TMath::Pi(); xmax = TMath::Pi(); }
+    else if (feature == "mll") { x_label = "m_{#ell#ell} [GeV]"; xmin = 0; xmax = 200; }
+    else if (feature == "MT2") { x_label = "MT2 [GeV]"; xmin = -500; xmax = 500; }
+    else if (feature == "Ptll") { x_label = "Pt_{#ell#ell} [GeV]"; xmin = -500; xmax = 500; }
 
     string plot_title = mc_period + " " + channel + " " + feature;
     string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + selection + "_" + distribution + "_comparison.eps";
