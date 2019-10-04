@@ -19,11 +19,12 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     string filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), sampleID.c_str()); 
     if (isData) filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), period.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
-    string treeName = sampleID + "_NoSys";
-    if (isData) {
-       if (isPhoton) treeName = period;
-       else treeName = "data";
-    }
+    //string treeName = sampleID + "_NoSys";
+    //if (isData) {
+       //if (isPhoton) treeName = period;
+       //else treeName = "data";
+    //}
+    string treeName = "tree_NoSys";
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
     cout << endl;
