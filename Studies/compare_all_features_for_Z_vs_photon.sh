@@ -8,7 +8,7 @@
 
 CHANNELS=("ee" "mm")
 PERIODS=("mc16a" "mc16cd")
-FEATURES=("lepPt" "lepEta" "lepPhi" "MT2" "mll")
+FEATURES=("lepPt" "lepEta" "lepPhi" "MT2" "mll" "Ptll")
 
 # non-uniform, uniform, Drell-Yan, sin3
 SAMPLING="sin3"
