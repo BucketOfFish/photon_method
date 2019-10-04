@@ -59,21 +59,25 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + selection + "_" + distribution + "_comparison.eps";
 
     //--- create photon and Z histograms
-    TH1F *h_zmc, *h_photon;
+    TH1F *h_zmc, *h_photon, *h_photon_rw;
     h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
     h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
-    h_zmc->SetLineColor(1); h_photon->SetLineColor(2);
+    h_photon_rw = new TH1F("h_photon_rw", "", nbins, xmin, xmax);
+    h_zmc->SetLineColor(1); h_photon->SetLineColor(2); h_photon_rw->SetLineColor(3);
 
     string feature_string = feature;
     if (feature == "lepEta") feature_string = "lep_eta";
     if (feature == "lepPhi") feature_string = "lep_phi";
 
     tch_zmc->Draw(Form("%s>>h_zmc", feature_string.c_str()), Zselection*cuts::bkg_weight, "goff");
-    tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
+    if (feature == "Ptll")
+        tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
+    tch_photon->Draw(Form("%s>>h_photon_rw", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
-    float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum()) * 1.1;
+    float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum(), h_photon_rw->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
     h_photon->GetYaxis()->SetRangeUser(0, ymax);
+    h_photon_rw->GetYaxis()->SetRangeUser(0, ymax);
 
     h_zmc->SetTitle(plot_title.c_str());
 
@@ -85,12 +89,16 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     mainpad->cd();
 
     h_zmc->Draw("hist");
-    h_photon->Draw("samehist");
+    if (feature == "Ptll")
+        h_photon->Draw("samehist");
+    h_photon_rw->Draw("samehist");
 
     //--- draw legend
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-    leg->AddEntry(h_photon, "Z+jets (from reweighted #gamma+jets)", "f");
+    if (feature == "Ptll")
+        leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
+    leg->AddEntry(h_photon_rw, "Z+jets (from reweighted #gamma+jets)", "f");
 
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
@@ -117,7 +125,7 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     TH1F* hratio;
     hratio = (TH1F*) h_zmc->Clone("hratio");
     hratio->SetTitle("");
-    hratio->Divide(h_photon);
+    hratio->Divide(h_photon_rw);
     hratio->SetMarkerStyle(20);
 
     hratio->GetXaxis()->SetTitle("");
