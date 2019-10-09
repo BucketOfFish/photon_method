@@ -19,12 +19,11 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     string filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), sampleID.c_str()); 
     if (isData) filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), period.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
-    //string treeName = sampleID + "_NoSys";
-    //if (isData) {
-       //if (isPhoton) treeName = period;
-       //else treeName = "data";
-    //}
-    string treeName = "tree_NoSys";
+    string treeName = sampleID + "_NoSys";
+    if (isData) {
+       if (isPhoton) treeName = period;
+       else treeName = "data";
+    }
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
     cout << endl;
@@ -85,9 +84,9 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     bool trigMatch_1L2LTrigOR; SetInputBranch(inputTree, "trigMatch_1L2LTrigOR", &trigMatch_1L2LTrigOR);
 
     //--- event selection
-    std::vector<int>* lepIsoFCTight = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepIsoFCTight", "lepIsoFCTight", &lepIsoFCTight, "std::vector<int>");
-    std::vector<float>* lep_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "std::vector<float>");
-    std::vector<float>* lep_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "std::vector<float>");
+    vector<int>* lepIsoFCTight = new vector<int>; CopyBranch(inputTree, BaselineTree, "lepIsoFCTight", "lepIsoFCTight", &lepIsoFCTight, "vector<int>");
+    vector<float>* lep_eta = new vector<float>; CopyBranch(inputTree, BaselineTree, "lepEta", "lep_eta", &lep_eta, "vector<float>");
+    vector<float>* lep_phi = new vector<float>; CopyBranch(inputTree, BaselineTree, "lepPhi", "lep_phi", &lep_phi, "vector<float>");
     int channel, is_OS;
     if (!isPhoton) {
         BaselineTree->Branch("channel", &channel, "channel/I");
@@ -134,9 +133,9 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     Int_t RunNumber; CopyBranch(inputTree, BaselineTree, "RunNumber", "RunNumber", &RunNumber, "I");
     Int_t bjet_n; CopyBranch(inputTree, BaselineTree, "nBJet30_MV2c10_FixedCutBEff_77", "bjet_n", &bjet_n, "I");
     float HT; CopyBranch(inputTree, BaselineTree, "Ht30", "HT", &HT, "F");
-    std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "std::vector<float>");
-    std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "std::vector<float>");
-    std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "std::vector<float>");
+    vector<float>* jet_pT = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetPt", "jet_pT", &jet_pT, "vector<float>");
+    vector<float>* jet_eta = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetEta", "jet_eta", &jet_eta, "vector<float>");
+    vector<float>* jet_phi = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "vector<float>");
 
     //--- HistFitter branches
     int DatasetNumber; CopyBranch(inputTree, BaselineTree, "DatasetNumber", "DatasetNumber", &DatasetNumber, "I");
@@ -190,10 +189,10 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
     int lepIsPR; CopyBranch(inputTree, BaselineTree, "lepIsPR", "lepIsPR", &lepIsPR, "I");
 
-    std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
-    std::vector<int>* lepFlavor = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "std::vector<int>");
-    std::vector<int>* lepCharge = new std::vector<int>(10); CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "std::vector<int>");
-    std::vector<float>* lep_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "lepPt", "lepPt", &lep_pT, "std::vector<float>");
+    vector<float>* jet_m = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "vector<float>");
+    vector<int>* lepFlavor = new vector<int>; CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "vector<int>");
+    vector<int>* lepCharge = new vector<int>; CopyBranch(inputTree, BaselineTree, "lepCharge", "lepCharge", &lepCharge, "vector<int>");
+    vector<float>* lep_pT = new vector<float>; CopyBranch(inputTree, BaselineTree, "lepPt", "lepPt", &lep_pT, "vector<float>");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
     Int_t nLep_signal; CopyBranch(inputTree, BaselineTree, "nLep_signal", "nLep_signal", &nLep_signal, "I");
@@ -201,8 +200,8 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
     // lepton angular distribution
-    vector<float> *Z_cm_lep_theta = new vector<float>(2);
-    BaselineTree->Branch("Z_cm_lep_theta","std::vector<float>",&Z_cm_lep_theta);
+    vector<float> *Z_cm_lep_theta = new vector<float>;
+    BaselineTree->Branch("Z_cm_lep_theta","vector<float>",&Z_cm_lep_theta);
 
     //-----------------------------
     // loop over events
@@ -212,7 +211,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
     for (Long64_t i=0; i<nentries; i++) {
 
-        if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
+        if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         inputTree->GetEntry(i);
 
         //--- event selection
@@ -325,10 +324,10 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
         BaselineTree->Fill();     
     }
 
-    std::cout << "write output..." << std::endl;
+    cout << "write output..." << endl;
     BaselineTree->Write();
 
-    std::cout << "done." << std::endl;
+    cout << "done." << endl;
     outputFile.Close();
     delete inputFile;
 }
