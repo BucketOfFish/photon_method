@@ -19,13 +19,13 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     gStyle->SetOptStat(0);
 
     //--- load files
-    string zmc_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/Ntuples/bkg_mc/" + mc_period + "_Zjets.root";
+    string zmc_filename = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/Ntuples/bkg_mc/" + mc_period + "_Zjets.root";
     string distribution_folder;
     if (distribution == "non-uniform") distribution_folder = "NonuniformSampling";
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
     else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
     else if (distribution == "sin3") distribution_folder = "Sin3Sampling";
-    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.6/Default/" + distribution_folder + "/ReweightedNtuples/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
+    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/" + distribution_folder + "/ReweightedNtuples/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
     TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
@@ -53,7 +53,7 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     else if (feature == "lepPhi") { x_label = "#phi_{#ell} [GeV]"; xmin = -TMath::Pi(); xmax = TMath::Pi(); }
     else if (feature == "mll") { x_label = "m_{#ell#ell} [GeV]"; xmin = 0; xmax = 200; }
     else if (feature == "MT2") { x_label = "MT2 [GeV]"; xmin = -500; xmax = 500; }
-    else if (feature == "Ptll") { x_label = "Pt_{#ell#ell} [GeV]"; xmin = -500; xmax = 500; }
+    else if (feature == "Ptll") { x_label = "Pt_{#ell#ell} [GeV]"; xmin = 0; xmax = 300; }
 
     string plot_title = mc_period + " " + channel + " " + feature;
     string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + selection + "_" + distribution + "_comparison.eps";
@@ -70,11 +70,11 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     if (feature == "lepPhi") feature_string = "lep_phi";
 
     tch_zmc->Draw(Form("%s>>h_zmc", feature_string.c_str()), Zselection*cuts::bkg_weight, "goff");
-    if (feature == "Ptll")
-        tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
+    //if (feature == "Ptll")
+        //tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
     tch_photon->Draw(Form("%s>>h_photon_rw", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
-    float ymax = max(h_zmc->GetMaximum(), h_photon->GetMaximum(), h_photon_rw->GetMaximum()) * 1.1;
+    float ymax = max(max(h_zmc->GetMaximum(), h_photon->GetMaximum()), h_photon_rw->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
     h_photon->GetYaxis()->SetRangeUser(0, ymax);
     h_photon_rw->GetYaxis()->SetRangeUser(0, ymax);
@@ -89,15 +89,15 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     mainpad->cd();
 
     h_zmc->Draw("hist");
-    if (feature == "Ptll")
-        h_photon->Draw("samehist");
+    //if (feature == "Ptll")
+        //h_photon->Draw("samehist");
     h_photon_rw->Draw("samehist");
 
     //--- draw legend
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-    if (feature == "Ptll")
-        leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
+    //if (feature == "Ptll")
+        //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
     leg->AddEntry(h_photon_rw, "Z+jets (from reweighted #gamma+jets)", "f");
 
     leg->SetBorderSize(0);
