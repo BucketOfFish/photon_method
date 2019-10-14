@@ -8,7 +8,7 @@ using namespace std;
 void GetPhotonSmearing(string label, string period, string channel, int smearing_method) {
 
     string isData = "MC";
-    if (period.find("data") != std::string::npos)
+    if (period.find("data") != string::npos)
         isData = "Data";
 
     cout << "channel         " << channel         << endl;
@@ -72,9 +72,9 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
     float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
 
-    std::vector<float>* jet_pT = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_pT", "jet_pT", &jet_pT, "std::vector<float>");
-    std::vector<float>* jet_eta = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "std::vector<float>");
-    std::vector<float>* jet_phi = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_phi", "jet_phi", &jet_phi, "std::vector<float>");
+    vector<float>* jet_pT = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_pT", "jet_pT", &jet_pT, "vector<float>");
+    vector<float>* jet_eta = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "vector<float>");
+    vector<float>* jet_phi = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_phi", "jet_phi", &jet_phi, "vector<float>");
 
     float gamma_pt_smear; BaselineTree->Branch("Ptll", &gamma_pt_smear, "Ptll/F");
     float gamma_phi_smear; BaselineTree->Branch("Z_phi", &gamma_phi_smear, "Z_phi/F");
@@ -140,13 +140,13 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
     int lepIsPR; CopyBranch(inputTree, BaselineTree, "lepIsPR", "lepIsPR", &lepIsPR, "I");
 
-    std::vector<float>* jet_m = new std::vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "std::vector<float>");
+    vector<float>* jet_m = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "vector<float>");
     Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
-    std::vector<float>* lep_pT = new std::vector<float>(10); BaselineTree->Branch("lepPt", "std::vector<float>", &lep_pT);
-    std::vector<float>* lep_eta = new std::vector<float>(10); BaselineTree->Branch("lep_eta", "std::vector<float>", &lep_eta);
-    std::vector<float>* lep_phi = new std::vector<float>(10); BaselineTree->Branch("lep_phi", "std::vector<float>", &lep_phi);
-    std::vector<int>* lep_flavor = new std::vector<int>(10); BaselineTree->Branch("lepFlavor", "std::vector<int>", &lep_flavor);
-    std::vector<int>* lep_charge = new std::vector<int>(10); BaselineTree->Branch("lepCharge", "std::vector<int>", &lep_charge);
+    vector<float>* lep_pT = new vector<float>(10); BaselineTree->Branch("lepPt", "vector<float>", &lep_pT);
+    vector<float>* lep_eta = new vector<float>(10); BaselineTree->Branch("lep_eta", "vector<float>", &lep_eta);
+    vector<float>* lep_phi = new vector<float>(10); BaselineTree->Branch("lep_phi", "vector<float>", &lep_phi);
+    vector<int>* lep_flavor = new vector<int>(10); BaselineTree->Branch("lepFlavor", "vector<int>", &lep_flavor);
+    vector<int>* lep_charge = new vector<int>(10); BaselineTree->Branch("lepCharge", "vector<int>", &lep_charge);
     Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
@@ -167,7 +167,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     }
     if (smearing_method != 0) {
 
-        std::cout << "Prepare Mll histograms..." << std::endl;
+        cout << "Prepare Mll histograms..." << endl;
         cout << "Path is " << ntuple_path << endl;
 
         string filename = ntuple_path + "/ZMC16a/Zjets_merged_processed.root";
@@ -179,7 +179,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
         double totalWeight; SetInputBranch(tZ, "totalWeight", &totalWeight);
         float METl; SetInputBranch(tZ, "METl", &METl);
         int jet_n; SetInputBranch(tZ, "nJet30", &jet_n);
-        std::vector<float>* tZ_lep_pT = new std::vector<float>(10); SetInputBranch(tZ, "lepPt", &tZ_lep_pT);
+        vector<float>* tZ_lep_pT = new vector<float>(10); SetInputBranch(tZ, "lepPt", &tZ_lep_pT);
         int bjet_n; SetInputBranch(tZ, "bjet_n", &bjet_n);
         float Z_pt; SetInputBranch(tZ, "Ptll", &Z_pt);
         float mll; SetInputBranch(tZ, "mll", &mll);
@@ -208,7 +208,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     }
 
     if (smearing_method != 0) {
-        std::cout << "Prepare smearing histograms..." << std::endl;
+        cout << "Prepare smearing histograms..." << endl;
         cout << "smearing_method    " << smearing_method << endl;
         float lumi = GetLumi(period);
         GetSmearingHistogram(channel, lumi, period, smearing_method);
@@ -315,7 +315,7 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     Long64_t nentries = inputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
 
-        if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
+        if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         inputTree->GetEntry(i);
 
         //--- get random photon smearing values
@@ -480,15 +480,15 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
                 // Checks
                 //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
                 //TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
-                //std::cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << std::endl;
-                //std::cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << std::endl;
-                //std::cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << std::endl;
-                //std::cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << std::endl;
-                //std::cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << std::endl;
-                //std::cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << std::endl;
-                //std::cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << std::endl;
-                //std::cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << std::endl;
-                //std::cout << "==================================================================================" << std::endl;
+                //cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << endl;
+                //cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << endl;
+                //cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << endl;
+                //cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << endl;
+                //cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << endl;
+                //cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << endl;
+                //cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << endl;
+                //cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << endl;
+                //cout << "==================================================================================" << endl;
             }
 
             lep_n = 2;
@@ -529,6 +529,6 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
 
     BaselineTree->Write();
 
-    std::cout << "done." << std::endl;
+    cout << "done." << endl;
     delete f;
 }

@@ -155,7 +155,7 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
     Long64_t nentries = outputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
 
-        if (fmod(i,1e5)==0) std::cout << i << " events processed." << std::endl;
+        if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         outputTree->GetEntry(i);
 
         float gamma_var_truncated = gamma_var;
@@ -170,6 +170,6 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
 
     outputTree->Write();
 
-    std::cout << "done." << std::endl;
+    cout << "done." << endl;
     delete smeared_file;
 }
