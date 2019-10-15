@@ -7,7 +7,7 @@
 # source run_all.sh mm mc16cd MT2
 
 CHANNELS=("ee" "mm")
-PERIODS=("mc16a" "mc16cd")
+PERIODS=("mc16a" "mc16cd" "mc16e")
 FEATURES=("lepPt" "lepEta" "lepPhi" "MT2" "mll" "Ptll")
 
 # non-uniform, uniform, Drell-Yan, sin3

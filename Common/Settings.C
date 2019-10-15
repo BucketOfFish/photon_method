@@ -2,10 +2,12 @@
 #define COMMON_SETTINGS
 
 std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/";
+std::string sampling_method = "Sin3Sampling";
+
 std::string ntuple_path =  sample_folder + "Ntuples/";
-std::string smearing_path = sample_folder + "SmearedNtuples/";
-std::string reweighting_path = sample_folder + "ReweightedNtuples/";
-std::string plots_path = sample_folder + "Plots/";
+std::string smearing_path = sample_folder + "/" + sampling_method + "/SmearedNtuples/";
+std::string reweighting_path = sample_folder + "/" + sampling_method + "/ReweightedNtuples/";
+std::string plots_path = sample_folder + "/" + sampling_method + "/Plots/";
 
 namespace cuts {
 

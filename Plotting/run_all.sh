@@ -5,13 +5,14 @@
 # source run_all.sh MC
 # source run_all.sh "Ptll>200"
 # source run_all.sh nJet30
+# source run_all.sh mm data18 MC "HT>200"
 # source run_all.sh mm data18 MC "HT>200" METt
 
 CHANNELS=("ee" "mm")
 PERIODS=("data15-16" "data17" "data18")
 TYPES=("Data" "MC")
 CUTS=("1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400")
-FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT")
+FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "mll" "MT2")
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -26,6 +27,16 @@ if [ $# == 1 ]; then
         CUTS=( $1 )
     elif [ $1 != "all" ]; then
         echo "Unrecognized argument"
+        return
+    fi
+elif [ $# == 4 ]; then
+    if [[ ${CHANNELS[*]} =~ $(echo $1) ]] && [[ ${PERIODS[*]} =~ $(echo $2) ]] && [[ ${TYPES[*]} =~ $(echo $3) ]] && [[ ${CUTS[*]} =~ $(echo $4) ]]; then
+        CHANNELS=( $1 )
+        PERIODS=( $2 )
+        TYPES=( $3 )
+        CUTS=( $4 )
+    else
+        echo "Unrecognized arguments"
         return
     fi
 elif [ $# == 5 ]; then
