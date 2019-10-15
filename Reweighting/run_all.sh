@@ -38,9 +38,9 @@ for CHANNEL in "${CHANNELS[@]}"
 do
     for PERIOD in "${PERIODS[@]}"
     do
-        for PHOTON in "${TYPES[@]}"
+        for TYPE in "${TYPES[@]}"
         do
-            root -l -b -q 'GetPhotonReweighting.C("'$PERIOD'","'$CHANNEL'","'$PHOTON'","NoSmear","Ptll")'
+            root -l -b -q 'GetPhotonReweighting.C("'$PERIOD'","'$CHANNEL'","'$TYPE'","NoSmear","Ptll")'
         done
     done
 done

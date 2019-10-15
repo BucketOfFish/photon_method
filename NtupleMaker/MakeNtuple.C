@@ -14,6 +14,12 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
     bool isData = (sampleID == "data");
     bool isPhoton = (photonOrBackground == "photon");
+
+    if (!isData) {
+        if (period == "data15-16") period = "mc16a";
+        else if (period == "data17") period = "mc16cd";
+        else if (period == "data18") period = "mc16e";
+    }
     float lumi = GetLumi(period);
 
     string filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), sampleID.c_str()); 
@@ -169,7 +175,6 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     float Rjj; CopyBranch(inputTree, BaselineTree, "Rjj", "Rjj", &Rjj, "F");
     float Rll; CopyBranch(inputTree, BaselineTree, "Rll", "Rll", &Rll, "F");
     float dPhiMetISR; CopyBranch(inputTree, BaselineTree, "dPhiMetISR", "dPhiMetISR", &dPhiMetISR, "F");
-    float dPhiMetJet1; CopyBranch(inputTree, BaselineTree, "dPhiMetJet1", "dPhiMetJet1", &dPhiMetJet1, "F");
     float dPhiPjjMet; CopyBranch(inputTree, BaselineTree, "dPhiPjjMet", "dPhiPjjMet", &dPhiPjjMet, "F");
     float dPhiPllMet; CopyBranch(inputTree, BaselineTree, "dPhiPllMet", "dPhiPllMet", &dPhiPllMet, "F");
     double dphiISRI; CopyBranch(inputTree, BaselineTree, "dphiISRI", "dphiISRI", &dphiISRI, "D");
@@ -199,9 +204,12 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     Int_t nLep_base; CopyBranch(inputTree, BaselineTree, "nLep_base", "nLep_base", &nLep_base, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
+    float dPhiMetJet1; BaselineTree->Branch("dPhiMetJet1",&dPhiMetJet1,"dPhiMetJet1/F");
+    float dPhiMetJet2; BaselineTree->Branch("dPhiMetJet2",&dPhiMetJet2,"dPhiMetJet2/F");
+    float dPhiMetJet12Min; BaselineTree->Branch("dPhiMetJet12Min",&dPhiMetJet12Min,"dPhiMetJet12Min/F");
+
     // lepton angular distribution
-    vector<float> *Z_cm_lep_theta = new vector<float>;
-    BaselineTree->Branch("Z_cm_lep_theta","vector<float>",&Z_cm_lep_theta);
+    vector<float> *Z_cm_lep_theta = new vector<float>; BaselineTree->Branch("Z_cm_lep_theta","vector<float>",&Z_cm_lep_theta);
 
     //-----------------------------
     // loop over events
@@ -320,6 +328,15 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             Z_cm_lep_theta->push_back(l0_cm_4vec.Theta());
             Z_cm_lep_theta->push_back(l1_cm_4vec.Theta());
         }
+
+        TLorentzVector jet0_4vec, jet1_4vec, met_4vec;
+        jet0_4vec.SetPtEtaPhiM(jet_pT->at(0),jet_eta->at(0),jet_phi->at(0),0);
+        jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),0);
+        met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
+
+        dPhiMetJet1 = fabs(met_4vec.DeltaPhi(jet0_4vec));
+        dPhiMetJet2 = fabs(met_4vec.DeltaPhi(jet1_4vec));
+        dPhiMetJet12Min = min(dPhiMetJet1, dPhiMetJet2);
 
         BaselineTree->Fill();     
     }

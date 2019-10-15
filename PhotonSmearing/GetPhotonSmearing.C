@@ -5,11 +5,15 @@
 
 using namespace std;
 
-void GetPhotonSmearing(string label, string period, string channel, int smearing_method) {
+void GetPhotonSmearing(string period, string channel, string isData, int smearing_method) {
 
-    string isData = "MC";
-    if (period.find("data") != string::npos)
-        isData = "Data";
+    string label = "photon";
+    if (isData == "MC");
+        label = "SinglePhoton222";
+        if (period == "data15-16") period = "mc16a";
+        else if (period == "data17") period = "mc16cd";
+        else if (period == "data18") period = "mc16e";
+    }
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
@@ -120,6 +124,8 @@ void GetPhotonSmearing(string label, string period, string channel, int smearing
     float Rll; CopyBranch(inputTree, BaselineTree, "Rll", "Rll", &Rll, "F");
     float dPhiMetISR; CopyBranch(inputTree, BaselineTree, "dPhiMetISR", "dPhiMetISR", &dPhiMetISR, "F");
     float dPhiMetJet1; CopyBranch(inputTree, BaselineTree, "dPhiMetJet1", "dPhiMetJet1", &dPhiMetJet1, "F");
+    float dPhiMetJet2; CopyBranch(inputTree, BaselineTree, "dPhiMetJet2", "dPhiMetJet2", &dPhiMetJet2, "F");
+    float dPhiMetJet12Min; CopyBranch(inputTree, BaselineTree, "dPhiMetJet12Min", "dPhiMetJet12Min", &dPhiMetJet12Min, "F");
     float dPhiPjjMet; CopyBranch(inputTree, BaselineTree, "dPhiPjjMet", "dPhiPjjMet", &dPhiPjjMet, "F");
     float dPhiPllMet; CopyBranch(inputTree, BaselineTree, "dPhiPllMet", "dPhiPllMet", &dPhiPllMet, "F");
     double dphiISRI; CopyBranch(inputTree, BaselineTree, "dphiISRI", "dphiISRI", &dphiISRI, "D");

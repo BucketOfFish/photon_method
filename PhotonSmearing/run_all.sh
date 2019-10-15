@@ -2,24 +2,29 @@
 # source run_all.sh all
 # source run_all.sh ee
 # source run_all.sh MC
-# source run_all.sh mm Data
+# source run_all.sh data17
+# source run_all.sh mm data18 Data
 
 CHANNELS=("ee" "mm")
 TYPES=("Data" "MC")
+PERIODS=("data15-16" "data17" "data18")
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
         CHANNELS=( $1 )
+    elif [[ ${PERIODS[*]} =~ $(echo $1) ]]; then
+        PERIODS=( $1 )
     elif [[ ${TYPES[*]} =~ $(echo $1) ]]; then
         TYPES=( $1 )
     elif [ $1 != "all" ]; then
         echo "Unrecognized argument"
         return
     fi
-elif [ $# == 2 ]; then
-    if [[ ${CHANNELS[*]} =~ $(echo $1) ]] && [[ ${TYPES[*]} =~ $(echo $2) ]]; then
+elif [ $# == 3 ]; then
+    if [[ ${CHANNELS[*]} =~ $(echo $1) ]] && [[ ${PERIODS[*]} =~ $(echo $2) ]] && [[ ${TYPES[*]} =~ $(echo $3) ]]; then
         CHANNELS=( $1 )
-        TYPES=( $2 )
+        PERIODS=( $2 )
+        TYPES=( $3 )
     else
         echo "Unrecognized arguments"
         return
@@ -31,18 +36,11 @@ fi
 
 for CHANNEL in "${CHANNELS[@]}"
 do
-    for PHOTON in "${TYPES[@]}"
+    for TYPE in "${TYPES[@]}"
     do
-        if [ $PHOTON == "MC" ]; then
-            for PERIOD in "mc16a" "mc16cd" "mc16e"
-            do
-                root -l -b -q 'GetPhotonSmearing.C("SinglePhoton222","'$PERIOD'","'$CHANNEL'",0)'
-            done
-        else
-            for PERIOD in "data15-16" "data17" "data18"
-            do
-                root -l -b -q 'GetPhotonSmearing.C("photon","'$PERIOD'","'$CHANNEL'",0)'
-            done
-        fi
+        for PERIOD in "${PERIODS[@]}"
+        do
+            root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'",0)'
+        done
     done
 done
