@@ -5,10 +5,95 @@
 
 using namespace std;
 
-void GetPhotonSmearing(string period, string channel, string isData, int smearing_method) {
+TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
+
+    cout << "Getting Z lepton CM theta distribution histogram." << endl;
+    gStyle->SetOptStat(0);
+
+    //--- open files and create TChains
+    string mc_period = period;
+    if (mc_period == "data15-16") mc_period = "mc16a";
+    else if (mc_period == "data17") mc_period = "mc16cd";
+    else if (mc_period == "data18") mc_period = "mc16e";
+    string data_filename = ntuple_path + "bkg_data/" + period + "_bkg.root";
+    string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
+    string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
+    string zjets_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
+
+    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
+
+    if (data_or_mc == "Data") {
+        cout << "Opening data file    " << data_filename << endl;
+        tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
+        cout << "data entries         " << tch_data->GetEntries() << endl;
+        cout << "Opening ttbar file   " << tt_filename << endl;
+        tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
+        cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
+        cout << "Opening diboson file " << vv_filename << endl;
+        tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
+        cout << "diboson entries      " << tch_vv->GetEntries() << endl;
+    }
+    else {
+        cout << "Opening Z+jets file  " << zjets_filename << endl;
+        tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
+        cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
+    }
+
+    //--- modify event selections and weights
+    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
+    else {
+        cout << "Unrecognized channel! quitting   " << channel << endl;
+        exit(0);
+    }
+
+    if (TString(period).EqualTo("data17")){
+        TCut RunRange = TCut("RunNumber < 348000");  
+        cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
+        cuts::bkg_baseline *= RunRange;
+    }
+
+    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;
+    cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
+    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
+
+    //--- fill lep theta histograms
+    TH1F* hdata  = new TH1F("hdata", "", 30, 0, 3);
+    TH1F* htt    = new TH1F("htt", "", 30, 0, 3);
+    TH1F* hvv    = new TH1F("hvv", "", 30, 0, 3);
+    TH1F* hz     = new TH1F("hz", "", 30, 0, 3);
+    TH1F* histoG = new TH1F("histoG", "", 30, 0, 3);
+
+    if (data_or_mc == "Data") {
+        tch_data->Draw("Z_cm_lep_theta>>hdata", cuts::bkg_baseline, "goff");
+        tch_tt->Draw("Z_cm_lep_theta>>htt", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_vv->Draw("Z_cm_lep_theta>>hvv", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        cout << "data integral        " << hdata->Integral() << endl;
+        cout << "ttbar integral       " << htt->Integral() << endl;
+        cout << "diboson integral     " << hvv->Integral() << endl;
+    }
+    else {
+        tch_zjets->Draw("Z_cm_lep_theta>>hz", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        cout << "Z+jets integral      " << hz->Integral() << endl;
+    }
+
+    //--- return lep theta histogram
+    TH1F* histoZ;
+    if (data_or_mc == "Data") {
+        histoZ = (TH1F*) hdata->Clone("histoZ");
+        histoZ->Add(htt, -1.0);
+        histoZ->Add(hvv, -1.0);
+    }
+    else histoZ = (TH1F*) hz->Clone("histoZ");
+
+    return histoZ;
+}
+
+void GetPhotonSmearing(string period, string channel, string data_or_mc, int smearing_method) {
 
     string label = "photon";
-    if (isData == "MC");
+    if (data_or_mc == "MC") {
         label = "SinglePhoton222";
         if (period == "data15-16") period = "mc16a";
         else if (period == "data17") period = "mc16cd";
@@ -17,7 +102,7 @@ void GetPhotonSmearing(string period, string channel, string isData, int smearin
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
-    cout << "isData?         " << isData          << endl;
+    cout << "isData?         " << data_or_mc          << endl;
     cout << "smearing path   " << smearing_path   << endl;
     cout << "smearing method " << smearing_method << endl;
 
@@ -27,9 +112,9 @@ void GetPhotonSmearing(string period, string channel, string isData, int smearin
 
     TH1::SetDefaultSumw2();
 
-    string  infilename;
-    if (isData == "MC") infilename = ntuple_path + "g_mc/" + period + "_" + label + ".root";
-    else if (isData == "Data") infilename = ntuple_path + "g_data/" + period + "_" + label + ".root";
+    string infilename;
+    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + period + "_" + label + ".root";
+    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + period + "_" + label + ".root";
 
     TChain* inputTree = new TChain("BaselineTree");
     inputTree->Add( infilename.c_str() );
@@ -50,8 +135,8 @@ void GetPhotonSmearing(string period, string channel, string isData, int smearin
     if (smearing_method == 5) photon_tag = "DataSmear";
 
     string outfilename;
-    if (isData == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
-    if (isData == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
+    if (data_or_mc == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
+    if (data_or_mc == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -219,6 +304,22 @@ void GetPhotonSmearing(string period, string channel, string isData, int smearin
         float lumi = GetLumi(period);
         GetSmearingHistogram(channel, lumi, period, smearing_method);
     }
+
+    //-----------------------------
+    // Get Z lepton CM theta distribution
+    //-----------------------------
+
+    TH1F* h_lep_theta = GetLepThetaHistogram(period, channel, data_or_mc);
+    unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine lep_theta_generator(random_seed);
+    std::vector<int> lep_theta_count;
+    std::vector<float> lep_theta_boundaries;
+    for (int i=0; i<h_lep_theta->GetNbinsX(); i++) {
+        lep_theta_count.push_back(h_lep_theta->GetBinContent(i));
+        lep_theta_boundaries.push_back(h_lep_theta->GetBinLowEdge(i));
+    }
+    lep_theta_boundaries.push_back(h_lep_theta->GetBinLowEdge(h_lep_theta->GetNbinsX()) + h_lep_theta->GetBinWidth(h_lep_theta->GetNbinsX()));
+    std::discrete_distribution<int> lep_theta_distribution (lep_theta_count.begin(),lep_theta_count.end());
 
     //-----------------------------
     // something about convolution? who knows
@@ -431,8 +532,14 @@ void GetPhotonSmearing(string period, string channel, string isData, int smearin
                 //double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
                 //double lep_theta_cm = acos(numerator/denominator);
 
-                // Sin^3 sampling
-                lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
+                //// Sin^3 sampling
+                //lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
+
+                // Histogram sampling
+                int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
+                float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
+                float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
+                lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
 
                 // Split leptons in Z rest frame
                 TLorentzVector l0_cm_4vec, l1_cm_4vec;

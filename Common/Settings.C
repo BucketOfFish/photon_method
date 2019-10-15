@@ -2,7 +2,7 @@
 #define COMMON_SETTINGS
 
 std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/";
-std::string sampling_method = "Sin3Sampling";
+std::string sampling_method = "HistogramSampling";
 
 std::string ntuple_path =  sample_folder + "Ntuples/";
 std::string smearing_path = sample_folder + "/" + sampling_method + "/SmearedNtuples/";
