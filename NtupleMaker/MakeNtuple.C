@@ -22,14 +22,15 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     }
     float lumi = GetLumi(period);
 
-    string filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), sampleID.c_str()); 
-    if (isData) filename = Form("%s%s_merged_processed.root", pathToNtuples.c_str(), period.c_str()); 
+    string filename = Form("%s%s/%s_merged_processed.root", pathToNtuples.c_str(), period.c_str(), sampleID.c_str()); 
+    if (isData) filename = Form("%s/%s_merged_processed.root", pathToNtuples.c_str(), period.c_str()); 
     TFile* inputFile = TFile::Open(filename.c_str());
     string treeName = sampleID + "_NoSys";
     if (isData) {
        if (isPhoton) treeName = period;
        else treeName = "data";
     }
+    cout << treeName << endl;
     TTree* inputTree = (TTree*)inputFile->Get(treeName.c_str());
 
     cout << endl;
@@ -192,7 +193,6 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     int nJet20; CopyBranch(inputTree, BaselineTree, "nJet20", "nJet20", &nJet20, "I");
     float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
-    int lepIsPR; CopyBranch(inputTree, BaselineTree, "lepIsPR", "lepIsPR", &lepIsPR, "I");
 
     vector<float>* jet_m = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "vector<float>");
     vector<int>* lepFlavor = new vector<int>; CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "vector<int>");
@@ -331,11 +331,12 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
         TLorentzVector jet0_4vec, jet1_4vec, met_4vec;
         jet0_4vec.SetPtEtaPhiM(jet_pT->at(0),jet_eta->at(0),jet_phi->at(0),0);
-        jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),0);
+        if (jet_n > 1) jet1_4vec.SetPtEtaPhiM(jet_pT->at(1),jet_eta->at(1),jet_phi->at(1),0);
         met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
 
         dPhiMetJet1 = fabs(met_4vec.DeltaPhi(jet0_4vec));
-        dPhiMetJet2 = fabs(met_4vec.DeltaPhi(jet1_4vec));
+        if (jet_n > 1) dPhiMetJet2 = fabs(met_4vec.DeltaPhi(jet1_4vec));
+        else dPhiMetJet2 = 999;
         dPhiMetJet12Min = min(dPhiMetJet1, dPhiMetJet2);
 
         BaselineTree->Fill();     
