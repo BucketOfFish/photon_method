@@ -43,8 +43,9 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- modify event selections and weights
-    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
+    TCut reweight_region = cuts::reweight_region;
+    if (TString(channel).EqualTo("ee")) reweight_region += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) reweight_region += cuts::mm;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
@@ -53,12 +54,12 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     if (TString(period).EqualTo("data17")){
         TCut RunRange = TCut("RunNumber < 348000");  
         cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-        cuts::bkg_baseline *= RunRange;
+        reweight_region *= RunRange;
     }
 
-    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;
+    cout << "Z selection          " << reweight_region.GetTitle() << endl;
     cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
+    cout << "g selection          " << reweight_region.GetTitle() << endl;
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
 
     //--- fill reweighting histograms
@@ -69,19 +70,19 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
 
     if (data_or_mc == "Data") {
-        tch_data->Draw((reweight_var+">>hdata").c_str(), cuts::bkg_baseline, "goff");
-        tch_tt->Draw((reweight_var+">>htt").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        tch_vv->Draw((reweight_var+">>hvv").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_data->Draw((reweight_var+">>hdata").c_str(), reweight_region, "goff");
+        tch_tt->Draw((reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
+        tch_vv->Draw((reweight_var+">>hvv").c_str(), reweight_region*cuts::bkg_weight, "goff");
         cout << "data integral        " << hdata->Integral() << endl;
         cout << "ttbar integral       " << htt->Integral() << endl;
         cout << "diboson integral     " << hvv->Integral() << endl;
     }
     else {
-        tch_zjets->Draw((reweight_var+">>hz").c_str(), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+        tch_zjets->Draw((reweight_var+">>hz").c_str(), reweight_region*cuts::bkg_weight, "goff");
         cout << "Z+jets integral      " << hz->Integral() << endl;
     }
 
-    tch_photon->Draw((reweight_var+">>histoG").c_str(), cuts::photon_baseline*cuts::photon_weight, "goff");
+    tch_photon->Draw((reweight_var+">>histoG").c_str(), reweight_region*cuts::photon_weight, "goff");
     cout << "photon integral      " << histoG->Integral() << endl;
 
     //--- calculate reweighting ratios
@@ -158,13 +159,12 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
         if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         outputTree->GetEntry(i);
 
-        float gamma_var_truncated = gamma_var;
-        if(gamma_var_truncated < bins::reweighting_bins[0]) gamma_var_truncated = bins::reweighting_bins[0];
-        if(gamma_var_truncated > bins::reweighting_bins[bins::n_reweighting_bins]) gamma_var_truncated = bins::reweighting_bins[bins::n_reweighting_bins];
-        int ptbin = h_reweight->FindBin( gamma_var_truncated );
-
+        //float gamma_var_truncated = gamma_var;
+        //if(gamma_var_truncated < bins::reweighting_bins[0]) gamma_var_truncated = bins::reweighting_bins[0];
+        //if(gamma_var_truncated > bins::reweighting_bins[bins::n_reweighting_bins]) gamma_var_truncated = bins::reweighting_bins[bins::n_reweighting_bins];
         int var_bin = h_reweight->FindBin(gamma_var);
         reweight = h_reweight->GetBinContent(var_bin);
+
         b_reweight->Fill();
     }
 

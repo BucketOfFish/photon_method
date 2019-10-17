@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photon_data_or_mc="Data", string additional_cut="1") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photon_data_or_mc="Data", string region="SR", string additional_cut="1") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -51,19 +51,33 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    cuts::bkg_baseline += TCut(additional_cut.c_str());
-    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
-    else if (TString(channel).EqualTo("em")) cuts::bkg_baseline += cuts::em;
+    TCut plot_region;
+    if (region == "CR") plot_region = cuts::CR;
+    else if (region == "VR") plot_region = cuts::VR;
+    else if (region == "SR") plot_region = cuts::SR;
+    else if (region == "VRcom") plot_region = cuts::VRcom;
+    else if (region == "SRZ2016") plot_region = cuts::SRZ2016;
+    else if (region == "SRlow2016") plot_region = cuts::SRlow2016;
+    else if (region == "SRmed2016") plot_region = cuts::SRmed2016;
+    else if (region == "SRhigh2016") plot_region = cuts::SRhigh2016;
+    else {
+        cout << "Unrecognized region! Exiting." << endl;
+        exit(0);
+    }
+
+    if (additional_cut != "1") plot_region += TCut(additional_cut.c_str());
+    if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
+    else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
-    cuts::photon_baseline += TCut(additional_cut.c_str());
+    plot_region += TCut(additional_cut.c_str());
 
-    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;  
+    cout << "Z selection          " << plot_region.GetTitle() << endl;  
     cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
+    cout << "g selection          " << plot_region.GetTitle() << endl;
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
     cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
 
@@ -87,8 +101,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
     else if (plot_feature == "MT2") plot_settings = std::make_tuple("m_{T2} [GeV]", 20, 0, 200);
     else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPT[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPT[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
+    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
+    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 30, -3, 3);
     else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 30, -3, 3);
     else if (plot_feature == "DPhi_METJet1") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
@@ -114,13 +128,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
 
     //--- draw histograms
-    tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), cuts::bkg_baseline, "goff");
-    tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-    tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
+    tch_zdata->Draw(Form("%s>>h_zdata", plot_feature.c_str()), plot_region, "goff");
+    tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
+    tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
     if (!DF) {
-        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), cuts::photon_baseline*cuts::photon_weight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), cuts::photon_baseline*cuts::photon_weight_rw, "goff");
+        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), plot_region*cuts::photon_weight, "goff");
+        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), plot_region*cuts::photon_weight_rw, "goff");
     }
 
     cout << "" << endl;
@@ -142,12 +156,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
     TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
 
-    tch_zdata->Draw("0.5>>h_zdata_cr", cuts::bkg_baseline+cuts::CR, "goff");
-    tch_tt-> Draw("0.5>>h_tt_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
-    tch_vv-> Draw("0.5>>h_vv_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
-    tch_zmc->Draw("0.5>>h_zmc_cr", (cuts::bkg_baseline+cuts::CR)*cuts::bkg_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_cr", (cuts::photon_baseline+cuts::CR)*cuts::photon_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_reweighted_cr", (cuts::photon_baseline+cuts::CR)*cuts::photon_weight_rw, "goff");
+    tch_zdata->Draw("0.5>>h_zdata_cr", cuts::CR, "goff");
+    tch_tt-> Draw("0.5>>h_tt_cr", cuts::CR*cuts::bkg_weight, "goff");
+    tch_vv-> Draw("0.5>>h_vv_cr", cuts::CR*cuts::bkg_weight, "goff");
+    tch_zmc->Draw("0.5>>h_zmc_cr", cuts::CR*cuts::bkg_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_cr", cuts::CR*cuts::photon_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_reweighted_cr", cuts::CR*cuts::photon_weight_rw, "goff");
 
     float SF = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
     float SFrw = (h_zdata_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
@@ -310,8 +324,5 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     //--- save plot
-    if (additional_cut == "1")
-        can->Print(Form("%s/%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), ("photon-"+photon_data_or_mc).c_str()));
-    else
-        can->Print(Form("%s/%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), additional_cut.c_str(), ("photon-"+photon_data_or_mc).c_str()));
+    can->Print(Form("%s/%s_%s_%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str(), ("photon-"+photon_data_or_mc).c_str(), additional_cut.c_str()));
 }

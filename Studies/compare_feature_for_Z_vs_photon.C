@@ -8,13 +8,13 @@ using namespace std;
 //--- root -l -b -q 'compare_feature_for_Z_vs_photon.C("mc16a", "ee", "inclusive", "non-uniform", "lepPt")'
 //--- 1. mc16a, mc16cd
 //--- 2. ee, mm
-//--- 3. inclusive, baseline
-//--- 4. non-uniform, uniform, Drell-Yan, sin3
+//--- 3. inclusive, baseline, VRcom
+//--- 4. non-uniform, uniform, Drell-Yan, sin3, histogram
 //--- 5. lepPt, lepEta, lepPhi, MT2, mll, Ptll
 
 //--- Compare photon vs. Z feature distributions for different types of angular distributions
 
-void compare_feature_for_Z_vs_photon(string mc_period, string channel, string selection, string distribution, string feature) {
+void compare_feature_for_Z_vs_photon(string mc_period, string channel, string region, string distribution, string feature) {
 
     gStyle->SetOptStat(0);
 
@@ -25,6 +25,7 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     else if (distribution == "uniform") distribution_folder = "UniformSampling";
     else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
     else if (distribution == "sin3") distribution_folder = "Sin3Sampling";
+    else if (distribution == "histogram") distribution_folder = "HistogramSampling";
     string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/" + distribution_folder + "/ReweightedNtuples/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
@@ -33,8 +34,9 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
 
     //--- set up event selections
     TCut Zselection, gselection;
-    if (selection == "inclusive") { Zselection = TCut("1"); gselection = TCut("1"); }
-    else if (selection == "baseline") { Zselection = cuts::bkg_baseline; gselection = cuts::photon_baseline; }
+    if (region == "inclusive") { Zselection = TCut("1"); gselection = TCut("1"); }
+    else if (region == "baseline") { Zselection = cuts::bkg_baseline; gselection = cuts::photon_baseline; }
+    else if (region == "VRcom") { Zselection = cuts::VRcom; gselection = cuts::VRcom; }
     if (TString(channel).EqualTo("ee")) { Zselection += cuts::ee; gselection += cuts::ee; }
     else if (TString(channel).EqualTo("mm")) { Zselection += cuts::mm; gselection += cuts::mm; }
     else {
@@ -53,10 +55,10 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     else if (feature == "lepPhi") { x_label = "#phi_{#ell} [GeV]"; xmin = -TMath::Pi(); xmax = TMath::Pi(); }
     else if (feature == "mll") { x_label = "m_{#ell#ell} [GeV]"; xmin = 0; xmax = 200; }
     else if (feature == "MT2") { x_label = "MT2 [GeV]"; xmin = -500; xmax = 500; }
-    else if (feature == "Ptll") { x_label = "Pt_{#ell#ell} [GeV]"; xmin = 0; xmax = 300; }
+    else if (feature == "Ptll") { x_label = "Pt_{#ell#ell} [GeV]"; nbins = 60; xmin = 0; xmax = 300; }
 
     string plot_title = mc_period + " " + channel + " " + feature;
-    string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + selection + "_" + distribution + "_comparison.eps";
+    string save_title = "Plots/" + feature + "_" + mc_period + "_" + channel + "_" + region + "_" + distribution + "_comparison.eps";
 
     //--- create photon and Z histograms
     TH1F *h_zmc, *h_photon, *h_photon_rw;
@@ -70,11 +72,11 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     if (feature == "lepPhi") feature_string = "lep_phi";
 
     tch_zmc->Draw(Form("%s>>h_zmc", feature_string.c_str()), Zselection*cuts::bkg_weight, "goff");
-    //if (feature == "Ptll")
-        //tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
+    tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
     tch_photon->Draw(Form("%s>>h_photon_rw", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
-    float ymax = max(max(h_zmc->GetMaximum(), h_photon->GetMaximum()), h_photon_rw->GetMaximum()) * 1.1;
+    //float ymax = max(max(h_zmc->GetMaximum(), h_photon->GetMaximum()), h_photon_rw->GetMaximum()) * 1.1;
+    float ymax = max(h_zmc->GetMaximum(), h_photon_rw->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
     h_photon->GetYaxis()->SetRangeUser(0, ymax);
     h_photon_rw->GetYaxis()->SetRangeUser(0, ymax);
@@ -88,16 +90,18 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string se
     mainpad->Draw();
     mainpad->cd();
 
+    h_zmc->GetXaxis()->SetRange(0, h_zmc->GetNbinsX() + 1);
+    //h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
+    h_photon_rw->GetXaxis()->SetRange(0, h_photon_rw->GetNbinsX() + 1);
+
     h_zmc->Draw("hist");
-    //if (feature == "Ptll")
-        //h_photon->Draw("samehist");
+    //h_photon->Draw("samehist");
     h_photon_rw->Draw("samehist");
 
     //--- draw legend
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-    //if (feature == "Ptll")
-        //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
+    //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
     leg->AddEntry(h_photon_rw, "Z+jets (from reweighted #gamma+jets)", "f");
 
     leg->SetBorderSize(0);

@@ -53,14 +53,14 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 
     inputTree->SetBranchStatus("*", 0);
 
-    //--- triggers and weights
+    //--- MC weights
     Double_t genWeight; SetInputBranch(inputTree, "genWeight", &genWeight);
     Double_t eventWeight; SetInputBranch(inputTree, "eventWeight", &eventWeight);
     Double_t jvtWeight; SetInputBranch(inputTree, "jvtWeight", &jvtWeight);
     Double_t bTagWeight; SetInputBranch(inputTree, "bTagWeight", &bTagWeight);
     Double_t pileupWeight; SetInputBranch(inputTree, "pileupWeight", &pileupWeight);
     double totalWeight; BaselineTree->Branch("totalWeight",&totalWeight,"totalWeight/D");
-    //--- photon-only
+    //--- photon weights
 	int trigMatch_HLT_g15_loose_L1EM7; SetInputBranch(inputTree, "trigMatch_HLT_g15_loose_L1EM7", &trigMatch_HLT_g15_loose_L1EM7);
 	int trigMatch_HLT_g25_loose_L1EM15; SetInputBranch(inputTree, "trigMatch_HLT_g25_loose_L1EM15", &trigMatch_HLT_g25_loose_L1EM15);
 	int trigMatch_HLT_g35_loose_L1EM15; SetInputBranch(inputTree, "trigMatch_HLT_g35_loose_L1EM15", &trigMatch_HLT_g35_loose_L1EM15);
@@ -85,7 +85,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
 	float trigPrescale_HLT_g100_loose; SetInputBranch(inputTree, "trigPrescale_HLT_g100_loose", &trigPrescale_HLT_g100_loose);
 	float trigPrescale_HLT_g120_loose; SetInputBranch(inputTree, "trigPrescale_HLT_g120_loose", &trigPrescale_HLT_g120_loose);
 	float trigPrescale_HLT_g140_loose; SetInputBranch(inputTree, "trigPrescale_HLT_g140_loose", &trigPrescale_HLT_g140_loose);
-    //--- non-photon
+    //--- non-photon weights
     Double_t leptonWeight; SetInputBranch(inputTree, "leptonWeight", &leptonWeight);
     Double_t FFWeight; SetInputBranch(inputTree, "FFWeight", &FFWeight);
     bool trigMatch_1L2LTrigOR; SetInputBranch(inputTree, "trigMatch_1L2LTrigOR", &trigMatch_1L2LTrigOR);

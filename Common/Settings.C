@@ -16,9 +16,9 @@ namespace cuts {
 
     TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && lepIsoFCTight[0] && lepIsoFCTight[1]");
     TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
-    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType==0");
-    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && (PhotonConversionType==1 || PhotonConversionType==2)");
-    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && PhotonConversionType>=3");
+
+    //TCut reweight_region("nJet30>=2 && met_Et>100 && met_Et<200");
+    TCut reweight_region("nJet30>=2 && met_Et<200");
 
     TCut CR("met_Et<60.0");
     TCut VR("nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100");  
