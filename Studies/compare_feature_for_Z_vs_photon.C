@@ -26,7 +26,7 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string re
     else if (distribution == "Drell-Yan") distribution_folder = "DrellYanSampling_CorrectedBoostAngle";
     else if (distribution == "sin3") distribution_folder = "Sin3Sampling";
     else if (distribution == "histogram") distribution_folder = "HistogramSampling";
-    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/" + distribution_folder + "/ReweightedNtuples/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
+    string photon_filename = "/eos/user/m/mazhang/PhotonMethod/v1.7/Default/" + distribution_folder + "/ReweightedNtuples3/g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_NoSmear.root";
 
     //--- add files to TChain
     TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
@@ -36,6 +36,7 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string re
     TCut Zselection, gselection;
     if (region == "inclusive") { Zselection = TCut("1"); gselection = TCut("1"); }
     else if (region == "baseline") { Zselection = cuts::bkg_baseline; gselection = cuts::photon_baseline; }
+    else if (region == "reweight") { Zselection = cuts::reweight_region; gselection = cuts::reweight_region; }
     else if (region == "VRcom") { Zselection = cuts::VRcom; gselection = cuts::VRcom; }
     if (TString(channel).EqualTo("ee")) { Zselection += cuts::ee; gselection += cuts::ee; }
     else if (TString(channel).EqualTo("mm")) { Zselection += cuts::mm; gselection += cuts::mm; }
@@ -75,8 +76,10 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string re
     tch_photon->Draw(Form("%s>>h_photon", feature_string.c_str()), gselection*cuts::photon_weight, "goff");
     tch_photon->Draw(Form("%s>>h_photon_rw", feature_string.c_str()), gselection*cuts::photon_weight_rw, "goff");
 
-    //float ymax = max(max(h_zmc->GetMaximum(), h_photon->GetMaximum()), h_photon_rw->GetMaximum()) * 1.1;
-    float ymax = max(h_zmc->GetMaximum(), h_photon_rw->GetMaximum()) * 1.1;
+    h_photon->Scale(h_zmc->Integral()/h_photon->Integral());
+    h_photon_rw->Scale(h_zmc->Integral()/h_photon_rw->Integral());
+
+    float ymax = max(max(h_zmc->GetMaximum(), h_photon->GetMaximum()), h_photon_rw->GetMaximum()) * 1.1;
     h_zmc->GetYaxis()->SetRangeUser(0, ymax);
     h_photon->GetYaxis()->SetRangeUser(0, ymax);
     h_photon_rw->GetYaxis()->SetRangeUser(0, ymax);
@@ -91,17 +94,17 @@ void compare_feature_for_Z_vs_photon(string mc_period, string channel, string re
     mainpad->cd();
 
     h_zmc->GetXaxis()->SetRange(0, h_zmc->GetNbinsX() + 1);
-    //h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
+    h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
     h_photon_rw->GetXaxis()->SetRange(0, h_photon_rw->GetNbinsX() + 1);
 
     h_zmc->Draw("hist");
-    //h_photon->Draw("samehist");
+    h_photon->Draw("samehist");
     h_photon_rw->Draw("samehist");
 
     //--- draw legend
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-    //leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
+    leg->AddEntry(h_photon, "Z+jets (from #gamma+jets)", "f");
     leg->AddEntry(h_photon_rw, "Z+jets (from reweighted #gamma+jets)", "f");
 
     leg->SetBorderSize(0);
