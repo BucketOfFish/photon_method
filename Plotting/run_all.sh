@@ -6,15 +6,19 @@
 # source run_all.sh SR
 # source run_all.sh "Ptll>200"
 # source run_all.sh nJet30
+# source run_all.sh mm data18 MC
 # source run_all.sh mm data18 MC SR "HT>200"
 # source run_all.sh mm data18 MC VR "1" METt
 
 CHANNELS=("ee" "mm")
 PERIODS=("data15-16" "data17" "data18")
 TYPES=("Data" "MC")
-REGIONS=("CR" "VR" "SR" "VRcom" "SRZ2016" "SRlow2016" "SRmed2016" "SRhigh2016")
-CUTS=("1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400")
-FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "mll" "MT2")
+#REGIONS=("VR" "SR" "VRcom" "SRZ2016" "SRlow2016" "SRmed2016" "SRhigh2016")
+REGIONS=("VRcom" "SRZ2016")
+#CUTS=("1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400")
+CUTS=("1")
+#FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "mll" "MT2")
+FEATURES=("met_Et" "HT")
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -31,6 +35,15 @@ if [ $# == 1 ]; then
         REGIONS=( $1 )
     elif [ $1 != "all" ]; then
         echo "Unrecognized argument"
+        return
+    fi
+elif [ $# == 3 ]; then
+    if [[ ${CHANNELS[*]} =~ $(echo $1) ]] && [[ ${PERIODS[*]} =~ $(echo $2) ]] && [[ ${TYPES[*]} =~ $(echo $3) ]]; then
+        CHANNELS=( $1 )
+        PERIODS=( $2 )
+        TYPES=( $3 )
+    else
+        echo "Unrecognized arguments"
         return
     fi
 elif [ $# == 5 ]; then
@@ -67,11 +80,11 @@ do
     do
         for PHOTON in "${TYPES[@]}"
         do
-            for REGION in "${REGIONS[@]}"
+            for FEATURE in "${FEATURES[@]}"
             do
                 for CUT in "${CUTS[@]}"
                 do
-                    for FEATURE in "${FEATURES[@]}"
+                    for REGION in "${REGIONS[@]}"
                     do
                         sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","NoSmear","'$PHOTON'","'$REGION'","'$CUT'")'\'
                     done

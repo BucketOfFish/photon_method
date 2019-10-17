@@ -6,7 +6,7 @@ std::string sampling_method = "HistogramSampling";
 
 std::string ntuple_path =  sample_folder + "Ntuples/";
 std::string smearing_path = sample_folder + "/" + sampling_method + "/SmearedNtuples/";
-std::string reweighting_path = sample_folder + "/" + sampling_method + "/ReweightedNtuples/";
+std::string reweighting_path = sample_folder + "/" + sampling_method + "/ReweightedNtuples4/";
 std::string plots_path = sample_folder + "/" + sampling_method + "/Plots/";
 
 namespace cuts {
@@ -14,11 +14,13 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200 && lepIsoFCTight[0] && lepIsoFCTight[1]");
-    TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && met_Et<200");
+    TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1]");
+    TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
+    TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
     //TCut reweight_region("nJet30>=2 && met_Et>100 && met_Et<200");
-    TCut reweight_region("nJet30>=2 && met_Et<200");
+    //TCut reweight_region("nJet30>=2 && met_Et<200");
+    TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
     TCut CR("met_Et<60.0");
     TCut VR("nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100");  
@@ -53,8 +55,8 @@ namespace bins {
     double mll_bin[mll_bin_size+1] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
 
     //--- binning for reweighting and plotting - Ptll
-    const unsigned int n_reweighting_bins = 24;
-    double reweighting_bins[n_reweighting_bins+1] = {0, 20, 30, 35, 40, 45, 50, 55, 60, 70, 80, 100, 120, 140, 160, 180, 200, 220, 260, 280, 300, 350, 400, 600, 1000};
+    const unsigned int n_reweighting_bins = 25;
+    double reweighting_bins[n_reweighting_bins+1] = {0, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 100, 120, 140, 160, 180, 200, 220, 260, 280, 300, 350, 400, 600, 1000};
 }
 
 #endif

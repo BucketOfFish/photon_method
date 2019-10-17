@@ -51,12 +51,6 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
         exit(0);
     }
 
-    if (TString(period).EqualTo("data17")){
-        TCut RunRange = TCut("RunNumber < 348000");  
-        cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-        reweight_region *= RunRange;
-    }
-
     cout << "Z selection          " << reweight_region.GetTitle() << endl;
     cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
     cout << "g selection          " << reweight_region.GetTitle() << endl;
