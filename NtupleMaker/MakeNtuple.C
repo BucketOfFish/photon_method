@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string photonOrBackground) {
+void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string photonOrBackground, bool makeTinySample=true) {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -216,8 +216,10 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     //-----------------------------
 
     Long64_t nentries = inputTree->GetEntries();
+    int everyNEntries = 1;
+    if (makeTinySample) everyNEntries = 100;
 
-    for (Long64_t i=0; i<nentries; i++) {
+    for (Long64_t i=0; i<nentries; i+=everyNEntries) {
 
         if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         inputTree->GetEntry(i);
@@ -268,7 +270,8 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             if (totalWeight==0) continue;
 
             if (!isData) {
-                totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
+                //totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
+                totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight;
                 if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
             }
 
@@ -277,7 +280,8 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
         }
         else {
             totalWeight = 1;
-            if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+            //if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+            if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * FFWeight;
         }
 
         //--- compute additional features
