@@ -3,6 +3,7 @@
 # source run_all.sh ee
 # source run_all.sh data17
 # source run_all.sh MC
+# source run_all.sh data18 MC
 # source run_all.sh mm data18 MC
 
 CHANNELS=("ee" "mm")
@@ -18,6 +19,14 @@ if [ $# == 1 ]; then
         TYPES=( $1 )
     elif [ $1 != "all" ]; then
         echo "Unrecognized argument"
+        return
+    fi
+elif [ $# == 2 ]; then
+    if [[ ${PERIODS[*]} =~ $(echo $1) ]] && [[ ${TYPES[*]} =~ $(echo $2) ]]; then
+        PERIODS=( $1 )
+        TYPES=( $2 )
+    else
+        echo "Unrecognized arguments"
         return
     fi
 elif [ $# == 3 ]; then

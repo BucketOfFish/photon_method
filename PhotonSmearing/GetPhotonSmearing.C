@@ -519,8 +519,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
                 double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
 
-                //// Naive sampling (incorrect)
-                //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+                // Naive sampling (incorrect)
+                double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 
                 //// Uniform sampling
                 //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
@@ -535,11 +535,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
                 //// Sin^3 sampling
                 //lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
 
-                // Histogram sampling
-                int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
-                float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
-                float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
-                lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
+                //// Histogram sampling
+                //int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
+                //float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
+                //float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
+                //lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
 
                 // Split leptons in Z rest frame
                 TLorentzVector l0_cm_4vec, l1_cm_4vec;
