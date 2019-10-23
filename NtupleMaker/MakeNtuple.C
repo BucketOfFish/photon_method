@@ -270,8 +270,8 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
             if (totalWeight==0) continue;
 
             if (!isData) {
-                //totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
-                totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight;
+                totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;
+                //totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight;
                 if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;
             }
 
@@ -280,8 +280,8 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
         }
         else {
             totalWeight = 1;
-            //if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
-            if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * FFWeight;
+            if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
+            //if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * FFWeight;
         }
 
         //--- compute additional features
