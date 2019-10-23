@@ -54,6 +54,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     TCut plot_region;
     if (region == "CR") plot_region = cuts::CR;
     else if (region == "baseline") plot_region = cuts::baseline;
+    else if (region == "reweight") plot_region = cuts::reweight_region;
     else if (region == "VR") plot_region = cuts::VR;
     else if (region == "SR") plot_region = cuts::SR;
     else if (region == "VRcom") plot_region = cuts::VRcom;
@@ -215,6 +216,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     h_zmc->Add(h_tt); h_zmc->Add(h_vv);
     h_zmc->SetLineColor(2); h_zmc->SetLineWidth(1); h_zmc->SetLineStyle(7);
 
+    //--- turn on overflow bin
+    h_zmc->GetXaxis()->SetRange(0, h_zmc->GetNbinsX() + 1);
+    h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
+    h_photon_reweighted->GetXaxis()->SetRange(0, h_photon_reweighted->GetNbinsX() + 1);
+
     //--- make plots
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
@@ -229,8 +235,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
         mcstack->GetYaxis()->SetTitle("entries / bin");
 
         if( !DF ) {
-            h_photon->Draw("samehist");
             h_zmc->Draw("samehist");
+            h_photon->Draw("samehist");
         }
         h_data->SetLineColor(1); h_data->SetLineWidth(2); h_data->SetMarkerStyle(20);
         h_data->Draw("sameE1");
