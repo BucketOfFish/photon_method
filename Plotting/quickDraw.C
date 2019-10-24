@@ -257,16 +257,16 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     if (photon_data_or_mc == "Data") {
         leg->AddEntry(h_data,"data","lp");
         if(!DF){
-            leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
             leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
+            leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
             leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
         }
         leg->AddEntry(h_vv, "VV", "f");
         leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
     }
     else {
-        leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
         leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
+        leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
         leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
     }
 

@@ -1,7 +1,7 @@
 #ifndef COMMON_SETTINGS
 #define COMMON_SETTINGS
 
-std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TinySamples_NoPileupWeight/";
+std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TinySamples/";
 std::string sampling_method = "NaiveSampling";
 
 std::string ntuple_path =  sample_folder + "Ntuples/";
