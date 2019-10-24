@@ -162,9 +162,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     tch_data->Draw("0.5>>h_data_cr", current_CR*cuts::bkg_weight, "goff");
     tch_tt-> Draw("0.5>>h_tt_cr", current_CR*cuts::bkg_weight, "goff");
     tch_vv-> Draw("0.5>>h_vv_cr", current_CR*cuts::bkg_weight, "goff");
-    tch_zmc->Draw("0.5>>h_zmc_cr", curent_CR*cuts::bkg_weight, "goff");
+    tch_zmc->Draw("0.5>>h_zmc_cr", current_CR*cuts::bkg_weight, "goff");
     tch_photon->Draw("0.5>>h_photon_cr", current_CR*cuts::photon_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_reweighted_cr", curent_CR*cuts::photon_weight_rw, "goff");
+    tch_photon->Draw("0.5>>h_photon_reweighted_cr", current_CR*cuts::photon_weight_rw, "goff");
 
     float SF = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
     float SFrw = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
