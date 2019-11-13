@@ -103,12 +103,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
     else if (plot_feature == "MT2") plot_settings = std::make_tuple("m_{T2} [GeV]", 20, 0, 200);
     else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("#ell_{p_{T},1} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("#ell_{p_{T},2} [GeV]", 20, 0, 100);
-    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("#ell_{p_{T},1} [GeV]", 30, -3, 3);
-    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("#ell_{p_{T},2} [GeV]", 30, -3, 3);
-    else if (plot_feature == "DPhi_METLepLeading") plot_settings = std::make_tuple("#Delta#phi(#ell_{1},E_{T}^{miss})", 20, 0, 3.14);
-    else if (plot_feature == "DPhi_METLepSecond") plot_settings = std::make_tuple("#Delta#phi(#ell_{2},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 20, 0, 200);
+    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 20, 0, 100);
+    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 30, -3, 3);
+    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 30, -3, 3);
+    else if (plot_feature == "DPhi_METLepLeading") plot_settings = std::make_tuple("#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "DPhi_METLepSecond") plot_settings = std::make_tuple("#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
     else {
         cout << "Error! unrecognized variable, need to set binning, quitting! " << plot_feature << endl;
         exit(0);
@@ -197,9 +197,6 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
-    //--- set plot title
-    TString plotName = formatted_feature + " in " + region;
-
     //--- create MC stack
     THStack *mcstack = new THStack("mcstack", "");
 
@@ -222,9 +219,17 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
     h_photon_reweighted->GetXaxis()->SetRange(0, h_photon_reweighted->GetNbinsX() + 1);
 
-    //--- make plots
+    //--- draw title
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
+    TPad* namepad = new TPad("namepad","namepad",0.0,0.0,1.0,1.0);
+    namepad->Draw();
+    namepad->cd();
+    TString plotName = formatted_feature + " in " + region;
+    TH1F *h_name = new TH1F("h_name", plotName, nbins, xmin, xmax);
+    h_name->Draw();
+
+    //--- draw plot
     TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
     mainpad->Draw();
     mainpad->cd();
@@ -281,12 +286,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     if (photon_data_or_mc == "Data") {
         if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
         if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
-        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"?? fb^{-1} 2018 data");
+        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"60 fb^{-1} 2018 data");
     }
     else {
         if(TString(mc_period).Contains("mc16a")) tex->DrawLatex(0.6,0.61,"MC16a");
         if(TString(mc_period).Contains("mc16cd")) tex->DrawLatex(0.6,0.61,"MC16cd");
-        if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16cd");
+        if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16e");
     }
     if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
     if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
@@ -294,14 +299,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- draw ratio
     can->cd();
-    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.93);
+    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.905);
     ratio_pad->Draw();
     ratio_pad->cd();
     ratio_pad->SetGridy();
 
     TH1F* hratio;
     hratio = (TH1F*) h_data->Clone("hratio");
-    hratio->SetTitle(plotName);
     TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     hmctot->Add(h_tt);
     hmctot->Add(h_vv);
@@ -329,7 +333,6 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->SetMinimum(0.0);
     hratio->SetMaximum(2.0);
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
-    gStyle->SetTitleFontSize(0.1);
     hratio->Draw("E1");
 
     //--- save plot
