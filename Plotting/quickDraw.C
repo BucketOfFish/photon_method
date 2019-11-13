@@ -332,5 +332,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->Draw("E1");
 
     //--- save plot
-    can->Print(Form("%s/%s_%s_%s_%s_%s_%s_%s.eps", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str(), ("photon-"+photon_data_or_mc).c_str(), additional_cut.c_str()));
+    TString plot_name = Form("%s/%s_%s_%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str(), ("photon-"+photon_data_or_mc).c_str());
+    if (additional_cut != "1")
+        plot_name += additional_cut.c_str();
+    plot_name += ".eps";
+    can->Print(plot_name);
 }
