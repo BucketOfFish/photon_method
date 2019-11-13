@@ -103,18 +103,18 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
     else if (plot_feature == "MT2") plot_settings = std::make_tuple("m_{T2} [GeV]", 20, 0, 200);
     else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 20, 0, 100);
-    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("1^{st} lepton p_{T} [GeV]", 30, -3, 3);
-    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("2^{nd} lepton p_{T} [GeV]", 30, -3, 3);
-    else if (plot_feature == "DPhi_METJet1") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
-    else if (plot_feature == "DPhi_METJet2") plot_settings = std::make_tuple("#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("#ell_{p_{T},1} [GeV]", 20, 0, 200);
+    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("#ell_{p_{T},2} [GeV]", 20, 0, 100);
+    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("#ell_{p_{T},1} [GeV]", 30, -3, 3);
+    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("#ell_{p_{T},2} [GeV]", 30, -3, 3);
+    else if (plot_feature == "DPhi_METLepLeading") plot_settings = std::make_tuple("#Delta#phi(#ell_{1},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "DPhi_METLepSecond") plot_settings = std::make_tuple("#Delta#phi(#ell_{2},E_{T}^{miss})", 20, 0, 3.14);
     else {
         cout << "Error! unrecognized variable, need to set binning, quitting! " << plot_feature << endl;
         exit(0);
     }
 
-    string xtitle = std::get<0>(plot_settings);
+    TString formatted_feature = std::get<0>(plot_settings).c_str();
     int nbins = std::get<1>(plot_settings);
     float xmin = std::get<2>(plot_settings);
     float xmax = std::get<3>(plot_settings);
@@ -197,11 +197,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
     cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
 
+    //--- set plot title
+    TString plotName = formatted_feature + " in " + region;
+
     //--- create MC stack
-    string plotName = "default cuts";
-    if (additional_cut != "1") plotName += ("&&" + additional_cut);
-    boost::replace_all(plotName, "&&", " && ");
-    THStack *mcstack = new THStack("mcstack", plotName.c_str());
+    THStack *mcstack = new THStack("mcstack", "");
 
     h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
     h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
@@ -232,7 +232,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     if (photon_data_or_mc == "Data") {
         mcstack->Draw("hist");
-        mcstack->GetXaxis()->SetTitle(xtitle.c_str());
+        mcstack->GetXaxis()->SetTitle(formatted_feature);
         mcstack->GetYaxis()->SetTitle("entries / bin");
 
         if( !DF ) {
@@ -244,9 +244,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     }
     else {
         h_zmc->SetLineColor(1); h_zmc->SetFillColor(42); h_zmc->SetLineStyle(1);
-        h_zmc->GetXaxis()->SetTitle(xtitle.c_str());
+        h_zmc->GetXaxis()->SetTitle(formatted_feature);
         h_zmc->GetYaxis()->SetTitle("entries / bin");
-        h_zmc->SetTitle(plotName.c_str());
         h_zmc->Draw("hist");
         h_photon->Draw("samehist");
         h_photon_reweighted->SetLineWidth(1); h_photon_reweighted->SetFillStyle(0);
@@ -282,11 +281,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     if (photon_data_or_mc == "Data") {
         if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
         if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
+        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"?? fb^{-1} 2018 data");
     }
     else {
-        if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"MC16a");
-        if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"MC16cd");
-        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"MC16cd");
+        if(TString(mc_period).Contains("mc16a")) tex->DrawLatex(0.6,0.61,"MC16a");
+        if(TString(mc_period).Contains("mc16cd")) tex->DrawLatex(0.6,0.61,"MC16cd");
+        if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16cd");
     }
     if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
     if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
@@ -294,20 +294,20 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     //--- draw ratio
     can->cd();
-    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.8,1.0,1.0);
+    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.93);
     ratio_pad->Draw();
     ratio_pad->cd();
     ratio_pad->SetGridy();
 
     TH1F* hratio;
     hratio = (TH1F*) h_data->Clone("hratio");
+    hratio->SetTitle(plotName);
     TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     hmctot->Add(h_tt);
     hmctot->Add(h_vv);
 
     if (photon_data_or_mc == "MC") {
         hratio = (TH1F*) h_zmc->Clone("hratio");
-        hratio->SetTitle("");
         hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
     }
 
@@ -329,10 +329,15 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->SetMinimum(0.0);
     hratio->SetMaximum(2.0);
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
+    gStyle->SetTitleFontSize(0.1);
     hratio->Draw("E1");
 
     //--- save plot
-    TString plot_name = Form("%s/%s_%s_%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str(), ("photon-"+photon_data_or_mc).c_str());
+    TString plot_name;
+    if (photon_data_or_mc == "Data")
+        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str());
+    else
+        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), mc_period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str());
     if (additional_cut != "1")
         plot_name += additional_cut.c_str();
     plot_name += ".eps";
