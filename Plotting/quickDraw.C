@@ -86,10 +86,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     //--- set histogram binning
     std::tuple<string, int, float, float> plot_settings;
 
-    if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
-    else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 400);
-    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 25, -200, 300);
-    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 25, -200, 300);
+    if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 30, -150, 150);
+    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
     else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
@@ -99,12 +99,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "nJet30") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
     else if (plot_feature == "jet_n") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
     else if (plot_feature == "bjet_n") plot_settings = std::make_tuple("n_{b-jets}", 4, 0, 4);
-    else if (plot_feature == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 2000);
+    else if (plot_feature == "HT") plot_settings = std::make_tuple("H_{T}", 20, 0, 1000);
     else if (plot_feature == "mll") plot_settings = std::make_tuple("m_{ll} [GeV]", 30, 0, 300);
     else if (plot_feature == "MT2") plot_settings = std::make_tuple("m_{T2} [GeV]", 20, 0, 200);
     else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 20, 0, 100);
+    else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 20, 0, 300);
+    else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 20, 0, 200);
     else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 30, -3, 3);
     else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 30, -3, 3);
     else if (plot_feature == "DPhi_METLepLeading") plot_settings = std::make_tuple("#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
@@ -225,8 +225,10 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     TPad* namepad = new TPad("namepad","namepad",0.0,0.0,1.0,1.0);
     namepad->Draw();
     namepad->cd();
-    TString plotName = formatted_feature + " in " + region;
-    TH1F *h_name = new TH1F("h_name", plotName, nbins, xmin, xmax);
+    TString plot_title = formatted_feature + " in " + region;
+    if (additional_cut != "1")
+        plot_title += (", " + additional_cut).c_str();
+    TH1F *h_name = new TH1F("h_name", plot_title, nbins, xmin, xmax);
     h_name->Draw();
 
     //--- draw plot
@@ -342,7 +344,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else
         plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), mc_period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str());
     if (additional_cut != "1")
-        plot_name += additional_cut.c_str();
+        plot_name += ("_" + additional_cut).c_str();
     plot_name += ".eps";
     can->Print(plot_name);
 }
