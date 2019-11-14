@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string photonOrBackground, bool makeTinySample=true) {
+void MakeNtuple(string outputFolder, string period, string pathToNtuples, string sampleID, string photonOrBackground, int everyNEntries=10) {
 
     //---------------------------------------------
     // open input and output files, get TTrees
@@ -216,8 +216,6 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     //-----------------------------
 
     Long64_t nentries = inputTree->GetEntries();
-    int everyNEntries = 1;
-    if (makeTinySample) everyNEntries = 100;
 
     for (Long64_t i=0; i<nentries; i+=everyNEntries) {
 
