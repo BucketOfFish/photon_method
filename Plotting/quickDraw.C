@@ -105,10 +105,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     else if (plot_feature == "MT2W") plot_settings = std::make_tuple("m_{T2}^{W} [GeV]", 20, 0, 200);
     else if (plot_feature == "lepPt[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 20, 0, 300);
     else if (plot_feature == "lepPt[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 20, 0, 200);
-    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("lep_{p_{T},1} [GeV]", 30, -3, 3);
-    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("lep_{p_{T},2} [GeV]", 30, -3, 3);
+    else if (plot_feature == "lep_eta[0]") plot_settings = std::make_tuple("lep_{#eta,1} [GeV]", 30, -3, 3);
+    else if (plot_feature == "lep_eta[1]") plot_settings = std::make_tuple("lep_{#eta,2} [GeV]", 30, -3, 3);
     else if (plot_feature == "DPhi_METLepLeading") plot_settings = std::make_tuple("#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
     else if (plot_feature == "DPhi_METLepSecond") plot_settings = std::make_tuple("#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "dPhiMetJet1") plot_settings = std::make_tuple("#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "dPhiMetJet2") plot_settings = std::make_tuple("#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
+    else if (plot_feature == "dPhiMetJet12Min") plot_settings = std::make_tuple("#Delta#phi(jet_{min(1,2)},E_{T}^{miss})", 20, 0, 3.14);
     else {
         cout << "Error! unrecognized variable, need to set binning, quitting! " << plot_feature << endl;
         exit(0);
