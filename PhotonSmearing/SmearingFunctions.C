@@ -47,239 +47,104 @@ int RebinHistogram(TH1D* hist, int rebin) {
 }
 
 TH1D* z_metl[bins::smearing_bin_size];
-TH1D* z_metl_2j[bins::smearing_bin_size];
 TH1D* g_metl[bins::smearing_bin_size];
-TH1D* z_jetmetl[bins::smearing_bin_size];
+TH1D* z_onshell_metl[bins::smearing_bin_size];
 
-void GetSmearingHistogram(string ch, float lumi, string period, int smearing_method) {
-
-    // SMEARING METHODS:
-    // 0 : no smearing
-    // 4 : R21 MC smearing
-    // 5 : R21 data smearing
+void GetSmearingHistogram(string target_channel, float lumi, string period, int smearing_method) {
 
     cout << "GetSmearingHistogram : smearing_method " << smearing_method << endl;
 
     for (int bin=0;bin<bins::smearing_bin_size;bin++) {
         z_metl[bin] = new TH1D(TString("z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        z_metl_2j[bin] = new TH1D(TString("z_metl_2j_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        z_jetmetl[bin] = new TH1D(TString("z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        z_onshell_metl[bin] = new TH1D(TString("z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
         g_metl[bin] = new TH1D(TString("g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
     }
 
-    TH1D* hist_low_pt = new TH1D("hist_low_pt","",bins::smearing_bin_size,bins::pt_bins);
+    TH1D* pt_bins = new TH1D("pt_bins","",bins::smearing_bin_size,bins::pt_bins);
 
     //------------------------------------
-    // SMEARING METHOD 5: for R21 data
+    // SMEARING METHOD 0: no smearing
     //------------------------------------
 
-    if (smearing_method == 5) {  // R21 data-driven smearing function
-        std::cout << "Get smearing function from R21 data." << std::endl;
+    if (smearing_method == 0) return;
 
-        //--- smearing with R21 samples
-        string datafilename = ntuple_path + "zdata/" + period + "_merged_processed.root";
+    //------------------------------------
+    // SMEARING METHOD 4/5: for R21 MC/data
+    //------------------------------------
 
-        cout << "Opening data smearing file   : " << datafilename << endl;
-        TFile fZ( datafilename.c_str() );
+    std::cout << "Getting Z METl binned by pT." << std::endl;
 
-        TTree*  tZ              = (TTree*)fZ.Get("BaselineTree");
-        tZ->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
-        int jet_n; SetInputBranch(tZ, "nJet30" ,&jet_n);
-        int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
-        float gZ_pt; SetInputBranch(tZ, "Ptll" ,&gZ_pt);
-        //float HT; SetInputBranch(tZ, "HT" ,&HT);
-        float mll; SetInputBranch(tZ, "mll" ,&mll);
-        float METl; SetInputBranch(tZ, "METl" ,&METl);
-        int gchannel; SetInputBranch(tZ, "channel" ,&gchannel);
-        for (int entry=0;entry<tZ->GetEntries();entry++) {
-            tZ->GetEntry(entry);
-            if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
-            if( TString(ch).EqualTo("mm") && gchannel != 0 ) continue; // ee
-            if (gZ_pt<50.) continue;
-            int pt = hist_low_pt->FindBin(gZ_pt)-1;
-            if (jet_n!=1) continue;
-            if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METl,totalWeight);
-            if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METl,totalWeight);
-        }
+    TFile* data_file = new TFile((ntuple_path + "/bkg_data/" + period + "_bkg.root").c_str());
+    TFile* ttbar_mc_file = new TFile((ntuple_path + "/bkg_mc/" + period + "_ttbar.root").c_str());
+    TFile* diboson_mc_file = new TFile((ntuple_path + "/bkg_mc/" + period + "_diboson.root").c_str());
+    TFile* Z_mc_file = new TFile((ntuple_path + "/bkg_mc/" + period + "_Zjets.root").c_str());
 
-        //tZ->Close()
-        fZ.Close();
-
-        //--- smearing R21 samples
-        string mcperiod = "";
-        if( TString(period).EqualTo("data15-16") ) mcperiod = "ZMC16a/";
-        if( TString(period).EqualTo("data17")    ) mcperiod = "ZMC16cd/";
-
-        string ttfilename = ntuple_path + mcperiod + "ttbar_merged_processed.root";
-        cout << "Opening tt smearing file   : " << ttfilename << endl;
-        TFile ftt( ttfilename.c_str() );
-
-        TTree*  ttt              = (TTree*)ftt.Get("BaselineTree");
-        ttt->SetBranchStatus("*", 0);
-        SetInputBranch(ttt, "totalWeight" ,&totalWeight);
-        SetInputBranch(ttt, "nJet30" ,&jet_n);
-        SetInputBranch(ttt, "bjet_n" ,&bjet_n);
-        SetInputBranch(ttt, "Ptll" ,&gZ_pt);
-        //SetInputBranch(ttt, "HT" ,&HT);
-        SetInputBranch(ttt, "mll" ,&mll);
-        SetInputBranch(ttt, "METl" ,&METl);
-        SetInputBranch(ttt, "channel" ,&gchannel);
-        for (int entry=0;entry<ttt->GetEntries();entry++) {
-            ttt->GetEntry(entry);
-            if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
-            if( TString(ch).EqualTo("mm") && gchannel != 0 ) continue; // ee			
-            if (gZ_pt<50.) continue;
-            int pt = hist_low_pt->FindBin(gZ_pt)-1;
-            if (jet_n!=1) continue;
-            if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METl,-1.*lumi*totalWeight);
-            if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METl,-1.*lumi*totalWeight);
-        }
-        //ttt->Close();
-        ftt.Close();
-
-        // smearing with R21 samples
-        string vvfilename = ntuple_path + mcperiod + "diboson_merged_processed.root";
-        cout << "Opening VV smearing file   : " << vvfilename << endl;
-        TFile fvv( vvfilename.c_str() );
-
-        TTree*  tvv              = (TTree*)fvv.Get("BaselineTree");
-        tvv->SetBranchStatus("*", 0);
-        SetInputBranch(tvv, "totalWeight" ,&totalWeight);
-        SetInputBranch(tvv, "nJet30" ,&jet_n);
-        SetInputBranch(tvv, "bjet_n" ,&bjet_n);
-        SetInputBranch(tvv, "Ptll" ,&gZ_pt);
-        //SetInputBranch(tvv, "HT" ,&HT);
-        SetInputBranch(tvv, "mll" ,&mll);
-        SetInputBranch(tvv, "METl" ,&METl);
-        SetInputBranch(tvv, "channel" ,&gchannel);
-        for (int entry=0;entry<tvv->GetEntries();entry++) {
-            tvv->GetEntry(entry);
-            if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
-            if( TString(ch).EqualTo("mm") && gchannel != 0 ) continue; // ee
-            if (gZ_pt<50.) continue;
-            int pt = hist_low_pt->FindBin(gZ_pt)-1;
-            if (jet_n!=1) continue;
-            if (bjet_n!=0) continue;
-            z_metl[pt]->Fill(METl,-1.*lumi*totalWeight);
-            if (mll<90 || mll>92) continue;
-            z_jetmetl[pt]->Fill(METl,-1.*lumi*totalWeight);
-        }
-        //tvv->Close();
-        fvv.Close();
-
-        string gperiod = "";
-        if( TString(period).EqualTo("data15-16") ) gperiod = "data15-16";
-        if( TString(period).EqualTo("data17")    ) gperiod = "data17";
-
-        string gfilename = ntuple_path + "gdata/" + gperiod + "_merged_processed.root";
-
-        cout << "Opening photon smearing file   : " << gfilename << endl;
-        TFile fPhoton( gfilename.c_str() );
-
-        TTree*  tPhoton              = (TTree*)fPhoton.Get("BaselineTree");
-
-        cout << "Setting photon branches" << endl;
-        tPhoton->SetBranchStatus("*", 0);
-        SetInputBranch(tPhoton, "totalWeight" ,&totalWeight);
-        SetInputBranch(tPhoton, "jet_n" ,&jet_n);
-        SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
-        float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
-        //float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
-        //SetInputBranch(tPhoton, "HT" ,&HT);
-        SetInputBranch(tPhoton, "METl_raw" ,&METl);
-        cout << "Done setting photon branches" << endl;
-        for (int entry=0;entry<tPhoton->GetEntries();entry++) {
-            tPhoton->GetEntry(entry);
-            if (gamma_pt<50.) continue;
-            int pt = hist_low_pt->FindBin(gamma_pt)-1;
-            if (jet_n!=1) continue;
-            if (bjet_n!=0) continue;
-            g_metl[pt]->Fill(METl,totalWeight);
-        }
-        //tPhoton->Close();
-        fPhoton.Close();
+    vector<TFile*> contributing_files;
+    vector<int> file_weights;
+    if (smearing_method == 4) {
+        contributing_files = {Z_mc_file};
+        file_weights = {1};
+    }
+    else if (smearing_method == 5) {
+        contributing_files = {data_file, ttbar_mc_file, diboson_mc_file};
+        file_weights = {1, -1, -1};
     }
 
-    //------------------------------------
-    // SMEARING METHOD 4: for R21 MC
-    //------------------------------------
+    for (int i=0; i<contributing_files.size(); i++) {
+        TTree* tree = (TTree*)contributing_files[i]->Get("BaselineTree");
+        int weight = file_weights[i];
 
-    else if (smearing_method == 4) { // R21 MC-driven smearing function
+        tree->SetBranchStatus("*", 0);
+        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+        int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
+        int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
+        float ptll; SetInputBranch(tree, "Ptll", &ptll);
+        float mll; SetInputBranch(tree, "mll", &mll);
+        float METl; SetInputBranch(tree, "METl", &METl);
+        int channel; SetInputBranch(tree, "channel", &channel);
 
-        Float_t Z_ptD;
-        Float_t mllD;
-
-        std::cout << "Get smearing function from R21 MC." << std::endl;
-
-        string mcperiod = "";
-        if( TString(period).EqualTo("data15-16") ) mcperiod = "ZMC16a/";
-        if( TString(period).EqualTo("data17")    ) mcperiod = "ZMC16cd/";
-
-        string Zfilename = ntuple_path + mcperiod + "Zjets_merged_processed.root";
-
-        cout << "Opening Z+jets MC smearing file           : " << Zfilename << endl;
-
-        TFile fZ( Zfilename.c_str() );
-
-        TTree*  tZ = (TTree*)fZ.Get("BaselineTree");
-        tZ->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tZ, "totalWeight" ,&totalWeight);
-        int jet_n; SetInputBranch(tZ, "nJet30" ,&jet_n);
-        int bjet_n; SetInputBranch(tZ, "bjet_n" ,&bjet_n);
-        float gZ_pt; SetInputBranch(tZ, "Ptll" ,&gZ_pt);
-        float HT; SetInputBranch(tZ, "HT" ,&HT);
-        float mll; SetInputBranch(tZ, "mll" ,&mll);
-        float METl; SetInputBranch(tZ, "METl" ,&METl);
-        int gchannel; SetInputBranch(tZ, "channel" ,&gchannel);
-        for (int entry=0;entry<tZ->GetEntries();entry++) {
-            tZ->GetEntry(entry);
-
-            if( TString(ch).EqualTo("ee") && gchannel != 1 ) continue; // ee
-            if( TString(ch).EqualTo("mm") && gchannel != 0 ) continue; // ee			
-
-            if (Z_ptD<50.) continue;
-            int pt = hist_low_pt->FindBin(Z_ptD)-1;
-            if (jet_n==0) continue;
-            if (jet_n>=2) z_metl_2j[pt]->Fill(METl,totalWeight);
-            if (jet_n!=1) continue;
-
-            z_metl[pt]->Fill(METl,totalWeight);
-            //z_dpt[pt]->Fill(Z_truthPt-Z_pt,totalWeight);
-            if (mllD<90 || mllD>92) continue;
-            z_jetmetl[pt]->Fill(METl,totalWeight);
+        for (int entry=0; entry<tree->GetEntries(); entry++) {
+            tree->GetEntry(entry);
+            if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
+            if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
+            if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
+            int pt_bin = pt_bins->FindBin(ptll)-1;
+            z_metl[pt_bin]->Fill(METl, weight*totalWeight);
+            if (mll<90 || mll>92) continue;
+            z_onshell_metl[pt_bin]->Fill(METl, weight*totalWeight);
         }
-        fZ.Close();
-
-        string gmcfilename = ntuple_path + "gmc/SinglePhoton222_merged_processed.root";
-
-        cout << "Opening photon MC smearing file " << gmcfilename << endl;
-
-        TFile fPhoton( gmcfilename.c_str() );
-
-        TTree*  tPhoton              = (TTree*)fPhoton.Get("BaselineTree");
-        tPhoton->SetBranchStatus("*", 0);
-        SetInputBranch(tPhoton, "totalWeight" ,&totalWeight);
-        SetInputBranch(tPhoton, "jet_n" ,&jet_n);
-        SetInputBranch(tPhoton, "bjet_n" ,&bjet_n);
-        float gamma_pt; SetInputBranch(tPhoton, "gamma_pt" ,&gamma_pt);
-        //float gamma_ht; SetInputBranch(tPhoton, "gamma_ht" ,&gamma_ht);
-        SetInputBranch(tPhoton, "HT" ,&HT);
-        SetInputBranch(tPhoton, "METl_raw" ,&METl);
-        for (int entry=0;entry<tPhoton->GetEntries();entry++) {
-            tPhoton->GetEntry(entry);
-            if (gamma_pt<50.) continue;
-            int pt = hist_low_pt->FindBin(gamma_pt)-1;
-            if (jet_n==0) continue;
-            if (jet_n!=1) continue;
-            g_metl[pt]->Fill(METl,totalWeight);
-            //g_dpt[pt]->Fill(truthGamma_pt-gamma_pt,totalWeight);
-        }
-        fPhoton.Close();
     }
+
+    data_file->Close();
+    ttbar_mc_file->Close();
+    diboson_mc_file->Close();
+    Z_mc_file->Close();
+
+    //-- photon histogram
+
+    std::cout << "Getting photon METl binned by pT." << std::endl;
+
+    TFile* photon_file;
+    if (smearing_method == 4)
+        TFile* photon_file = new TFile((ntuple_path + "/bkg_mc/" + period + "_SinglePhoton222.root").c_str());
+    else if (smearing_method == 5)
+        TFile* photon_file = new TFile((ntuple_path + "/bkg_data/" + period + "_photon.root").c_str());
+
+    TTree* tree = (TTree*)photon_file->Get("BaselineTree");
+    tree->SetBranchStatus("*", 0);
+    double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+    int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
+    int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
+    float ptll; SetInputBranch(tree, "Ptll", &ptll);
+    float METl; SetInputBranch(tree, "METl", &METl);
+
+    for (int entry=0; entry<tree->GetEntries(); entry++) {
+        tree->GetEntry(entry);
+        if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
+        int pt_bin = pt_bins->FindBin(ptll)-1;
+        g_metl[pt]->Fill(METl, totalWeight);
+    }
+
+    photon_file->Close();
 
 }

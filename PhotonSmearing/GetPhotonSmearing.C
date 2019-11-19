@@ -258,51 +258,46 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     }
     if (smearing_method != 0) {
 
-        cout << "Prepare Mll histograms..." << endl;
-        cout << "Path is " << ntuple_path << endl;
-
-        string filename = ntuple_path + "/ZMC16a/Zjets_merged_processed.root";
-        cout << "Opening mll histo file : " << filename << endl;
-        TFile fZ(filename.c_str());
-        TTree* tZ = (TTree*)fZ.Get("BaselineTree");
+        cout << "Preparing Mll histograms..." << endl;
+        TFile* fZ;
+        if (data_or_mc == "MC") fZ = new TFile((ntuple_path + "/bkg_mc/" + period + "_Zjets.root").c_str());
+        if (data_or_mc == "Data") fZ = new TFile((ntuple_path + "/bkg_data/" + period + "_Zjets.root").c_str());
+        TTree* tZ = (TTree*)fZ->Get("BaselineTree");
 
         tZ->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tZ, "totalWeight", &totalWeight);
-        float METl; SetInputBranch(tZ, "METl", &METl);
-        int jet_n; SetInputBranch(tZ, "nJet30", &jet_n);
-        vector<float>* tZ_lep_pT = new vector<float>(10); SetInputBranch(tZ, "lepPt", &tZ_lep_pT);
-        int bjet_n; SetInputBranch(tZ, "bjet_n", &bjet_n);
-        float Z_pt; SetInputBranch(tZ, "Ptll", &Z_pt);
-        float mll; SetInputBranch(tZ, "mll", &mll);
-        int channel; SetInputBranch(tZ, "channel", &channel);
+        double Z_totalWeight; SetInputBranch(tZ, "totalWeight", &Z_totalWeight);
+        float Z_METl; SetInputBranch(tZ, "METl", &Z_METl);
+        int Z_jet_n; SetInputBranch(tZ, "nJet30", &Z_jet_n);
+        vector<float>* Z_lep_pT = new vector<float>(10); SetInputBranch(tZ, "lepPt", &Z_lep_pT);
+        int Z_bjet_n; SetInputBranch(tZ, "bjet_n", &Z_bjet_n);
+        float Z_ptll; SetInputBranch(tZ, "Ptll", &Z_ptll);
+        float Z_mll; SetInputBranch(tZ, "mll", &Z_mll);
+        int Z_channel; SetInputBranch(tZ, "channel", &Z_channel);
 
         for (int entry=0; entry<tZ->GetEntries(); entry++) {
             tZ->GetEntry(entry);
 
-            if( TString(channel).EqualTo("ee") && channel != 1 ) continue; // ee
-            if( TString(channel).EqualTo("mm") && channel != 0 ) continue; // ee
-            if (jet_n<2) continue;
-            if (tZ_lep_pT->at(0) < cuts::leading_lep_pt_cut) continue;
-            if (tZ_lep_pT->at(1) < cuts::second_lep_pt_cut) continue;
-            int pt_bin = hist_pt_bins->FindBin(Z_pt)-1;
-            int METl_bin = hist_METl_bins->FindBin(METl)-1;
-            if (METl_bin>=0 && pt_bin>=0) hist_Mll_dPt[pt_bin][METl_bin]->Fill(mll,totalWeight);
+            if( TString(channel).EqualTo("ee") && Z_channel != 1 ) continue; // ee
+            if( TString(channel).EqualTo("mm") && Z_channel != 0 ) continue; // ee
+            if (Z_jet_n<2) continue;
+            if (Z_lep_pT->at(0) < cuts::leading_lep_pt_cut) continue;
+            if (Z_lep_pT->at(1) < cuts::second_lep_pt_cut) continue;
+            int pt_bin = hist_pt_bins->FindBin(Z_ptll)-1;
+            int METl_bin = hist_METl_bins->FindBin(Z_METl)-1;
+            if (METl_bin>=0 && pt_bin>=0) hist_Mll_dPt[pt_bin][METl_bin]->Fill(Z_mll,Z_totalWeight);
         }
 
-        fZ.Close();
+        fZ->Close();
 
         for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
             for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
                 int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1], 0);
             }
         }
-    }
 
-    if (smearing_method != 0) {
-        cout << "Prepare smearing histograms..." << endl;
-        cout << "smearing_method    " << smearing_method << endl;
-        float lumi = GetLumi(period);
-        GetSmearingHistogram(channel, lumi, period, smearing_method);
+        //cout << "Prepare smearing histograms..." << endl;
+        //cout << "smearing_method    " << smearing_method << endl;
+        //GetSmearingHistogram(channel, period, smearing_method);
     }
 
     //-----------------------------
@@ -346,7 +341,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         TSpectrum pfinder;
         for (int bin=0;bin<bins::smearing_bin_size;bin++) {
             int rebin = RebinHistogram(z_metl[bin],0);
-            rebin = RebinHistogram(z_metl_2j[bin],rebin);
             rebin = RebinHistogram(g_metl[bin],rebin);
             rebin = RebinHistogram(g_metl_smear[bin],rebin);
             rebin = RebinHistogram(g_metl_smear_2j[bin],rebin);
@@ -375,7 +369,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
                 else g_smear_in[i] = 0.;
                 z_resp_in[i] = max(z_metl[bin]->GetBinContent(i+1),0.);
                 g_resp_in[i] = max(g_metl[bin]->GetBinContent(i+1),0.);
-                if (i<newbin/2) j_resp_in[i] = max(z_jetmetl[bin]->GetBinContent(i+1+newbin/2),0.);
+                if (i<newbin/2) j_resp_in[i] = max(z_onshell_metl[bin]->GetBinContent(i+1+newbin/2),0.);
                 else j_resp_in[i] = 0.;
             }
             pfinder.Deconvolution(z_smear_in,g_smear_in,newbin,1000,1,1.0);
@@ -446,9 +440,9 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         METt_smear = METt + photon_pt_smear_t;
         MET_smear = pow(METl_smear*METl_smear+METt_smear*METt_smear,0.5);
 
-        //--- recompute DPhi after smearing
         TLorentzVector met_4vec_smear;
         if (smearing_method != 0) {
+            //--- recompute DPhi after smearing
             float METtx = METt*TMath::Cos(gamma_phi_smear+TMath::Pi()/2.);
             float METty = METt*TMath::Sin(gamma_phi_smear+TMath::Pi()/2.);
             float METlx_smear = METl_smear*TMath::Cos(gamma_phi_smear);
@@ -461,14 +455,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
             if (gamma_pt>50. && jet_n==1) g_metl_smear[pt_smear_bin]->Fill(METl_smear,totalWeight);
             if (gamma_pt>50. && jet_n>=2) g_metl_smear_2j[pt_smear_bin]->Fill(METl_smear,totalWeight);
-        }
-        else {
-            met_4vec_smear.SetXYZM(METl, METt, 0, 0);
-            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt, METl_smear));
-        }
 
-        //--- translate photon pT to dilepton sum pT, and compute HTincl for photon events
-        if (smearing_method != 0) {
+            //--- translate photon pT to dilepton sum pT, and compute HTincl for photon events
             int photon_pt_smear_bin = hist_pt_bins->FindBin(gamma_pt_smear)-1;
             if (gamma_pt_smear>bins::pt_bins[bins::smearing_bin_size]) photon_pt_smear_bin = bins::smearing_bin_size-1;
             int MET_bin = hist_MET_bins->FindBin(MET_smear)-1;
@@ -483,6 +471,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
             }
         }
         else {
+            met_4vec_smear.SetXYZM(METl, METt, 0, 0);
+            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt, METl_smear));
             mll = 91.1876;
         }
 
@@ -518,8 +508,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
             double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
 
-            // Naive sampling (incorrect)
-            double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+            //// Naive sampling (incorrect)
+            //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 
             //// Uniform sampling
             //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
@@ -534,11 +524,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
             //// Sin^3 sampling
             //lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
 
-            //// Histogram sampling
-            //int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
-            //float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
-            //float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
-            //lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
+            // Histogram sampling
+            int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
+            float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
+            float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
+            lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
 
             // Split leptons in Z rest frame
             TLorentzVector l0_cm_4vec, l1_cm_4vec;
