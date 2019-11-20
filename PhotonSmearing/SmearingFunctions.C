@@ -52,26 +52,40 @@ int RebinHistogram(TH1D* hist, int rebin) {
     return rebin;
 }
 
-TH1D* z_metl[bins::smearing_bin_size];
-TH1D* g_metl[bins::smearing_bin_size];
-TH1D* z_onshell_metl[bins::smearing_bin_size];
+TH1D* hist_METl_bins = new TH1D("hist_METl_bins", "", bins::METl_bin_size, bins::METl_bins);
+TH1D* hist_pt_bins = new TH1D("hist_pt_bins", "", bins::smearing_bin_size, bins::pt_bins);
+TH1D* hist_MET_bins = new TH1D("hist_MET_bins", "", bins::smearing_bin_size, bins::MET_bins); //hist_MET_bins->SetStats(0);
 
-void GetSmearingHistogram(string target_channel, TString period, int smearing_method) {
+TH1D* hist_z_metl[bins::smearing_bin_size];
+TH1D* hist_g_metl[bins::smearing_bin_size];
+TH1D* hist_z_onshell_metl[bins::smearing_bin_size];
+TH1D* hist_z_mll_pt[bins::smearing_bin_size][bins::METl_bin_size];
+
+void FillHistograms(string target_channel, TString period, int smearing_method) {
 
     /**
-     * Fills global histograms z_metl, z_onshell_metl, and g_metl by getting Z or photon
-     * data and entering the METl feature into binned histograms.
+     * Fills global histograms hist_z_metl, hist_z_onshell_metl, hist_g_metl, and hist_z_mll_pt (2D)
+     * by getting Z or photon data and entering the relevant features into binned histograms.
      */
 
-    cout << "GetSmearingHistogram : smearing_method " << smearing_method << endl;
+    cout << "FillHistograms : smearing_method " << smearing_method << endl;
 
-    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-        z_metl[bin] = new TH1D(TString("z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        z_onshell_metl[bin] = new TH1D(TString("z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        g_metl[bin] = new TH1D(TString("g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+    for (int bin=0; bin<bins::smearing_bin_size; bin++) {
+        hist_z_metl[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_z_onshell_metl[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_g_metl[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
     }
 
-    TH1D* pt_bins = new TH1D("pt_bins","",bins::smearing_bin_size,bins::pt_bins);
+    for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
+        for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
+            hist_z_mll_pt[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
+        }
+    }
+
+    TH1D* hist_pt_bins = new TH1D("pt_bins","",bins::smearing_bin_size,bins::pt_bins);
+
+    TString mc_period = MCPeriod(period);
+    TString data_period = DataPeriod(period);
 
     //------------------------------------
     // SMEARING METHOD 0: no smearing
@@ -83,13 +97,9 @@ void GetSmearingHistogram(string target_channel, TString period, int smearing_me
     // SMEARING METHOD 4/5: for R21 MC/data
     //------------------------------------
 
-    std::cout << "Getting Z METl binned by pT." << std::endl;
+    std::cout << "Getting Z histograms binned by pT and METl." << std::endl;
 
-    TFile* data_file = new TFile(ntuple_path + "/bkg_data/" + period + "_bkg.root");
-    TString mc_period;
-    if (period == "data15-16") mc_period = "mc16a";
-    else if (period == "data17") mc_period = "mc16cd";
-    else if (period == "data18") mc_period = "mc16e";
+    TFile* data_file = new TFile(ntuple_path + "/bkg_data/" + data_period + "_bkg.root");
     TFile* ttbar_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_ttbar.root");
     TFile* diboson_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_diboson.root");
     TFile* Z_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_Zjets.root");
@@ -107,7 +117,7 @@ void GetSmearingHistogram(string target_channel, TString period, int smearing_me
 
     for (int i=0; i<contributing_files.size(); i++) {
         TTree* tree = (TTree*)contributing_files[i]->Get("BaselineTree");
-        int weight = file_weights[i];
+        int fileWeight = file_weights[i];
 
         tree->SetBranchStatus("*", 0);
         double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
@@ -117,16 +127,20 @@ void GetSmearingHistogram(string target_channel, TString period, int smearing_me
         float mll; SetInputBranch(tree, "mll", &mll);
         float METl; SetInputBranch(tree, "METl", &METl);
         int channel; SetInputBranch(tree, "channel", &channel);
+        vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
 
         for (int entry=0; entry<tree->GetEntries(); entry++) {
             tree->GetEntry(entry);
             if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
             if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
-            if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
-            int pt_bin = pt_bins->FindBin(ptll)-1;
-            z_metl[pt_bin]->Fill(METl, weight*totalWeight);
-            if (mll<90 || mll>92) continue;
-            z_onshell_metl[pt_bin]->Fill(METl, weight*totalWeight);
+            if (jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
+            int pt_bin = hist_pt_bins->FindBin(ptll)-1;
+            int METl_bin = hist_METl_bins->FindBin(METl)-1;
+            std::cout << pt_bin << std::endl;
+            hist_z_metl[pt_bin];
+            hist_z_metl[pt_bin]->Fill(METl, fileWeight*totalWeight);
+            if (mll>90 && mll<92) hist_z_onshell_metl[pt_bin]->Fill(METl, fileWeight*totalWeight);
+            if (METl_bin>=0 && pt_bin>=0) hist_z_mll_pt[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
         }
     }
 
@@ -137,13 +151,13 @@ void GetSmearingHistogram(string target_channel, TString period, int smearing_me
 
     //-- photon histogram
 
-    std::cout << "Getting photon METl binned by pT." << std::endl;
+    std::cout << "Getting photon histogram binned by pT." << std::endl;
 
     TFile* photon_file;
     if (smearing_method == 4)
         TFile* photon_file = new TFile(ntuple_path + "/g_mc/" + mc_period + "_SinglePhoton222.root");
     else if (smearing_method == 5)
-        TFile* photon_file = new TFile(ntuple_path + "/g_data/" + period + "_photon.root");
+        TFile* photon_file = new TFile(ntuple_path + "/g_data/" + data_period + "_photon.root");
 
     TTree* tree = (TTree*)photon_file->Get("BaselineTree");
     tree->SetBranchStatus("*", 0);
@@ -156,8 +170,8 @@ void GetSmearingHistogram(string target_channel, TString period, int smearing_me
     for (int entry=0; entry<tree->GetEntries(); entry++) {
         tree->GetEntry(entry);
         if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
-        int pt_bin = pt_bins->FindBin(ptll)-1;
-        g_metl[pt_bin]->Fill(METl, totalWeight);
+        int pt_bin = hist_pt_bins->FindBin(ptll)-1;
+        hist_g_metl[pt_bin]->Fill(METl, totalWeight);
     }
 
     photon_file->Close();
