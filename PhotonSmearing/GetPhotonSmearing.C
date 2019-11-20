@@ -241,6 +241,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     // get smearing histograms
     //-----------------------------
 
+    bins::init_binning_histograms();
     FillHistograms(channel, period, smearing_method);
 
     //-----------------------------
@@ -371,7 +372,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         float photon_pt_smear = 0;
         int pt_smear_bin = 0;
         if (smearing_method != 0) {
-            pt_smear_bin = hist_pt_bins->FindBin(gamma_pt)-1;
+            pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
             if (pt_smear_bin>=0) {
                 if (smear_final[pt_smear_bin]->Integral()>0) photon_pt_smear = smear_final[pt_smear_bin]->GetRandom() + shift[pt_smear_bin];
                 else photon_pt_smear = shift[pt_smear_bin];
@@ -405,14 +406,14 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
             if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smear,totalWeight);
 
             //--- translate photon pT to dilepton sum pT, and compute HTincl for photon events
-            int photon_pt_smear_bin = hist_pt_bins->FindBin(gamma_pt_smear)-1;
+            int photon_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smear)-1;
             if (gamma_pt_smear>bins::pt_bins[bins::smearing_bin_size]) photon_pt_smear_bin = bins::smearing_bin_size-1;
-            int MET_bin = hist_MET_bins->FindBin(MET_smear)-1;
+            int MET_bin = bins::hist_MET_bins->FindBin(MET_smear)-1;
             if (MET_bin > bins::MET_bins[bins::smearing_bin_size]) MET_bin = bins::smearing_bin_size-1;
 
             float photon_2LPt = 0;
             //HTincl = HT + photon_2LPt;
-            int METl_bin = hist_METl_bins->FindBin(METl_smear)-1;
+            int METl_bin = bins::hist_METl_bins->FindBin(METl_smear)-1;
             if (METl_bin>=0 && photon_pt_smear_bin>=0) {
                 if (hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->Integral()>0)
                     mll = hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->GetRandom();
