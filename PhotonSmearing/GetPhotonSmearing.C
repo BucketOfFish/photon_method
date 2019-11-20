@@ -11,14 +11,13 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
     gStyle->SetOptStat(0);
 
     //--- open files and create TChains
-    string mc_period = period;
-    if (mc_period == "data15-16") mc_period = "mc16a";
-    else if (mc_period == "data17") mc_period = "mc16cd";
-    else if (mc_period == "data18") mc_period = "mc16e";
     string data_filename = ntuple_path + "bkg_data/" + period + "_bkg.root";
-    string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
-    string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
-    string zjets_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
+    if (period == "data15-16") period = "mc16a";
+    else if (period == "data17") period = "mc16cd";
+    else if (period == "data18") period = "mc16e";
+    string tt_filename = ntuple_path + "bkg_mc/" + period + "_ttbar.root";
+    string vv_filename = ntuple_path + "bkg_mc/" + period + "_diboson.root";
+    string zjets_filename = ntuple_path + "bkg_mc/" + period + "_Zjets.root";
 
     TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
 
@@ -92,9 +91,7 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
 
 void GetPhotonSmearing(string period, string channel, string data_or_mc, int smearing_method) {
 
-    string label = "photon";
     if (data_or_mc == "MC") {
-        label = "SinglePhoton222";
         if (period == "data15-16") period = "mc16a";
         else if (period == "data17") period = "mc16cd";
         else if (period == "data18") period = "mc16e";
@@ -113,8 +110,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     TH1::SetDefaultSumw2();
 
     string infilename;
-    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + period + "_" + label + ".root";
-    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + period + "_" + label + ".root";
+    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + period + "_SinglePhoton222.root";
+    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + period + "_photon.root";
 
     TChain* inputTree = new TChain("BaselineTree");
     inputTree->Add( infilename.c_str() );
@@ -135,8 +132,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     if (smearing_method == 5) photon_tag = "DataSmear";
 
     string outfilename;
-    if (data_or_mc == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
-    if (data_or_mc == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_"+label+"_"+channel+"_"+photon_tag+".root"); 
+    if (data_or_mc == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_photon_"+channel+"_"+photon_tag+".root"); 
+    if (data_or_mc == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_SinglePhoton222_"+channel+"_"+photon_tag+".root"); 
 
     TFile* f = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -261,7 +258,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         cout << "Preparing Mll histograms..." << endl;
         TFile* fZ;
         if (data_or_mc == "MC") fZ = new TFile((ntuple_path + "/bkg_mc/" + period + "_Zjets.root").c_str());
-        if (data_or_mc == "Data") fZ = new TFile((ntuple_path + "/bkg_data/" + period + "_Zjets.root").c_str());
+        if (data_or_mc == "Data") fZ = new TFile((ntuple_path + "/bkg_data/" + period + "_bkg.root").c_str());
         TTree* tZ = (TTree*)fZ->Get("BaselineTree");
 
         tZ->SetBranchStatus("*", 0);
@@ -291,13 +288,13 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
         for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
             for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-                int rebin = RebinHistogram(hist_Mll_dPt[bin0][bin1], 0);
+                RebinHistogram(hist_Mll_dPt[bin0][bin1], 0);
             }
         }
 
-        //cout << "Prepare smearing histograms..." << endl;
-        //cout << "smearing_method    " << smearing_method << endl;
-        //GetSmearingHistogram(channel, period, smearing_method);
+        cout << "Prepare smearing histograms..." << endl;
+        cout << "smearing_method    " << smearing_method << endl;
+        GetSmearingHistogram(channel, period, smearing_method);
     }
 
     //-----------------------------
@@ -340,15 +337,17 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     if (smearing_method != 0) {
         TSpectrum pfinder;
         for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-            int rebin = RebinHistogram(z_metl[bin],0);
-            rebin = RebinHistogram(g_metl[bin],rebin);
-            rebin = RebinHistogram(g_metl_smear[bin],rebin);
-            rebin = RebinHistogram(g_metl_smear_2j[bin],rebin);
+
+            int rebin_factor = RebinHistogram(z_metl[bin],0);
+            RebinHistogram(g_metl[bin],rebin_factor);
+            RebinHistogram(g_metl_smear[bin],rebin_factor);
+            RebinHistogram(g_metl_smear_2j[bin],rebin_factor);
+            int newbin = 40000/rebin_factor;
+
             float gmetl_mean = g_metl[bin]->GetMean();
             float gmetl_rms = g_metl[bin]->GetRMS();
             float zmetl_mean = z_metl[bin]->GetMean();
             float zmetl_rms = z_metl[bin]->GetRMS();
-            int newbin = 40000/rebin;
             Float_t *smear = new Float_t[2*((newbin+1)/2+1)];
             Float_t *fft_re = new Float_t[newbin];
             Float_t *fft_im = new Float_t[newbin];
