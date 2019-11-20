@@ -1,6 +1,4 @@
 #include "../Common/Settings.C"
-#include "../Common/CommonLibraries.C"
-#include "../Common/CommonFunctions.C"
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace std;

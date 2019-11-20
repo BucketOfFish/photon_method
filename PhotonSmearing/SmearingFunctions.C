@@ -1,6 +1,4 @@
 #include "../Common/Settings.C"
-#include "../Common/CommonLibraries.C"
-#include "../Common/CommonFunctions.C"
 #include "MT2.h"
 
 int RebinHistogram(TH1D* hist, int rebin) {
