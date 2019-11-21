@@ -3,97 +3,10 @@
 
 using namespace std;
 
-TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
-
-    cout << "Getting Z lepton CM theta distribution histogram." << endl;
-    gStyle->SetOptStat(0);
-
-    //--- open files and create TChains
-    string data_filename = ntuple_path + "bkg_data/" + period + "_bkg.root";
-    if (period == "data15-16") period = "mc16a";
-    else if (period == "data17") period = "mc16cd";
-    else if (period == "data18") period = "mc16e";
-    string tt_filename = ntuple_path + "bkg_mc/" + period + "_ttbar.root";
-    string vv_filename = ntuple_path + "bkg_mc/" + period + "_diboson.root";
-    string zjets_filename = ntuple_path + "bkg_mc/" + period + "_Zjets.root";
-
-    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
-
-    if (data_or_mc == "Data") {
-        cout << "Opening data file    " << data_filename << endl;
-        tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
-        cout << "data entries         " << tch_data->GetEntries() << endl;
-        cout << "Opening ttbar file   " << tt_filename << endl;
-        tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-        cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
-        cout << "Opening diboson file " << vv_filename << endl;
-        tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
-        cout << "diboson entries      " << tch_vv->GetEntries() << endl;
-    }
-    else {
-        cout << "Opening Z+jets file  " << zjets_filename << endl;
-        tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
-        cout << "Z+jets entries       " << tch_zjets->GetEntries() << endl;
-    }
-
-    //--- modify event selections and weights
-    if (TString(channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
-    else {
-        cout << "Unrecognized channel! quitting   " << channel << endl;
-        exit(0);
-    }
-
-    if (TString(period).EqualTo("data17")){
-        TCut RunRange = TCut("RunNumber < 348000");  
-        cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-        cuts::bkg_baseline *= RunRange;
-    }
-
-    cout << "Z selection          " << cuts::bkg_baseline.GetTitle() << endl;
-    cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "g selection          " << cuts::photon_baseline.GetTitle() << endl;
-    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
-
-    //--- fill lep theta histograms
-    TH1F* hdata  = new TH1F("hdata", "", 30, 0, 3);
-    TH1F* htt    = new TH1F("htt", "", 30, 0, 3);
-    TH1F* hvv    = new TH1F("hvv", "", 30, 0, 3);
-    TH1F* hz     = new TH1F("hz", "", 30, 0, 3);
-    TH1F* histoG = new TH1F("histoG", "", 30, 0, 3);
-
-    if (data_or_mc == "Data") {
-        tch_data->Draw("Z_cm_lep_theta>>hdata", cuts::bkg_baseline, "goff");
-        tch_tt->Draw("Z_cm_lep_theta>>htt", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        tch_vv->Draw("Z_cm_lep_theta>>hvv", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        cout << "data integral        " << hdata->Integral() << endl;
-        cout << "ttbar integral       " << htt->Integral() << endl;
-        cout << "diboson integral     " << hvv->Integral() << endl;
-    }
-    else {
-        tch_zjets->Draw("Z_cm_lep_theta>>hz", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral      " << hz->Integral() << endl;
-    }
-
-    //--- return lep theta histogram
-    TH1F* histoZ;
-    if (data_or_mc == "Data") {
-        histoZ = (TH1F*) hdata->Clone("histoZ");
-        histoZ->Add(htt, -1.0);
-        histoZ->Add(hvv, -1.0);
-    }
-    else histoZ = (TH1F*) hz->Clone("histoZ");
-
-    return histoZ;
-}
-
 void GetPhotonSmearing(string period, string channel, string data_or_mc, int smearing_method) {
 
-    if (data_or_mc == "MC") {
-        if (period == "data15-16") period = "mc16a";
-        else if (period == "data17") period = "mc16cd";
-        else if (period == "data18") period = "mc16e";
-    }
+    TString data_period = DataPeriod(period);
+    TString mc_period = MCPeriod(period);
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
@@ -107,12 +20,12 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
     TH1::SetDefaultSumw2();
 
-    string infilename;
-    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + period + "_SinglePhoton222.root";
-    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + period + "_photon.root";
+    TString infilename;
+    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + mc_period + "_SinglePhoton222.root";
+    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + data_period + "_photon.root";
 
     TChain* inputTree = new TChain("BaselineTree");
-    inputTree->Add( infilename.c_str() );
+    inputTree->Add(infilename);
 
     cout << endl;
     cout << "Opening file           : " << infilename        << endl;
@@ -124,17 +37,18 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
     TH1::SetDefaultSumw2();
 
-    string photon_tag = "";
+    TString photon_tag = "";
     if (smearing_method == 0) photon_tag = "NoSmear";
     if (smearing_method == 4) photon_tag = "McSmear";
     if (smearing_method == 5) photon_tag = "DataSmear";
 
-    string outfilename;
-    if (data_or_mc == "Data") outfilename = TString(smearing_path+"g_data/"+period+"_photon_"+channel+"_"+photon_tag+".root"); 
-    if (data_or_mc == "MC") outfilename = TString(smearing_path+"g_mc/"+period+"_SinglePhoton222_"+channel+"_"+photon_tag+".root"); 
+    TString outfilename;
+    if (data_or_mc == "Data") outfilename = smearing_path+"g_data/"+data_period+"_photon_"+channel+"_"+photon_tag+".root"; 
+    if (data_or_mc == "MC") outfilename = smearing_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+"_"+photon_tag+".root";
 
-    TFile* f = new TFile(outfilename.c_str(), "recreate");          
+    TFile* outputFile = new TFile(outfilename, "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
+    BaselineTree->SetDirectory(outputFile);
 
     cout << endl;
     cout << "Create file           : " << outfilename << endl;
@@ -151,8 +65,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     float gamma_eta; CopyBranch(inputTree, BaselineTree, "gamma_eta", "Z_eta",  &gamma_eta, "F");
     float METl; CopyBranch(inputTree, BaselineTree, "METl_raw", "METl_raw", &METl, "F");
     float METt; CopyBranch(inputTree, BaselineTree, "METt_raw", "METt_raw", &METt, "F");
-    float METl_smear; BaselineTree->Branch("METl", &METl_smear, "METl/F");
-    float METt_smear; BaselineTree->Branch("METt", &METt_smear, "METt/F");
+    float METl_smeared; BaselineTree->Branch("METl", &METl_smeared, "METl/F");
+    float METt_smeared; BaselineTree->Branch("METt", &METt_smeared, "METt/F");
     float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
     float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
 
@@ -160,12 +74,12 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     vector<float>* jet_eta = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "vector<float>");
     vector<float>* jet_phi = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_phi", "jet_phi", &jet_phi, "vector<float>");
 
-    float gamma_pt_smear; BaselineTree->Branch("Ptll", &gamma_pt_smear, "Ptll/F");
-    float gamma_phi_smear; BaselineTree->Branch("Z_phi", &gamma_phi_smear, "Z_phi/F");
+    float gamma_pt_smeared; BaselineTree->Branch("Ptll", &gamma_pt_smeared, "Ptll/F");
+    float gamma_phi_smeared; BaselineTree->Branch("Z_phi", &gamma_phi_smeared, "Z_phi/F");
     int lep_n; BaselineTree->Branch("lep_n", &lep_n, "lep_n/I"); BaselineTree->Branch("nLep_signal", &lep_n, "nLep_signal/I"); BaselineTree->Branch("nLep_base", &lep_n, "nLep_base/I");
-    float MET_smear; BaselineTree->Branch("met_Et", &MET_smear, "met_Et/F");
-    float DPhi_METLepLeading_smear; BaselineTree->Branch("DPhi_METLepLeading", &DPhi_METLepLeading_smear, "DPhi_METLepLeading/F");
-    float DPhi_METLepSecond_smear; BaselineTree->Branch("DPhi_METLepSecond", &DPhi_METLepSecond_smear, "DPhi_METLepSecond/F");
+    float MET_smeared; BaselineTree->Branch("met_Et", &MET_smeared, "met_Et/F");
+    float DPhi_METLepLeading_smeared; BaselineTree->Branch("DPhi_METLepLeading", &DPhi_METLepLeading_smeared, "DPhi_METLepLeading/F");
+    float DPhi_METLepSecond_smeared; BaselineTree->Branch("DPhi_METLepSecond", &DPhi_METLepSecond_smeared, "DPhi_METLepSecond/F");
     float DPhi_METPhoton_smear; BaselineTree->Branch("DPhi_METPhoton", &DPhi_METPhoton_smear, "DPhi_METPhoton/F");
     float MT2W; BaselineTree->Branch("MT2W", &MT2W, "MT2W/F");
     float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
@@ -264,99 +178,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     // something about convolution? who knows
     //-----------------------------
 
-    TH1D* g_resp[bins::smearing_bin_size];
-    TH1D* z_resp[bins::smearing_bin_size];
-    TH1D* smear_fft_re[bins::smearing_bin_size];
-    TH1D* smear_fft_im[bins::smearing_bin_size];
-    TH1D* smear_fft_amp[bins::smearing_bin_size];
-    TH1D* smear_raw[bins::smearing_bin_size];
-    TH1D* smear_final[bins::smearing_bin_size];
-    float shift[bins::smearing_bin_size];
-    TH1D* hist_g_metl_smear[bins::smearing_bin_size];
-    TH1D* hist_g_metl_smear_2j[bins::smearing_bin_size];
-    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-        hist_g_metl_smear[bin] = new TH1D(TString("hist_g_metl_smear_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl_smear[bin]->SetStats(0);
-        hist_g_metl_smear_2j[bin] = new TH1D(TString("hist_g_metl_smear_2j_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl_smear_2j[bin]->SetStats(0);
-    }
-
-    if (smearing_method != 0) {
-        TSpectrum pfinder;
-        for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-
-            int rebin_factor = RebinHistogram(hist_z_metl[bin],0);
-            RebinHistogram(hist_g_metl[bin],rebin_factor);
-            RebinHistogram(hist_g_metl_smear[bin],rebin_factor);
-            RebinHistogram(hist_g_metl_smear_2j[bin],rebin_factor);
-            for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-                RebinHistogram(hist_z_mll_pt[bin][bin1], 0);
-            }
-            int newbin = 40000/rebin_factor;
-
-            float hist_gmetl_mean = hist_g_metl[bin]->GetMean();
-            float hist_gmetl_rms = hist_g_metl[bin]->GetRMS();
-            float hist_zmetl_mean = hist_z_metl[bin]->GetMean();
-            float hist_zmetl_rms = hist_z_metl[bin]->GetRMS();
-            Float_t *smear = new Float_t[2*((newbin+1)/2+1)];
-            Float_t *fft_re = new Float_t[newbin];
-            Float_t *fft_im = new Float_t[newbin];
-            Double_t *z_smear_in = new Double_t[newbin];
-            Double_t g_smear_in[newbin];
-            Double_t j_resp_in[newbin];
-            Double_t *z_resp_in = new Double_t[newbin];
-            Double_t *g_resp_in = new Double_t[newbin];
-            g_resp[bin] = new TH1D(TString("g_resp_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            z_resp[bin] = new TH1D(TString("z_resp_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            smear_raw[bin] = new TH1D(TString("smear_raw_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            smear_fft_re[bin] = new TH1D(TString("smear_fft_re_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            smear_fft_im[bin] = new TH1D(TString("smear_fft_im_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            smear_fft_amp[bin] = new TH1D(TString("smear_fft_amp_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-            for (int i=0;i<newbin;i++) {
-                z_smear_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
-                if (i<newbin/2) g_smear_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1+newbin/2),0.);
-                else g_smear_in[i] = 0.;
-                z_resp_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
-                g_resp_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1),0.);
-                if (i<newbin/2) j_resp_in[i] = max(hist_z_onshell_metl[bin]->GetBinContent(i+1+newbin/2),0.);
-                else j_resp_in[i] = 0.;
-            }
-            pfinder.Deconvolution(z_smear_in,g_smear_in,newbin,1000,1,1.0);
-            pfinder.Deconvolution(z_resp_in,j_resp_in,newbin,1000,1,1.0);
-            pfinder.Deconvolution(g_resp_in,j_resp_in,newbin,1000,1,1.0);
-            for (int i=0;i<newbin;i++) {
-                smear_raw[bin]->SetBinContent(i+1,z_smear_in[i]);
-                g_resp[bin]->SetBinContent(i+1,g_resp_in[i]);
-                z_resp[bin]->SetBinContent(i+1,z_resp_in[i]);
-                smear[i] = z_smear_in[i];
-            }
-            float smear_mean = smear_raw[bin]->GetMean();
-            float smear_rms = smear_raw[bin]->GetRMS();
-
-            for (int i=0;i<newbin;i++) {
-                if (hist_gmetl_rms/hist_zmetl_rms > 1.0) {
-                    smear_raw[bin]->SetBinContent(i+1,0.);
-                    smear[i] = 0.;
-                }
-                float smear_cut = 6.;
-                if (channel=="mm" && bins::pt_bins[bin]>=0) smear_cut = 7.;
-                if (abs(smear_raw[bin]->GetBinCenter(i+1)-smear_mean)/smear_rms>smear_cut) {
-                    smear_raw[bin]->SetBinContent(i+1,0.);
-                    smear[i] = 0.;
-                }
-            }
-
-            shift[bin] = -hist_g_metl[bin]->GetMean();
-        }
-
-        for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-            smear_final[bin] = new TH1D(TString("smear_final_")+TString::Itoa(bin,10),"",500,-1000,1000);
-            for (int i=0;i<500;i++) {
-                int which_bin = smear_raw[bin]->FindBin(smear_final[bin]->GetBinCenter(i+1));
-                smear_final[bin]->SetBinContent(i+1,smear_raw[bin]->GetBinContent(which_bin));
-            }
-        }
-    }
+    ConvolveAndSmear(channel, smearing_method);
 
     //-----------------------------
     // loop over events
@@ -370,50 +192,48 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
         //--- get random photon smearing values
         float photon_pt_smear = 0;
-        int pt_smear_bin = 0;
+        float photon_phi_smear = 0;
+        int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
         if (smearing_method != 0) {
-            pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
             if (pt_smear_bin>=0) {
-                if (smear_final[pt_smear_bin]->Integral()>0) photon_pt_smear = smear_final[pt_smear_bin]->GetRandom() + shift[pt_smear_bin];
-                else photon_pt_smear = shift[pt_smear_bin];
+                photon_pt_smear = shift[pt_smear_bin];
+                if (smear_final[pt_smear_bin]->Integral()>0) photon_pt_smear += smear_final[pt_smear_bin]->GetRandom();
             }
         }
-        float photon_phi_smear = 0;
 
-        //--- smear MET and photon variables (note signs in this section)
-        gamma_pt_smear = gamma_pt - photon_pt_smear;
-        gamma_phi_smear = gamma_phi - photon_phi_smear;
-        float photon_pt_smear_l = gamma_pt-gamma_pt_smear*TMath::Cos(photon_phi_smear);
-        float photon_pt_smear_t = -gamma_pt_smear*TMath::Sin(photon_phi_smear);
-        METl_smear = METl + photon_pt_smear_l;
-        METt_smear = METt + photon_pt_smear_t;
-        MET_smear = pow(METl_smear*METl_smear+METt_smear*METt_smear,0.5);
+        //--- use dPt to smear MET and photon pT (note signs in this section)
+        gamma_pt_smeared = gamma_pt - photon_pt_smear;
+        gamma_phi_smeared = gamma_phi - photon_phi_smear;
+        METl_smeared = METl + gamma_pt-gamma_pt_smeared*TMath::Cos(photon_phi_smear);
+        METt_smeared = METt - gamma_pt_smeared*TMath::Sin(photon_phi_smear);
+        MET_smeared = pow(METl_smeared*METl_smeared+METt_smeared*METt_smeared,0.5);
 
         TLorentzVector met_4vec_smear;
+        smearing_method = 0;
         if (smearing_method != 0) {
             //--- recompute DPhi after smearing
-            float METtx = METt*TMath::Cos(gamma_phi_smear+TMath::Pi()/2.);
-            float METty = METt*TMath::Sin(gamma_phi_smear+TMath::Pi()/2.);
-            float METlx_smear = METl_smear*TMath::Cos(gamma_phi_smear);
-            float METly_smear = METl_smear*TMath::Sin(gamma_phi_smear);
+            float METtx = METt*TMath::Cos(gamma_phi_smeared+TMath::Pi()/2.);
+            float METty = METt*TMath::Sin(gamma_phi_smeared+TMath::Pi()/2.);
+            float METlx_smear = METl_smeared*TMath::Cos(gamma_phi_smeared);
+            float METly_smear = METl_smeared*TMath::Sin(gamma_phi_smeared);
 
             met_4vec_smear.SetXYZM(METtx+METlx_smear,METty+METly_smear,0,0);
-            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt,METl_smear));
+            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt,METl_smeared));
             //int dphi_smear = hist_low_dphi->FindBin(DPhi_METPhoton_smear)-1;
             //if (dphi_smear>dphi_bin[smearing_bin_size]) dphi_smear = smearing_bin_size-1;
 
-            if (gamma_pt>50. && jet_n==1) hist_g_metl_smear[pt_smear_bin]->Fill(METl_smear,totalWeight);
-            if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smear,totalWeight);
+            if (gamma_pt>50. && jet_n==1) hist_g_metl_smear[pt_smear_bin]->Fill(METl_smeared,totalWeight);
+            if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smeared,totalWeight);
 
             //--- translate photon pT to dilepton sum pT, and compute HTincl for photon events
-            int photon_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smear)-1;
-            if (gamma_pt_smear>bins::pt_bins[bins::smearing_bin_size]) photon_pt_smear_bin = bins::smearing_bin_size-1;
-            int MET_bin = bins::hist_MET_bins->FindBin(MET_smear)-1;
+            int photon_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
+            if (gamma_pt_smeared>bins::pt_bins[bins::smearing_bin_size]) photon_pt_smear_bin = bins::smearing_bin_size-1;
+            int MET_bin = bins::hist_MET_bins->FindBin(MET_smeared)-1;
             if (MET_bin > bins::MET_bins[bins::smearing_bin_size]) MET_bin = bins::smearing_bin_size-1;
 
             float photon_2LPt = 0;
             //HTincl = HT + photon_2LPt;
-            int METl_bin = bins::hist_METl_bins->FindBin(METl_smear)-1;
+            int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
             if (METl_bin>=0 && photon_pt_smear_bin>=0) {
                 if (hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->Integral()>0)
                     mll = hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->GetRandom();
@@ -421,7 +241,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         }
         else {
             met_4vec_smear.SetXYZM(METl, METt, 0, 0);
-            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt, METl_smear));
+            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt, METl_smeared));
             mll = 91.1876;
         }
 
@@ -544,8 +364,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
         lep_n = 2;
         MT2W = ComputeMT2(l0_lab_4vec, l1_lab_4vec, met_4vec_smear, 0, 0).Compute();
-        DPhi_METLepLeading_smear = fabs(met_4vec_smear.DeltaPhi(l0_lab_4vec));
-        DPhi_METLepSecond_smear = fabs(met_4vec_smear.DeltaPhi(l1_lab_4vec));
+        DPhi_METLepLeading_smeared = fabs(met_4vec_smear.DeltaPhi(l0_lab_4vec));
+        DPhi_METLepSecond_smeared = fabs(met_4vec_smear.DeltaPhi(l1_lab_4vec));
         DR_2Lep = l0_lab_4vec.DeltaR(l1_lab_4vec);
 
         BaselineTree->Fill();
@@ -555,8 +375,9 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     // write tree and histograms
     //-----------------------------
 
+    outputFile->cd();
     BaselineTree->Write();
 
     cout << "done." << endl;
-    delete f;
+    delete outputFile;
 }
