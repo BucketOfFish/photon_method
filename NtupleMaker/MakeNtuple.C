@@ -105,7 +105,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
 
     //--- MET components, and DR and DPhi between objects
-    float MET_phi; SetInputBranch(inputTree, "met_Phi", &MET_phi);
+    float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "met_Phi", &MET_phi, "F");
     float MET, METl, METt;
     if (!isPhoton) {
         CopyBranch(inputTree, BaselineTree, "met_Et", "met_Et", &MET, "F");

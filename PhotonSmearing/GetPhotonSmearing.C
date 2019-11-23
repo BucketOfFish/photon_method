@@ -69,6 +69,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     float METt_smeared; BaselineTree->Branch("METt", &METt_smeared, "METt/F");
     float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
     float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
+    float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "met_Phi", &MET_phi, "F");
 
     vector<float>* jet_pT = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_pT", "jet_pT", &jet_pT, "vector<float>");
     vector<float>* jet_eta = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "vector<float>");
@@ -152,14 +153,15 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
     //-----------------------------
-    // get smearing histograms
+    // get smearing histograms and perform smearing
     //-----------------------------
 
     bins::init_binning_histograms();
     FillHistograms(channel, period, smearing_method);
+    ConvolveAndSmear(channel, smearing_method);
 
     //-----------------------------
-    // Get Z lepton CM theta distribution
+    // get Z lepton CM theta distribution
     //-----------------------------
 
     TH1F* h_lep_theta = GetLepThetaHistogram(period, channel, data_or_mc);
@@ -174,11 +176,19 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     lep_theta_boundaries.push_back(h_lep_theta->GetBinLowEdge(h_lep_theta->GetNbinsX()) + h_lep_theta->GetBinWidth(h_lep_theta->GetNbinsX()));
     std::discrete_distribution<int> lep_theta_distribution (lep_theta_count.begin(),lep_theta_count.end());
 
-    //-----------------------------
-    // something about convolution? who knows
-    //-----------------------------
+    //---------------------------------------------
+    // set channel and lepton flavors
+    //---------------------------------------------
 
-    ConvolveAndSmear(channel, smearing_method);
+    int flavor;
+    if (TString(channel).EqualTo("ee")) {
+        flavor = 1;
+        lepChannel = 1;
+    }
+    else if (TString(channel).EqualTo("mm")) {
+        flavor = 2;
+        lepChannel = 0;
+    }
 
     //-----------------------------
     // loop over events
@@ -190,72 +200,41 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
         inputTree->GetEntry(i);
 
-        //--- get random photon smearing values
-        float photon_pt_smear = 0;
-        float photon_phi_smear = 0;
+        //--- get random smearing values, then apply smearing (note signs)
+        float gamma_pt_smear = 0;
+        float gamma_phi_smear = 0;
         int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
         if (smearing_method != 0) {
             if (pt_smear_bin>=0) {
-                photon_pt_smear = shift[pt_smear_bin];
-                if (smear_final[pt_smear_bin]->Integral()>0) photon_pt_smear += smear_final[pt_smear_bin]->GetRandom();
+                gamma_pt_smear = shift[pt_smear_bin];
+                if (smear_final[pt_smear_bin]->Integral()>0) gamma_pt_smear += smear_final[pt_smear_bin]->GetRandom();
             }
         }
 
-        //--- use dPt to smear MET and photon pT (note signs in this section)
-        gamma_pt_smeared = gamma_pt - photon_pt_smear;
-        gamma_phi_smeared = gamma_phi - photon_phi_smear;
-        METl_smeared = METl + gamma_pt-gamma_pt_smeared*TMath::Cos(photon_phi_smear);
-        METt_smeared = METt - gamma_pt_smeared*TMath::Sin(photon_phi_smear);
-        MET_smeared = pow(METl_smeared*METl_smeared+METt_smeared*METt_smeared,0.5);
+        gamma_pt_smeared = gamma_pt - gamma_pt_smear;
+        gamma_phi_smeared = gamma_phi - gamma_phi_smear;
 
-        TLorentzVector met_4vec_smear;
-        smearing_method = 0;
-        if (smearing_method != 0) {
-            //--- recompute DPhi after smearing
-            float METtx = METt*TMath::Cos(gamma_phi_smeared+TMath::Pi()/2.);
-            float METty = METt*TMath::Sin(gamma_phi_smeared+TMath::Pi()/2.);
-            float METlx_smear = METl_smeared*TMath::Cos(gamma_phi_smeared);
-            float METly_smear = METl_smeared*TMath::Sin(gamma_phi_smeared);
+        TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
+        gamma_4vec.SetPtEtaPhiM(gamma_pt, 0, gamma_phi, 0);
+        gamma_smeared_4vec.SetPtEtaPhiM(gamma_pt_smeared, 0, gamma_phi_smeared, 0);
+        MET_4vec.SetPtEtaPhiM(MET_raw,0,MET_phi,0);
+        MET_smeared_4vec = MET_4vec + gamma_4vec - gamma_smeared_4vec;
 
-            met_4vec_smear.SetXYZM(METtx+METlx_smear,METty+METly_smear,0,0);
-            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt,METl_smeared));
-            //int dphi_smear = hist_low_dphi->FindBin(DPhi_METPhoton_smear)-1;
-            //if (dphi_smear>dphi_bin[smearing_bin_size]) dphi_smear = smearing_bin_size-1;
+        MET_smeared = MET_smeared_4vec.Pt();
+        DPhi_METPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
+        METl_smeared = MET_smeared * TMath::Cos(DPhi_METPhoton_smear);
+        METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
 
-            if (gamma_pt>50. && jet_n==1) hist_g_metl_smear[pt_smear_bin]->Fill(METl_smeared,totalWeight);
-            if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smeared,totalWeight);
+        if (gamma_pt>50. && jet_n==1) hist_g_metl_smear[pt_smear_bin]->Fill(METl_smeared,totalWeight);
+        if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smeared,totalWeight);
 
-            //--- translate photon pT to dilepton sum pT, and compute HTincl for photon events
-            int photon_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
-            if (gamma_pt_smeared>bins::pt_bins[bins::smearing_bin_size]) photon_pt_smear_bin = bins::smearing_bin_size-1;
-            int MET_bin = bins::hist_MET_bins->FindBin(MET_smeared)-1;
-            if (MET_bin > bins::MET_bins[bins::smearing_bin_size]) MET_bin = bins::smearing_bin_size-1;
-
-            float photon_2LPt = 0;
-            //HTincl = HT + photon_2LPt;
-            int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
-            if (METl_bin>=0 && photon_pt_smear_bin>=0) {
-                if (hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->Integral()>0)
-                    mll = hist_z_mll_pt[photon_pt_smear_bin][METl_bin]->GetRandom();
-            }
-        }
-        else {
-            met_4vec_smear.SetXYZM(METl, METt, 0, 0);
-            DPhi_METPhoton_smear = fabs(TMath::ATan2(METt, METl_smeared));
-            mll = 91.1876;
-        }
-
-        //---------------------------------------------
-        // set channel and lepton flavors
-        //---------------------------------------------
-        int flavor;
-        if( TString(channel).EqualTo("ee")) {
-            flavor = 1;
-            lepChannel = 1;
-        }
-        else if( TString(channel).EqualTo("mm")) {
-            flavor = 2;
-            lepChannel = 0;
+        int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
+        //if (gamma_pt_smeared>bins::pt_bins[bins::smearing_bin_size]) gamma_pt_smear_bin = bins::smearing_bin_size-1;
+        int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
+        mll = 91.1876;
+        if (METl_bin>=0 && gamma_pt_smear_bin>=0) {
+            if (hist_z_mll_pt[gamma_pt_smear_bin][METl_bin]->Integral()>0)
+                mll = hist_z_mll_pt[gamma_pt_smear_bin][METl_bin]->GetRandom();
         }
 
         //---------------------------------------------
@@ -266,7 +245,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
         TLorentzVector z_4vec;
         z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
-        //GetDijetVariables(z_4vec, met_4vec_smear, jet_pT, jet_eta, jet_phi, jet_m);
+        //GetDijetVariables(z_4vec, MET_smeared_4vec, jet_pT, jet_eta, jet_phi, jet_m);
 
         // boost along z axis (since we measure angles in CM relative to boost direction)
         TVector3 boost_vec_lab = z_4vec.BoostVector();
@@ -363,9 +342,9 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         }
 
         lep_n = 2;
-        MT2W = ComputeMT2(l0_lab_4vec, l1_lab_4vec, met_4vec_smear, 0, 0).Compute();
-        DPhi_METLepLeading_smeared = fabs(met_4vec_smear.DeltaPhi(l0_lab_4vec));
-        DPhi_METLepSecond_smeared = fabs(met_4vec_smear.DeltaPhi(l1_lab_4vec));
+        MT2W = ComputeMT2(l0_lab_4vec, l1_lab_4vec, MET_smeared_4vec, 0, 0).Compute();
+        DPhi_METLepLeading_smeared = fabs(MET_smeared_4vec.DeltaPhi(l0_lab_4vec));
+        DPhi_METLepSecond_smeared = fabs(MET_smeared_4vec.DeltaPhi(l1_lab_4vec));
         DR_2Lep = l0_lab_4vec.DeltaR(l1_lab_4vec);
 
         BaselineTree->Fill();
