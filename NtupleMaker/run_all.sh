@@ -6,7 +6,7 @@
 
 PERIODS=("data15-16" "data17" "data18")
 TYPES=("Data" "MC")
-EVERYNENTRIES=100
+EVERYNENTRIES=10
 
 if [ $# == 1 ]; then
     if [[ ${PERIODS[*]} =~ $(echo $1) ]]; then

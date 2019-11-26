@@ -9,6 +9,7 @@
 CHANNELS=("ee" "mm")
 PERIODS=("data15-16" "data17" "data18")
 TYPES=("Data" "MC")
+SMEARING="McSmear"
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -49,7 +50,7 @@ do
     do
         for TYPE in "${TYPES[@]}"
         do
-            root -l -b -q 'GetPhotonReweighting.C("'$PERIOD'","'$CHANNEL'","'$TYPE'","NoSmear","Ptll")'
+            root -l -b -q 'GetPhotonReweighting.C("'$PERIOD'","'$CHANNEL'","'$TYPE'","'$SMEARING'","Ptll")'
         done
     done
 done

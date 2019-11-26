@@ -203,69 +203,72 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
     return histoZ;
 }
 
-int RebinHistogram(TH1D* hist, int rebin) {
-
-    /**
-     * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd number of bins.
-     * This means having abs(negative_yield/positive_yield)<0.005 and core_yield/positive_yield<0.4.
-     * Else, rebin by #(rebin).
-     * Finally, set all negative bins of the histogram to 0.
-     * Return the final rebinning factor for the histogram.
-     */
-
-    float negative_yield = 0.; // sum of bins with negative values
-    float positive_yield = 0.; // sum of bins with positive values
-    float core_yield = 0.; // sum of bins within one sigma of axis center
-
-    if (rebin==0) {
-        rebin = 1;
-        for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-            if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-            else negative_yield += hist->GetBinContent(bin);
-        }
-        int has_odd_nbins = hist->GetNbinsX() % 2;
-        while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) && has_odd_nbins==0 && rebin<=32) {
-            hist->Rebin(2);
-            rebin = rebin*2;
-            has_odd_nbins = hist->GetNbinsX() % 2;
-            negative_yield = 0.;
-            positive_yield = 0.;
-            core_yield = 0.;
-            for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-                if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-                else negative_yield += hist->GetBinContent(bin);
-                if (abs(hist->GetBinCenter(bin)-hist->GetMean())<hist->GetRMS()) { // if this bin is within a sigma of the center of the axis
-                    core_yield += hist->GetBinContent(bin); // core_yield = 68% for a perfect Guassian
-                }
-            }
-        }
-    }
-    else {
-        // merge every #rebin bins into a single bin
-        hist->Rebin(rebin);
-    }
-
-    for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-        hist->SetBinContent(bin,max(hist->GetBinContent(bin),0.));
-    }
-
-    return rebin;
-}
-
-TH1D* smear_final[bins::smearing_bin_size];
-float shift[bins::smearing_bin_size];
-TH1D* hist_g_metl_smear[bins::smearing_bin_size];
-TH1D* hist_g_metl_smear_2j[bins::smearing_bin_size];
+float gamma_pt_mean_smear[bins::smearing_bin_size];
+TH1D* gamma_pt_additional_smear[bins::smearing_bin_size];
 
 void ConvolveAndSmear(string channel, int smearing_method) {
 
+    /**
+     * Fills global histograms gamma_pt_mean_smear and gamma_pt_additional_smear.
+     * Both histograms are binned by photon pt.
+     * gamma_pt_mean_smear is the mean amount by which we adjust pt for photons in each pt range.
+     * gamma_pt_additional_smear is a histogram for each bin, which is sampled from randomly.
+     */
+
     TH1D* smear_raw[bins::smearing_bin_size];
-    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-        hist_g_metl_smear[bin] = new TH1D(TString("hist_g_metl_smear_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl_smear[bin]->SetStats(0);
-        hist_g_metl_smear_2j[bin] = new TH1D(TString("hist_g_metl_smear_2j_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl_smear_2j[bin]->SetStats(0);
-    }
+
+    //------------------------------------
+    // REBINNING FUNCTION
+    //------------------------------------
+
+    auto RebinHistogram = [] (TH1D* hist, int rebin) {
+
+        /**
+         * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd number of bins.
+         * This means having abs(negative_yield/positive_yield)<0.005 and core_yield/positive_yield>0.4.
+         * Else, rebin by #(rebin).
+         * Finally, set all negative bins values in the histogram to 0.
+         * Return the final rebinning factor for the histogram.
+         */
+
+        float negative_yield = 0.; // sum of bins with negative values
+        float positive_yield = 0.; // sum of bins with positive values
+        float core_yield = 0.; // sum of bins within one sigma of axis center
+
+        if (rebin==0) {
+            rebin = 1;
+            for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+                if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+                else negative_yield += hist->GetBinContent(bin);
+            }
+            int has_odd_nbins = hist->GetNbinsX() % 2;
+            while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) && has_odd_nbins==0 && rebin<=32) {
+                hist->Rebin(2);
+                rebin = rebin*2;
+                has_odd_nbins = hist->GetNbinsX() % 2;
+                negative_yield = 0.;
+                positive_yield = 0.;
+                core_yield = 0.;
+                for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+                    if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+                    else negative_yield += hist->GetBinContent(bin);
+                    if (abs(hist->GetBinCenter(bin)-hist->GetMean())<hist->GetRMS()) { // if this bin is within a sigma of the center of the axis
+                        core_yield += hist->GetBinContent(bin); // core_yield = 68% for a perfect Guassian
+                    }
+                }
+            }
+        }
+        else {
+            // merge every #rebin bins into a single bin
+            hist->Rebin(rebin);
+        }
+
+        for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+            hist->SetBinContent(bin,max(hist->GetBinContent(bin),0.));
+        }
+
+        return rebin;
+    };
 
     //------------------------------------
     // SMEARING METHOD 0: no smearing
@@ -282,32 +285,33 @@ void ConvolveAndSmear(string channel, int smearing_method) {
 
         int rebin_factor = RebinHistogram(hist_z_metl[bin],0);
         RebinHistogram(hist_g_metl[bin],rebin_factor);
-        RebinHistogram(hist_g_metl_smear[bin],rebin_factor);
-        RebinHistogram(hist_g_metl_smear_2j[bin],rebin_factor);
         for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
             RebinHistogram(hist_z_mll_pt[bin][bin1], 0);
         }
-        int newbin = 40000/rebin_factor;
 
-        Double_t *z_smear_in = new Double_t[newbin];
-        Double_t g_smear_in[newbin];
-        Double_t j_resp_in[newbin];
-        Double_t *z_resp_in = new Double_t[newbin];
-        Double_t *g_resp_in = new Double_t[newbin];
-        smear_raw[bin] = new TH1D(TString("smear_raw_")+TString::Itoa(bin,10),"",newbin,-30000,10000);
-        for (int i=0;i<newbin;i++) {
+        int nbins = 40000/rebin_factor;
+        Double_t *z_smear_in = new Double_t[nbins]; // pointers for passing to TSpectrum
+        Double_t *z_resp_in = new Double_t[nbins];
+        Double_t *g_resp_in = new Double_t[nbins];
+        Double_t g_smear_in[nbins];
+        Double_t j_resp_in[nbins];
+
+        smear_raw[bin] = new TH1D(TString("smear_raw_")+TString::Itoa(bin,10),"",nbins,-30000,10000);
+
+        for (int i=0;i<nbins;i++) {
             z_smear_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
-            if (i<newbin/2) g_smear_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1+newbin/2),0.);
+            if (i<nbins/2) g_smear_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1+nbins/2),0.);
             else g_smear_in[i] = 0.;
             z_resp_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
             g_resp_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1),0.);
-            if (i<newbin/2) j_resp_in[i] = max(hist_z_onshell_metl[bin]->GetBinContent(i+1+newbin/2),0.);
+            if (i<nbins/2) j_resp_in[i] = max(hist_z_onshell_metl[bin]->GetBinContent(i+1+nbins/2),0.);
             else j_resp_in[i] = 0.;
         }
-        pfinder.Deconvolution(z_smear_in,g_smear_in,newbin,1000,1,1.0);
-        pfinder.Deconvolution(z_resp_in,j_resp_in,newbin,1000,1,1.0);
-        pfinder.Deconvolution(g_resp_in,j_resp_in,newbin,1000,1,1.0);
-        for (int i=0;i<newbin;i++) {
+        pfinder.Deconvolution(z_smear_in,g_smear_in,nbins,1000,1,1.0);
+        pfinder.Deconvolution(z_resp_in,j_resp_in,nbins,1000,1,1.0);
+        pfinder.Deconvolution(g_resp_in,j_resp_in,nbins,1000,1,1.0);
+
+        for (int i=0;i<nbins;i++) {
             smear_raw[bin]->SetBinContent(i+1,z_smear_in[i]);
         }
         float smear_mean = smear_raw[bin]->GetMean();
@@ -315,7 +319,7 @@ void ConvolveAndSmear(string channel, int smearing_method) {
 
         float hist_gmetl_rms = hist_g_metl[bin]->GetRMS();
         float hist_zmetl_rms = hist_z_metl[bin]->GetRMS();
-        for (int i=0;i<newbin;i++) {
+        for (int i=0;i<nbins;i++) {
             if (hist_gmetl_rms/hist_zmetl_rms > 1.0) {
                 smear_raw[bin]->SetBinContent(i+1,0.);
             }
@@ -326,14 +330,14 @@ void ConvolveAndSmear(string channel, int smearing_method) {
             }
         }
 
-        shift[bin] = -hist_g_metl[bin]->GetMean();
+        gamma_pt_mean_smear[bin] = -hist_g_metl[bin]->GetMean();
     }
 
     for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-        smear_final[bin] = new TH1D(TString("smear_final_")+TString::Itoa(bin,10),"",500,-1000,1000);
+        gamma_pt_additional_smear[bin] = new TH1D(TString("smear_final_")+TString::Itoa(bin,10),"",500,-1000,1000);
         for (int i=0;i<500;i++) {
-            int which_bin = smear_raw[bin]->FindBin(smear_final[bin]->GetBinCenter(i+1));
-            smear_final[bin]->SetBinContent(i+1,smear_raw[bin]->GetBinContent(which_bin));
+            int which_bin = smear_raw[bin]->FindBin(gamma_pt_additional_smear[bin]->GetBinCenter(i+1));
+            gamma_pt_additional_smear[bin]->SetBinContent(i+1,smear_raw[bin]->GetBinContent(which_bin));
         }
     }
 }

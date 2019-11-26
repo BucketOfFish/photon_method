@@ -22,6 +22,7 @@ REGIONS=("SR")
 CUTS=("1")
 #FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min" "mll" "MT2")
 FEATURES=("met_Et" "METt" "METl" "nJet30" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min")
+SMEARING="McSmear"
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -89,7 +90,7 @@ do
                 do
                     for REGION in "${REGIONS[@]}"
                     do
-                        sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","NoSmear","'$PHOTON'","'$REGION'","'$CUT'")'\'
+                        sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$SMEARING'","'$PHOTON'","'$REGION'","'$CUT'")'\'
                     done
                 done
             done

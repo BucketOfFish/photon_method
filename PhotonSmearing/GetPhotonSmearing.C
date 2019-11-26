@@ -206,8 +206,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
         if (smearing_method != 0) {
             if (pt_smear_bin>=0) {
-                gamma_pt_smear = shift[pt_smear_bin];
-                if (smear_final[pt_smear_bin]->Integral()>0) gamma_pt_smear += smear_final[pt_smear_bin]->GetRandom();
+                gamma_pt_smear = gamma_pt_mean_smear[pt_smear_bin];
+                if (gamma_pt_additional_smear[pt_smear_bin]->Integral()>0) gamma_pt_smear += gamma_pt_additional_smear[pt_smear_bin]->GetRandom();
             }
         }
 
@@ -224,9 +224,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         DPhi_METPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
         METl_smeared = MET_smeared * TMath::Cos(DPhi_METPhoton_smear);
         METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
-
-        if (gamma_pt>50. && jet_n==1) hist_g_metl_smear[pt_smear_bin]->Fill(METl_smeared,totalWeight);
-        if (gamma_pt>50. && jet_n>=2) hist_g_metl_smear_2j[pt_smear_bin]->Fill(METl_smeared,totalWeight);
 
         int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
         //if (gamma_pt_smeared>bins::pt_bins[bins::smearing_bin_size]) gamma_pt_smear_bin = bins::smearing_bin_size-1;
