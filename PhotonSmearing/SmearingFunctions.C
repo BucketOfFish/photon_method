@@ -1,29 +1,29 @@
 #include "../Common/Settings.C"
 #include "MT2.h"
 
-TH1D* hist_z_metl[bins::smearing_bin_size];
-TH1D* hist_g_metl[bins::smearing_bin_size];
-TH1D* hist_z_onshell_metl[bins::smearing_bin_size];
-TH1D* hist_z_mll_pt[bins::smearing_bin_size][bins::METl_bin_size];
+TH1D* hist_z_metl_bin_pt[bins::smearing_bin_size];
+TH1D* hist_g_metl_bin_pt[bins::smearing_bin_size];
+TH1D* hist_z_onshell_metl_bin_pt[bins::smearing_bin_size];
+TH1D* hist_z_mll_bin_pt_metl[bins::smearing_bin_size][bins::METl_bin_size];
 
 void FillHistograms(string target_channel, TString period, int smearing_method) {
 
     /**
-     * Fills global histograms hist_z_metl, hist_z_onshell_metl, hist_g_metl, and hist_z_mll_pt (2D)
-     * by getting Z or photon data and entering the relevant features into binned histograms.
+     * Fills global histogram arrays hist_z_metl_bin_pt, hist_z_onshell_metl_bin_pt, hist_g_metl_bin_pt, and hist_z_mll_bin_pt_metl (2D)
+     * by getting Z or photon feature distributions and placing the histograms into binned arrays.
      */
 
     cout << "FillHistograms : smearing_method " << smearing_method << endl;
 
     for (int bin=0; bin<bins::smearing_bin_size; bin++) {
-        hist_z_metl[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_z_onshell_metl[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_z_onshell_metl_bin_pt[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
     }
 
     for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
         for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-            hist_z_mll_pt[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
+            hist_z_mll_bin_pt_metl[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
         }
     }
 
@@ -79,9 +79,9 @@ void FillHistograms(string target_channel, TString period, int smearing_method) 
             if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
             int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
             int METl_bin = bins::hist_METl_bins->FindBin(METl)-1;
-            hist_z_metl[pt_bin]->Fill(METl, fileWeight*totalWeight);
-            if (mll>90 && mll<92) hist_z_onshell_metl[pt_bin]->Fill(METl, fileWeight*totalWeight);
-            if (METl_bin>=0 && pt_bin>=0) hist_z_mll_pt[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
+            hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+            if (mll>90 && mll<92) hist_z_onshell_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+            if (METl_bin>=0 && pt_bin>=0) hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
         }
     }
 
@@ -112,7 +112,7 @@ void FillHistograms(string target_channel, TString period, int smearing_method) 
         tree->GetEntry(entry);
         if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
         int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
-        hist_g_metl[pt_bin]->Fill(METl, totalWeight);
+        hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
     }
 
     photon_file->Close();
@@ -281,63 +281,62 @@ void ConvolveAndSmear(string channel, int smearing_method) {
     //------------------------------------
 
     TSpectrum pfinder;
-    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
+    for (int pt_bin=0;pt_bin<bins::smearing_bin_size;pt_bin++) {
 
-        int rebin_factor = RebinHistogram(hist_z_metl[bin],0);
-        RebinHistogram(hist_g_metl[bin],rebin_factor);
-        for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-            RebinHistogram(hist_z_mll_pt[bin][bin1], 0);
+        //--- Rebin METl histograms to look reasonable
+        int rebin_factor = RebinHistogram(hist_z_metl_bin_pt[pt_bin],0);
+        RebinHistogram(hist_g_metl_bin_pt[pt_bin],rebin_factor);
+        for (int met_bin=0; met_bin<bins::METl_bin_size; met_bin++) {
+            RebinHistogram(hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
         }
+        int n_hist_bins = 40000/rebin_factor;
 
-        int nbins = 40000/rebin_factor;
-        Double_t *z_smear_in = new Double_t[nbins]; // pointers for passing to TSpectrum
-        Double_t *z_resp_in = new Double_t[nbins];
-        Double_t *g_resp_in = new Double_t[nbins];
-        Double_t g_smear_in[nbins];
-        Double_t j_resp_in[nbins];
+        //--- Use photon METl to deconvolve Z METl
+        Double_t *z_smear_in = new Double_t[n_hist_bins]; // pointers for passing to TSpectrum
+        Double_t g_smear_in[n_hist_bins];
+        //Double_t *z_resp_in = new Double_t[n_hist_bins];
+        //Double_t *g_resp_in = new Double_t[n_hist_bins];
+        //Double_t j_resp_in[n_hist_bins];
 
-        smear_raw[bin] = new TH1D(TString("smear_raw_")+TString::Itoa(bin,10),"",nbins,-30000,10000);
-
-        for (int i=0;i<nbins;i++) {
-            z_smear_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
-            if (i<nbins/2) g_smear_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1+nbins/2),0.);
+        for (int i=0;i<n_hist_bins;i++) {
+            z_smear_in[i] = max(hist_z_metl_bin_pt[pt_bin]->GetBinContent(i+1),0.);
+            if (i<n_hist_bins/2) g_smear_in[i] = max(hist_g_metl_bin_pt[pt_bin]->GetBinContent(i+1+n_hist_bins/2),0.);
             else g_smear_in[i] = 0.;
-            z_resp_in[i] = max(hist_z_metl[bin]->GetBinContent(i+1),0.);
-            g_resp_in[i] = max(hist_g_metl[bin]->GetBinContent(i+1),0.);
-            if (i<nbins/2) j_resp_in[i] = max(hist_z_onshell_metl[bin]->GetBinContent(i+1+nbins/2),0.);
-            else j_resp_in[i] = 0.;
+            //z_resp_in[i] = max(hist_z_metl_bin_pt[pt_bin]->GetBinContent(i+1),0.);
+            //g_resp_in[i] = max(hist_g_metl_bin_pt[pt_bin]->GetBinContent(i+1),0.);
+            //if (i<n_hist_bins/2) j_resp_in[i] = max(hist_z_onshell_metl_bin_pt[pt_bin]->GetBinContent(i+1+n_hist_bins/2),0.);
+            //else j_resp_in[i] = 0.;
         }
-        pfinder.Deconvolution(z_smear_in,g_smear_in,nbins,1000,1,1.0);
-        pfinder.Deconvolution(z_resp_in,j_resp_in,nbins,1000,1,1.0);
-        pfinder.Deconvolution(g_resp_in,j_resp_in,nbins,1000,1,1.0);
+        pfinder.Deconvolution(z_smear_in,g_smear_in,n_hist_bins,1000,1,1.0);
+        //pfinder.Deconvolution(z_resp_in,j_resp_in,n_hist_bins,1000,1,1.0);
+        //pfinder.Deconvolution(g_resp_in,j_resp_in,n_hist_bins,1000,1,1.0);
 
-        for (int i=0;i<nbins;i++) {
-            smear_raw[bin]->SetBinContent(i+1,z_smear_in[i]);
+        //--- Set smearing function to 0 where photon METl RMS is less than Z METl RMS, or where smearing value is too far from the mean
+        smear_raw[pt_bin] = new TH1D(TString("smear_raw_")+TString::Itoa(pt_bin,10),"",n_hist_bins,-30000,10000);
+        for (int i=0;i<n_hist_bins;i++) {
+            smear_raw[pt_bin]->SetBinContent(i+1,z_smear_in[i]);
         }
-        float smear_mean = smear_raw[bin]->GetMean();
-        float smear_rms = smear_raw[bin]->GetRMS();
+        float smear_mean = smear_raw[pt_bin]->GetMean();
+        float smear_rms = smear_raw[pt_bin]->GetRMS();
 
-        float hist_gmetl_rms = hist_g_metl[bin]->GetRMS();
-        float hist_zmetl_rms = hist_z_metl[bin]->GetRMS();
+        float hist_gmetl_rms = hist_g_metl_bin_pt[pt_bin]->GetRMS();
+        float hist_zmetl_rms = hist_z_metl_bin_pt[pt_bin]->GetRMS();
         for (int i=0;i<nbins;i++) {
             if (hist_gmetl_rms/hist_zmetl_rms > 1.0) {
-                smear_raw[bin]->SetBinContent(i+1,0.);
+                smear_raw[pt_bin]->SetBinContent(i+1,0.);
             }
             float smear_cut = 6.;
-            if (channel=="mm" && bins::pt_bins[bin]>=0) smear_cut = 7.;
-            if (abs(smear_raw[bin]->GetBinCenter(i+1)-smear_mean)/smear_rms>smear_cut) {
-                smear_raw[bin]->SetBinContent(i+1,0.);
+            if (channel=="mm" && bins::pt_bins[pt_bin]>=0) smear_cut = 7.;
+            if (abs(smear_raw[pt_bin]->GetBinCenter(i+1)-smear_mean)/smear_rms>smear_cut) {
+                smear_raw[pt_bin]->SetBinContent(i+1,0.);
             }
         }
 
-        gamma_pt_mean_smear[bin] = -hist_g_metl[bin]->GetMean();
-    }
-
-    for (int bin=0;bin<bins::smearing_bin_size;bin++) {
-        gamma_pt_additional_smear[bin] = new TH1D(TString("smear_final_")+TString::Itoa(bin,10),"",500,-1000,1000);
+        gamma_pt_mean_smear[pt_bin] = -hist_g_metl_bin_pt[pt_bin]->GetMean();
+        gamma_pt_additional_smear[pt_bin] = new TH1D(TString("smear_final_")+TString::Itoa(pt_bin,10),"",500,-1000,1000);
         for (int i=0;i<500;i++) {
-            int which_bin = smear_raw[bin]->FindBin(gamma_pt_additional_smear[bin]->GetBinCenter(i+1));
-            gamma_pt_additional_smear[bin]->SetBinContent(i+1,smear_raw[bin]->GetBinContent(which_bin));
+            int which_bin = smear_raw[pt_bin]->FindBin(gamma_pt_additional_smear[pt_bin]->GetBinCenter(i+1));
+            gamma_pt_additional_smear[pt_bin]->SetBinContent(i+1,smear_raw[pt_bin]->GetBinContent(which_bin));
         }
     }
 }

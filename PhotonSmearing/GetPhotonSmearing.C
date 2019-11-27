@@ -230,8 +230,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
         mll = 91.1876;
         if (METl_bin>=0 && gamma_pt_smear_bin>=0) {
-            if (hist_z_mll_pt[gamma_pt_smear_bin][METl_bin]->Integral()>0)
-                mll = hist_z_mll_pt[gamma_pt_smear_bin][METl_bin]->GetRandom();
+            if (hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
+                mll = hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
         }
 
         //---------------------------------------------
