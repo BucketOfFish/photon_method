@@ -341,3 +341,35 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
         }
     }
 
+    //-----------------------------
+    // sampling methods
+    //-----------------------------
+
+            //// Naive sampling (incorrect)
+            //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
+
+            //// Uniform sampling
+            //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
+
+            //// Drell-Yan lepton angular distribution (with Z boost direction as +z)
+            //double placeholder_1 = 4-8*myRandom.Rndm();
+            //double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
+            //double numerator = pow(2.0,1/3)*pow(placeholder_2,2.0/3) - 2;
+            //double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
+            //double lep_theta_cm = acos(numerator/denominator);
+
+            //// Sin^3 sampling
+            //lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
+
+            // Checks
+            //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
+            //TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
+            //cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << endl;
+            //cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << endl;
+            //cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << endl;
+            //cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << endl;
+            //cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << endl;
+            //cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << endl;
+            //cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << endl;
+            //cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << endl;
+            //cout << "==================================================================================" << endl;

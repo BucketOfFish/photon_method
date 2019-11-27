@@ -10,7 +10,6 @@
 CHANNELS=("ee" "mm")
 TYPES=("Data" "MC")
 PERIODS=("data15-16" "data17" "data18")
-SMEARING=4
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -54,7 +53,7 @@ do
     do
         for PERIOD in "${PERIODS[@]}"
         do
-            root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'",'$SMEARING')'
+            root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'")'
         done
     done
 done

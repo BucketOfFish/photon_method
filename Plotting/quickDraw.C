@@ -3,14 +3,13 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string smearing_mode="NoSmear", string photon_data_or_mc="Data", string region="SR", string additional_cut="1") {
+void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string photon_data_or_mc="Data", string region="SR", string additional_cut="1") {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
 
     cout << "period               " << period << endl;
     cout << "channel              " << channel << endl;
-    cout << "smearing mode        " << smearing_mode << endl;
     cout << "DF?                  " << DF << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
 
@@ -25,8 +24,8 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
     string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
     string photon_filename;
-    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_" + channel + "_" + smearing_mode + ".root";
-    else photon_filename = reweighting_path + "g_data/" + period + "_photon_" + channel + "_" + smearing_mode + ".root";
+    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_" + channel + ".root";
+    else photon_filename = reweighting_path + "g_data/" + period + "_photon_" + channel + ".root";
 
     cout << "data filename        " << data_filename << endl;
     cout << "ttbar filename       " << tt_filename << endl;
@@ -86,12 +85,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
-    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T}^{miss}{||} [GeV]", 30, -150, 150);
-    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T}^{miss}{#perp} [GeV]", 30, -150, 150);
-    else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T}^{miss}{loose} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T}^{miss}{tight} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T}^{miss}{tighter} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T}^{miss}{tenacious} [GeV]", 20, 0, 200);
+    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T,||}^{miss} [GeV]", 30, -150, 150);
+    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
+    else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T,loose}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T,tight}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "Ptll") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "nJet30") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
@@ -341,9 +340,9 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     //--- save plot
     TString plot_name;
     if (photon_data_or_mc == "Data")
-        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str());
+        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
     else
-        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), mc_period.c_str(), channel.c_str(), smearing_mode.c_str(), plot_feature.c_str(), region.c_str());
+        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), mc_period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
     if (additional_cut != "1")
         plot_name += ("_" + additional_cut).c_str();
     plot_name += ".eps";

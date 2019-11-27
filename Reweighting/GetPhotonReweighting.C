@@ -2,7 +2,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_or_mc, string photon_filename, string smearing_mode, string reweight_var){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_or_mc, string photon_filename, string reweight_var){
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -96,7 +96,7 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     return hratio;
 }
 
-void GetPhotonReweighting(string period, string channel, string data_or_mc, string smearing_mode, string reweight_var) {
+void GetPhotonReweighting(string period, string channel, string data_or_mc, string reweight_var) {
 
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -113,11 +113,11 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
 
     string photon_filename;
     if (data_or_mc == "Data") {
-        photon_filename = TString(reweighting_path+"g_data/"+period+"_photon_"+channel+"_"+smearing_mode+".root");
+        photon_filename = TString(reweighting_path+"g_data/"+period+"_photon_"+channel+".root");
         cout << "opening data file" << endl;
     }
     if (data_or_mc == "MC") {
-        photon_filename = TString(reweighting_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+"_"+smearing_mode+".root");
+        photon_filename = TString(reweighting_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+".root");
         cout << "opening MC file" << endl;
     }
 
@@ -132,7 +132,7 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
     // 1-d reweighting histogram 
     //---------------------------------------------
 
-    TH1F* h_reweight = GetSimpleReweightingHistograms(period, channel, data_or_mc, photon_filename, smearing_mode, reweight_var);
+    TH1F* h_reweight = GetSimpleReweightingHistograms(period, channel, data_or_mc, photon_filename, reweight_var);
     cout << "Got reweighting histogram hratio with integral " << h_reweight->Integral() << endl;
 
     //-----------------------------

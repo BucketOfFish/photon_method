@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void GetPhotonSmearing(string period, string channel, string data_or_mc, int smearing_method) {
+void GetPhotonSmearing(string period, string channel, string data_or_mc) {
 
     TString data_period = DataPeriod(period);
     TString mc_period = MCPeriod(period);
@@ -12,7 +12,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     cout << "period          " << period          << endl;
     cout << "isData?         " << data_or_mc          << endl;
     cout << "smearing path   " << smearing_path   << endl;
-    cout << "smearing method " << smearing_method << endl;
 
     //---------------------------------------------
     // get unsmeared input file
@@ -37,14 +36,9 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
     TH1::SetDefaultSumw2();
 
-    TString photon_tag = "";
-    if (smearing_method == 0) photon_tag = "NoSmear";
-    if (smearing_method == 4) photon_tag = "McSmear";
-    if (smearing_method == 5) photon_tag = "DataSmear";
-
     TString outfilename;
-    if (data_or_mc == "Data") outfilename = smearing_path+"g_data/"+data_period+"_photon_"+channel+"_"+photon_tag+".root"; 
-    if (data_or_mc == "MC") outfilename = smearing_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+"_"+photon_tag+".root";
+    if (data_or_mc == "Data") outfilename = smearing_path+"g_data/"+data_period+"_photon_"+channel+".root"; 
+    if (data_or_mc == "MC") outfilename = smearing_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+".root";
 
     TFile* outputFile = new TFile(outfilename, "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -157,24 +151,23 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     //-----------------------------
 
     bins::init_binning_histograms();
-    FillHistograms(channel, period, smearing_method);
-    ConvolveAndSmear(channel, smearing_method);
+    FillHistograms(channel, period, data_or_mc);
+    ConvolveAndSmear(channel);
 
     //-----------------------------
     // get Z lepton CM theta distribution
     //-----------------------------
 
     TH1F* h_lep_theta = GetLepThetaHistogram(period, channel, data_or_mc);
-    unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine lep_theta_generator(random_seed);
+
     std::vector<int> lep_theta_count;
-    std::vector<float> lep_theta_boundaries;
+    std::vector<float> cm_theta_bin_boundaries;
     for (int i=0; i<h_lep_theta->GetNbinsX(); i++) {
         lep_theta_count.push_back(h_lep_theta->GetBinContent(i));
-        lep_theta_boundaries.push_back(h_lep_theta->GetBinLowEdge(i));
+        cm_theta_bin_boundaries.push_back(h_lep_theta->GetBinLowEdge(i));
     }
-    lep_theta_boundaries.push_back(h_lep_theta->GetBinLowEdge(h_lep_theta->GetNbinsX()) + h_lep_theta->GetBinWidth(h_lep_theta->GetNbinsX()));
-    std::discrete_distribution<int> lep_theta_distribution (lep_theta_count.begin(),lep_theta_count.end());
+    cm_theta_bin_boundaries.push_back(h_lep_theta->GetBinLowEdge(h_lep_theta->GetNbinsX()) + h_lep_theta->GetBinWidth(h_lep_theta->GetNbinsX()));
+    std::discrete_distribution<int> cm_theta_distribution (lep_theta_count.begin(),lep_theta_count.end());
 
     //---------------------------------------------
     // set channel and lepton flavors
@@ -194,6 +187,9 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
     // loop over events
     //-----------------------------
 
+    unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine lep_theta_generator(random_seed);
+
     Long64_t nentries = inputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
 
@@ -203,16 +199,15 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         //--- get random smearing values, then apply smearing (note signs)
         float gamma_pt_smear = 0;
         float gamma_phi_smear = 0;
-        int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
-        if (smearing_method != 0) {
-            if (pt_smear_bin>=0) {
-                gamma_pt_smear = gamma_pt_mean_smear[pt_smear_bin];
-                if (gamma_pt_additional_smear[pt_smear_bin]->Integral()>0) gamma_pt_smear += gamma_pt_additional_smear[pt_smear_bin]->GetRandom();
+        for (int i=0; i<3; i++) {
+            int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
+            if (pt_smear_bin>=0 && g_zmatched_metl_dist[pt_smear_bin]->Integral()>0) {
+                gamma_pt_smear = g_original_metl_dist[pt_smear_bin] - g_zmatched_metl_dist[pt_smear_bin]->GetRandom();
             }
         }
 
-        gamma_pt_smeared = gamma_pt - gamma_pt_smear;
-        gamma_phi_smeared = gamma_phi - gamma_phi_smear;
+        gamma_pt_smeared = gamma_pt + gamma_pt_smear;
+        gamma_phi_smeared = gamma_phi + gamma_phi_smear;
 
         TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
         gamma_4vec.SetPtEtaPhiM(gamma_pt, 0, gamma_phi, 0);
@@ -241,8 +236,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
         myRandom.SetSeed(0);
 
         TLorentzVector z_4vec;
-        z_4vec.SetPtEtaPhiM(gamma_pt,gamma_eta,gamma_phi,mll);
-        //GetDijetVariables(z_4vec, MET_smeared_4vec, jet_pT, jet_eta, jet_phi, jet_m);
+        z_4vec.SetPtEtaPhiM(gamma_pt_smeared,gamma_eta,gamma_phi_smeared,mll);
 
         // boost along z axis (since we measure angles in CM relative to boost direction)
         TVector3 boost_vec_lab = z_4vec.BoostVector();
@@ -253,26 +247,10 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
             double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
 
-            //// Naive sampling (incorrect)
-            //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
-
-            //// Uniform sampling
-            //double lep_theta_cm = acos(1 - 2*myRandom.Rndm());
-
-            //// Drell-Yan lepton angular distribution (with Z boost direction as +z)
-            //double placeholder_1 = 4-8*myRandom.Rndm();
-            //double placeholder_2 = pow(pow(placeholder_1,2)+4,1.0/2) + placeholder_1;
-            //double numerator = pow(2.0,1/3)*pow(placeholder_2,2.0/3) - 2;
-            //double denominator = pow(2.0,2/3)*pow(placeholder_2,1.0/3);
-            //double lep_theta_cm = acos(numerator/denominator);
-
-            //// Sin^3 sampling
-            //lep_theta_cm = atanh(1.973926*(myRandom.Rndm() - 0.5))/1.6 + TMath::Pi()/2;
-
             // Histogram sampling
-            int lep_theta_bin = lep_theta_distribution(lep_theta_generator);
-            float low_lep_theta = lep_theta_boundaries[lep_theta_bin];
-            float high_lep_theta = lep_theta_boundaries[lep_theta_bin+1];
+            int lep_theta_bin = cm_theta_distribution(lep_theta_generator);
+            float low_lep_theta = cm_theta_bin_boundaries[lep_theta_bin];
+            float high_lep_theta = cm_theta_bin_boundaries[lep_theta_bin+1];
             lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
 
             // Split leptons in Z rest frame
@@ -323,19 +301,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, int sme
 
             // Stop loop if we're ready
             if (lep_pT->at(0)>cuts::leading_lep_pt_cut && lep_pT->at(1)>cuts::second_lep_pt_cut) break;
-
-            // Checks
-            //TLorentzVector twol_cm_4vec = l0_cm_4vec + l1_cm_4vec;
-            //TLorentzVector twol_lab_4vec = l0_lab_4vec + l1_lab_4vec;
-            //cout << "z_4vec pT = " << z_4vec.Pt() << ", eta = " << z_4vec.Eta() << ", phi = " << z_4vec.Phi() << ", m = " << z_4vec.M() << endl;
-            //cout << "l_pT_cm = " << l_pT_cm << ", min_theta = " << min_theta << ", phi = " << l_phi_cm << ", theta = " << l_theta_cm << endl;
-            //cout << "l0_cm_4vec pT = " << l0_cm_4vec.Pt() << ", eta = " << l0_cm_4vec.Eta() << ", phi = " << l0_cm_4vec.Phi() << ", m = " << l0_cm_4vec.M() << endl;
-            //cout << "l1_cm_4vec pT = " << l1_cm_4vec.Pt() << ", eta = " << l1_cm_4vec.Eta() << ", phi = " << l1_cm_4vec.Phi() << ", m = " << l1_cm_4vec.M() << endl;
-            //cout << "2l_cm_4vec pT = " << twol_cm_4vec.Pt() << ", eta = " << twol_cm_4vec.Eta() << ", phi = " << twol_cm_4vec.Phi() << ", m = " << twol_cm_4vec.M() << endl;
-            //cout << "l0_lab_4vec pT = " << l0_lab_4vec.Pt() << ", eta = " << l0_lab_4vec.Eta() << ", phi = " << l0_lab_4vec.Phi() << ", m = " << l0_lab_4vec.M() << endl;
-            //cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << endl;
-            //cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << endl;
-            //cout << "==================================================================================" << endl;
         }
 
         lep_n = 2;
