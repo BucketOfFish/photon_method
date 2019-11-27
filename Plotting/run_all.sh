@@ -20,8 +20,7 @@ REGIONS=("SR")
 #REGIONS=("reweight")
 #CUTS=("1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400")
 CUTS=("1")
-#FEATURES=("met_Et" "METt" "METl" "nJet30" "bjet_n" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min" "mll" "MT2")
-FEATURES=("met_Et" "METt" "METl" "nJet30" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min")
+FEATURES=("met_Et" "METt" "METl" "nJet30" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min" "mll" "MT2")
 SMEARING="McSmear"
 
 if [ $# == 1 ]; then

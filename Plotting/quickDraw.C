@@ -86,12 +86,12 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
     else if (plot_feature == "MET") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 20, 0, 200);
-    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T}^{miss}_{||} [GeV]", 30, -150, 150);
-    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T}^{miss}_{#perp} [GeV]", 30, -150, 150);
-    else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T}^{miss}_{loose} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T}^{miss}_{tight} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T}^{miss}_{tighter} [GeV]", 20, 0, 200);
-    else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T}^{miss}_{tenacious} [GeV]", 20, 0, 200);
+    else if (plot_feature == "METl") plot_settings = std::make_tuple("E_{T}^{miss}{||} [GeV]", 30, -150, 150);
+    else if (plot_feature == "METt") plot_settings = std::make_tuple("E_{T}^{miss}{#perp} [GeV]", 30, -150, 150);
+    else if (plot_feature == "MET_loose") plot_settings = std::make_tuple("E_{T}^{miss}{loose} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tight") plot_settings = std::make_tuple("E_{T}^{miss}{tight} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tighter") plot_settings = std::make_tuple("E_{T}^{miss}{tighter} [GeV]", 20, 0, 200);
+    else if (plot_feature == "MET_tenacious") plot_settings = std::make_tuple("E_{T}^{miss}{tenacious} [GeV]", 20, 0, 200);
     else if (plot_feature == "Ptll") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "Z_pt") plot_settings = std::make_tuple("p_{T} [GeV]", 20, 0, 100);
     else if (plot_feature == "nJet30") plot_settings = std::make_tuple("n_{jets}", 6, 2, 8);
