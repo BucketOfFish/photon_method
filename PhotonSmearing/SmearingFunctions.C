@@ -1,115 +1,6 @@
 #include "../Common/Settings.C"
 #include "MT2.h"
 
-TH1D* hist_z_metl_bin_pt[bins::smearing_bin_size];
-TH1D* hist_g_metl_bin_pt[bins::smearing_bin_size];
-TH1D* hist_z_onshell_metl_bin_pt[bins::smearing_bin_size];
-TH1D* hist_z_mll_bin_pt_metl[bins::smearing_bin_size][bins::METl_bin_size];
-
-void FillHistograms(string target_channel, TString period, string data_or_mc) {
-
-    /**
-     * Fills global histogram arrays hist_z_metl_bin_pt, hist_z_onshell_metl_bin_pt, hist_g_metl_bin_pt, and hist_z_mll_bin_pt_metl (2D)
-     * by getting Z or photon feature distributions and placing the histograms into binned arrays.
-     */
-
-    cout << "Filling smearing histograms" << endl;
-
-    for (int bin=0; bin<bins::smearing_bin_size; bin++) {
-        hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_z_onshell_metl_bin_pt[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-        hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-    }
-
-    for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
-        for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-            hist_z_mll_bin_pt_metl[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
-        }
-    }
-
-    TString mc_period = MCPeriod(period);
-    TString data_period = DataPeriod(period);
-
-    std::cout << "Getting Z histograms binned by pT and METl." << std::endl;
-
-    TFile* data_file = new TFile(ntuple_path + "/bkg_data/" + data_period + "_bkg.root");
-    TFile* ttbar_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_ttbar.root");
-    TFile* diboson_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_diboson.root");
-    TFile* Z_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_Zjets.root");
-
-    vector<TFile*> contributing_files;
-    vector<int> file_weights;
-
-    if (data_or_mc == "MC") {
-        contributing_files = {Z_mc_file};
-        file_weights = {1};
-    }
-    else if (data_or_mc == "Data") {
-        contributing_files = {data_file, ttbar_mc_file, diboson_mc_file};
-        file_weights = {1, -1, -1};
-    }
-
-    for (int i=0; i<contributing_files.size(); i++) {
-        TTree* tree = (TTree*)contributing_files[i]->Get("BaselineTree");
-        int fileWeight = file_weights[i];
-
-        tree->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
-        int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
-        int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
-        float ptll; SetInputBranch(tree, "Ptll", &ptll);
-        float mll; SetInputBranch(tree, "mll", &mll);
-        float METl; SetInputBranch(tree, "METl", &METl);
-        int channel; SetInputBranch(tree, "channel", &channel);
-        vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
-
-        for (int entry=0; entry<tree->GetEntries(); entry++) {
-            tree->GetEntry(entry);
-            if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
-            if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
-            if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
-            int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
-            int METl_bin = bins::hist_METl_bins->FindBin(METl)-1;
-            hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
-            if (mll>90 && mll<92) hist_z_onshell_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
-            if (METl_bin>=0 && pt_bin>=0) hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
-        }
-    }
-
-    data_file->Close();
-    ttbar_mc_file->Close();
-    diboson_mc_file->Close();
-    Z_mc_file->Close();
-
-    //-- photon histogram
-
-    std::cout << "Getting photon histogram binned by pT." << std::endl;
-
-    TFile* photon_file;
-    if (data_or_mc == "MC")
-        photon_file = new TFile(ntuple_path + "/g_mc/" + mc_period + "_SinglePhoton222.root");
-    else if (data_or_mc == "Data")
-        photon_file = new TFile(ntuple_path + "/g_data/" + data_period + "_photon.root");
-
-    TTree* tree = (TTree*)photon_file->Get("BaselineTree");
-    tree->SetBranchStatus("*", 0);
-    double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
-    int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
-    int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
-    float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
-    float METl; SetInputBranch(tree, "METl_raw", &METl);
-
-    for (int entry=0; entry<tree->GetEntries(); entry++) {
-        tree->GetEntry(entry);
-        if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
-        int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
-        hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
-    }
-
-    photon_file->Close();
-
-}
-
 TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
 
     cout << "Getting Z lepton CM theta distribution histogram." << endl;
@@ -194,15 +85,129 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
     return histoZ;
 }
 
-float g_original_metl_dist[bins::smearing_bin_size];
+TH1D* hist_z_mll_bin_pt_metl[bins::smearing_bin_size][bins::METl_bin_size];
+float g_original_metl_mean[bins::smearing_bin_size];
 TH1D* g_zmatched_metl_dist[bins::smearing_bin_size];
 
-void ConvolveAndSmear(string channel) {
+void ConvolveAndSmear(string channel, TString period, string data_or_mc) {
 
     /**
-     * Fills global histograms g_original_metl_dist and g_zmatched_metl_dist.
-     * Both histograms are binned by photon pt.
+     * Fills g_original_metl_mean and g_zmatched_metl_dist. Both arrays are binned by photon pt.
      */
+
+    //------------------------------------
+    // FILL METL HISTOGRAMS
+    //------------------------------------
+
+    TH1D* hist_z_metl_bin_pt[bins::smearing_bin_size];
+    TH1D* hist_g_metl_bin_pt[bins::smearing_bin_size];
+    TH1D* hist_z_onshell_metl_bin_pt[bins::smearing_bin_size];
+
+    auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt, &hist_z_onshell_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
+
+        /**
+         * Fills histogram arrays hist_z_metl_bin_pt, hist_z_onshell_metl_bin_pt, hist_g_metl_bin_pt, and hist_z_mll_bin_pt_metl (2D)
+         * with Z/photon METl/mll distributions in binned regions.
+         */
+
+        cout << "Filling smearing histograms" << endl;
+
+        for (int bin=0; bin<bins::smearing_bin_size; bin++) {
+            hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+            hist_z_onshell_metl_bin_pt[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+            hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        }
+
+        for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
+            for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
+                hist_z_mll_bin_pt_metl[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
+            }
+        }
+
+        TString mc_period = MCPeriod(period);
+        TString data_period = DataPeriod(period);
+
+        cout << "Getting Z histograms binned by pT and METl." << endl;
+
+        TFile* data_file = new TFile(ntuple_path + "/bkg_data/" + data_period + "_bkg.root");
+        TFile* ttbar_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_ttbar.root");
+        TFile* diboson_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_diboson.root");
+        TFile* Z_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_Zjets.root");
+
+        vector<TFile*> contributing_files;
+        vector<int> file_weights;
+
+        if (data_or_mc == "MC") {
+            contributing_files = {Z_mc_file};
+            file_weights = {1};
+        }
+        else if (data_or_mc == "Data") {
+            contributing_files = {data_file, ttbar_mc_file, diboson_mc_file};
+            file_weights = {1, -1, -1};
+        }
+
+        for (int i=0; i<contributing_files.size(); i++) {
+            TTree* tree = (TTree*)contributing_files[i]->Get("BaselineTree");
+            int fileWeight = file_weights[i];
+
+            tree->SetBranchStatus("*", 0);
+            double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+            int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
+            int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
+            float ptll; SetInputBranch(tree, "Ptll", &ptll);
+            float mll; SetInputBranch(tree, "mll", &mll);
+            float METl; SetInputBranch(tree, "METl", &METl);
+            int channel; SetInputBranch(tree, "channel", &channel);
+            vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
+
+            for (int entry=0; entry<tree->GetEntries(); entry++) {
+                tree->GetEntry(entry);
+                if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
+                if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
+                if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
+                int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
+                int METl_bin = bins::hist_METl_bins->FindBin(METl)-1;
+                hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+                if (mll>90 && mll<92) hist_z_onshell_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+                if (METl_bin>=0 && pt_bin>=0) hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
+            }
+        }
+
+        data_file->Close();
+        ttbar_mc_file->Close();
+        diboson_mc_file->Close();
+        Z_mc_file->Close();
+
+        //-- photon histogram
+
+        cout << "Getting photon histogram binned by pT." << endl;
+
+        TFile* photon_file;
+        if (data_or_mc == "MC")
+            photon_file = new TFile(ntuple_path + "/g_mc/" + mc_period + "_SinglePhoton222.root");
+        else if (data_or_mc == "Data")
+            photon_file = new TFile(ntuple_path + "/g_data/" + data_period + "_photon.root");
+
+        TTree* tree = (TTree*)photon_file->Get("BaselineTree");
+        tree->SetBranchStatus("*", 0);
+        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+        int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
+        int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
+        float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
+        float METl; SetInputBranch(tree, "METl_raw", &METl);
+
+        for (int entry=0; entry<tree->GetEntries(); entry++) {
+            tree->GetEntry(entry);
+            if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
+            int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
+            hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
+        }
+
+        photon_file->Close();
+
+    };
+
+    FillHistograms(channel, period, data_or_mc);
 
     //------------------------------------
     // REBINNING FUNCTION
@@ -302,9 +307,8 @@ void ConvolveAndSmear(string channel) {
     }
 
     //--- Send back final pt smearing distribution, which is equal to the difference between the photon and Z METl distributions
-    //TH1D* g_pt_smear_dist[bins::smearing_bin_size];
-    //for (int pt_bin=0;pt_bin<bins::smearing_bin_size;pt_bin++)
-        //g_pt_smear_dist[pt_bin]->SetBinContent(i+1,g_original_metl_dist[pt_bin]-g_zmatched_metl_dist[pt_bin]->GetBinContent(which_bin));
-    //return g_pt_smear_dist;
+    TH1D* g_pt_smear_dist[bins::smearing_bin_size];
+    for (int pt_bin=0;pt_bin<bins::smearing_bin_size;pt_bin++)
+        g_pt_smear_dist[pt_bin]->SetBinContent(i+1,g_original_metl_mean[pt_bin]-g_zmatched_metl_dist[pt_bin]->GetBinContent(which_bin));
+    return g_pt_smear_dist;
 }
-

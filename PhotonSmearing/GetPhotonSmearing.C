@@ -76,7 +76,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     float DPhi_METLepLeading_smeared; BaselineTree->Branch("DPhi_METLepLeading", &DPhi_METLepLeading_smeared, "DPhi_METLepLeading/F");
     float DPhi_METLepSecond_smeared; BaselineTree->Branch("DPhi_METLepSecond", &DPhi_METLepSecond_smeared, "DPhi_METLepSecond/F");
     float DPhi_METPhoton_smear; BaselineTree->Branch("DPhi_METPhoton", &DPhi_METPhoton_smear, "DPhi_METPhoton/F");
-    float MT2W; BaselineTree->Branch("MT2W", &MT2W, "MT2W/F");
+    float MT2; BaselineTree->Branch("mt2leplsp_0", &MT2, "mt2leplsp_0/F");
     float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
     int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
     float lep_theta_cm; BaselineTree->Branch("lep_theta_cm", &lep_theta_cm, "lep_theta_cm/F");
@@ -151,8 +151,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     //-----------------------------
 
     bins::init_binning_histograms();
-    FillHistograms(channel, period, data_or_mc);
-    ConvolveAndSmear(channel);
+    ConvolveAndSmear(channel, period, data_or_mc);
 
     //-----------------------------
     // get Z lepton CM theta distribution
@@ -304,7 +303,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         }
 
         lep_n = 2;
-        MT2W = ComputeMT2(l0_lab_4vec, l1_lab_4vec, MET_smeared_4vec, 0, 0).Compute();
+        MT2 = ComputeMT2(l0_lab_4vec, l1_lab_4vec, MET_smeared_4vec, 0, 0).Compute();
         DPhi_METLepLeading_smeared = fabs(MET_smeared_4vec.DeltaPhi(l0_lab_4vec));
         DPhi_METLepSecond_smeared = fabs(MET_smeared_4vec.DeltaPhi(l1_lab_4vec));
         DR_2Lep = l0_lab_4vec.DeltaR(l1_lab_4vec);
