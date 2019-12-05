@@ -146,12 +146,30 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
 
+    //---------------------------------------------
+    // set channel and lepton flavors
+    //---------------------------------------------
+
+    int flavor;
+    if (TString(channel).EqualTo("ee")) {
+        flavor = 1;
+        lepChannel = 1;
+    }
+    else if (TString(channel).EqualTo("mm")) {
+        flavor = 2;
+        lepChannel = 0;
+    }
+
+    lep_flavor->clear();
+    lep_flavor->push_back(flavor);
+    lep_flavor->push_back(flavor);
+
     //-----------------------------
     // get smearing histograms and perform smearing
     //-----------------------------
 
     bins::init_binning_histograms();
-    ConvolveAndSmear(channel, period, data_or_mc);
+    vector<TH1D*> g_pt_smear_dist = GetSmearingDistribution(channel, period, data_or_mc);
 
     //-----------------------------
     // get Z lepton CM theta distribution
@@ -167,20 +185,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     }
     cm_theta_bin_boundaries.push_back(h_lep_theta->GetBinLowEdge(h_lep_theta->GetNbinsX()) + h_lep_theta->GetBinWidth(h_lep_theta->GetNbinsX()));
     std::discrete_distribution<int> cm_theta_distribution (lep_theta_count.begin(),lep_theta_count.end());
-
-    //---------------------------------------------
-    // set channel and lepton flavors
-    //---------------------------------------------
-
-    int flavor;
-    if (TString(channel).EqualTo("ee")) {
-        flavor = 1;
-        lepChannel = 1;
-    }
-    else if (TString(channel).EqualTo("mm")) {
-        flavor = 2;
-        lepChannel = 0;
-    }
 
     //-----------------------------
     // loop over events
@@ -200,12 +204,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         float gamma_phi_smear = 0;
         for (int i=0; i<3; i++) {
             int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
-            if (pt_smear_bin>=0 && g_zmatched_metl_dist[pt_smear_bin]->Integral()>0) {
-                gamma_pt_smear = g_original_metl_dist[pt_smear_bin] - g_zmatched_metl_dist[pt_smear_bin]->GetRandom();
-            }
+            if (pt_smear_bin>=0 && g_pt_smear_dist[pt_smear_bin]->Integral()>0)
+                gamma_pt_smear = g_pt_smear_dist[pt_smear_bin]->GetRandom();
         }
 
-        gamma_pt_smeared = gamma_pt + gamma_pt_smear;
+        gamma_pt_smeared = gamma_pt - gamma_pt_smear;
         gamma_phi_smeared = gamma_phi + gamma_phi_smear;
 
         TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
@@ -291,9 +294,6 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
             lep_phi->clear();
             lep_phi->push_back(l0_lab_4vec.Phi());
             lep_phi->push_back(l1_lab_4vec.Phi());
-            lep_flavor->clear();
-            lep_flavor->push_back(flavor);
-            lep_flavor->push_back(flavor);
             lep_charge->clear();
             lep_charge->push_back(charge);
             lep_charge->push_back(-charge);
