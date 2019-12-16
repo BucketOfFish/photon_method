@@ -7,10 +7,10 @@ namespace bins {
     const double smearing_low = -2000;
     const double smearing_high = 2000;
 
-    const int n_pt_bins = 22;
-    const double pt_bins[n_pt_bins+1] = {50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
-    const double MET_bins[n_pt_bins+1] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
-    const double dphi_bin[n_pt_bins+1] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
+    const int n_pt_bins = 16;
+    const double pt_bins[n_pt_bins+1] = {50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10};
+    const double MET_bins[n_pt_bins+1] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10};
+    const double dphi_bin[n_pt_bins+1] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
 
     const int n_METl_bins = 25;
     const double METl_bins[n_METl_bins+1] = {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10};

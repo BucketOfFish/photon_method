@@ -345,6 +345,7 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
     // sampling methods
     //-----------------------------
 
+void sample() {
             //// Naive sampling (incorrect)
             //double lep_theta_cm = myRandom.Rndm()*TMath::Pi()-0.5*TMath::Pi();
 
@@ -373,3 +374,50 @@ void GetDijetVariables(TLorentzVector z_4vec, TLorentzVector met_4vec, std::vect
             //cout << "l1_lab_4vec pT = " << l1_lab_4vec.Pt() << ", eta = " << l1_lab_4vec.Eta() << ", phi = " << l1_lab_4vec.Phi() << ", m = " << l1_lab_4vec.M() << endl;
             //cout << "2l_lab_4vec pT = " << twol_lab_4vec.Pt() << ", eta = " << twol_lab_4vec.Eta() << ", phi = " << twol_lab_4vec.Phi() << ", m = " << twol_lab_4vec.M() << endl;
             //cout << "==================================================================================" << endl;
+}
+
+void deconvolve() {
+    vector<TH1D*> g_pt_smear_dist = GetSmearingDistribution(channel, period, data_or_mc);
+
+    TSpectrum pfinder;
+    vector<TH1D*> g_pt_smear_dist;
+    for (int pt_bin=0;pt_bin<bins::n_pt_bins;pt_bin++)
+        g_pt_smear_dist.push_back(new TH1D(TString("g_pt_smear_")+TString::Itoa(pt_bin,10),"",500,-1000,1000));
+
+        //--- Use photon METl to deconvolve Z METl
+        Double_t *z_metl_dist = new Double_t[n_hist_bins]; // pointer for passing to TSpectrum
+        Double_t g_metl_dist[n_hist_bins];
+
+        for (int i=0;i<n_hist_bins;i++) {
+            z_metl_dist[i] = hist_z_metl_bin_pt[pt_bin]->GetBinContent(i+1);
+            if (i<n_hist_bins/2) g_metl_dist[i] = hist_g_metl_bin_pt[pt_bin]->GetBinContent(i+1+n_hist_bins/2);
+            else g_metl_dist[i] = 0.;
+        }
+        pfinder.Deconvolution(z_metl_dist,g_metl_dist,n_hist_bins,1000,1,1.0);
+
+        //--- Set smearing distribution to Z METl distribution, but 0 in certain bins
+        TH1D* processed_z_metl_dist = new TH1D(TString("smear_raw_")+TString::Itoa(pt_bin,10),"",n_hist_bins,bins::smearing_low,bins::smearing_high);
+        for (int i=0;i<n_hist_bins;i++) {
+            processed_z_metl_dist->SetBinContent(i+1,z_metl_dist[i]);
+        }
+
+        float g_metl_rms = hist_g_metl_bin_pt[pt_bin]->GetRMS();
+        float z_metl_rms = hist_z_metl_bin_pt[pt_bin]->GetRMS();
+        float smear_mean = processed_z_metl_dist->GetMean();
+        float smear_rms = processed_z_metl_dist->GetRMS();
+        float smear_cut = 6.;
+        if (channel=="mm" && bins::pt_bins[pt_bin]>=0) smear_cut = 7.;
+        //for (int i=0;i<n_hist_bins;i++) {
+            //if (g_metl_rms/z_metl_rms>1.0 || abs(processed_z_metl_dist->GetBinCenter(i+1)-smear_mean)/smear_rms>smear_cut)
+                //processed_z_metl_dist->SetBinContent(i+1,0.);
+        //}
+
+        //float g_original_metl_mean = -hist_g_metl_bin_pt[pt_bin]->GetMean();
+        //for (int i=0;i<500;i++) {
+            //int which_bin = processed_z_metl_dist->FindBin(g_pt_smear_dist[pt_bin]->GetBinCenter(i+1));
+            //int z_metl_for_bin = processed_z_metl_dist->GetBinContent(which_bin);
+            //g_pt_smear_dist[pt_bin]->SetBinContent(i+1,max(z_metl_for_bin-g_original_metl_mean, 0.f));
+        //}
+
+    return g_pt_smear_dist;
+}

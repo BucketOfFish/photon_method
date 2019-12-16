@@ -165,11 +165,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     lep_flavor->push_back(flavor);
 
     //-----------------------------
-    // get smearing histograms and perform smearing
+    // get smearing Gaussians
     //-----------------------------
 
     bins::init_binning_histograms();
-    vector<TH1D*> g_pt_smear_dist = GetSmearingDistribution(channel, period, data_or_mc);
+    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc);
 
     //-----------------------------
     // get Z lepton CM theta distribution
@@ -191,7 +191,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     //-----------------------------
 
     unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine lep_theta_generator(random_seed);
+    std::default_random_engine random_generator(random_seed);
+
+    TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
+    for (int bin=0; bin<bins::n_pt_bins+2; bin++)
+        hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
 
     Long64_t nentries = inputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
@@ -200,16 +204,14 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         inputTree->GetEntry(i);
 
         //--- get random smearing values, then apply smearing (note signs)
-        float gamma_pt_smear = 0;
-        float gamma_phi_smear = 0;
-        for (int i=0; i<3; i++) {
-            int pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt)-1;
-            if (pt_smear_bin>=0 && g_pt_smear_dist[pt_smear_bin]->Integral()>0)
-                gamma_pt_smear = g_pt_smear_dist[pt_smear_bin]->GetRandom();
-        }
-
+        int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
+        auto gaussian_vals = smearing_gaussians.find(pt_bin);
+        normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
+        float gamma_pt_smear = -smearing_gaussian(random_generator);
         gamma_pt_smeared = gamma_pt - gamma_pt_smear;
-        gamma_phi_smeared = gamma_phi + gamma_phi_smear;
+        //float gamma_phi_smear = 0;
+        //gamma_phi_smeared = gamma_phi + gamma_phi_smear;
+        hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl+gamma_pt_smear, totalWeight);
 
         TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
         gamma_4vec.SetPtEtaPhiM(gamma_pt, 0, gamma_phi, 0);
@@ -222,14 +224,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         METl_smeared = MET_smeared * TMath::Cos(DPhi_METPhoton_smear);
         METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
 
-        int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
-        //if (gamma_pt_smeared>bins::pt_bins[bins::n_pt_bins]) gamma_pt_smear_bin = bins::n_pt_bins-1;
-        int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
+        int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared);
+        int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
         mll = 91.1876;
-        if (METl_bin>=0 && gamma_pt_smear_bin>=0) {
-            if (hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
-                mll = hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
-        }
+        if (hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
+            mll = hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
 
         //---------------------------------------------
         // compute two lepton kinematics
@@ -250,7 +249,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
             double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
 
             // Histogram sampling
-            int lep_theta_bin = cm_theta_distribution(lep_theta_generator);
+            int lep_theta_bin = cm_theta_distribution(random_generator);
             float low_lep_theta = cm_theta_bin_boundaries[lep_theta_bin];
             float high_lep_theta = cm_theta_bin_boundaries[lep_theta_bin+1];
             lep_theta_cm = myRandom.Rndm()*(high_lep_theta-low_lep_theta) + low_lep_theta;
@@ -312,7 +311,27 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     }
 
     //-----------------------------
-    // write tree and histograms
+    // Draw final METl distribution
+    //-----------------------------
+
+    for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
+        TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
+        canvas->cd();
+        canvas->SetLogy();
+
+        TH1D* g_smeared_hist = hist_g_smeared_metl_bin_pt[pt_bin];
+        TString g_smeared_plot_name = Form("Plots/g_smeared_ptbin_%d.eps", pt_bin);
+        g_smeared_hist->SetLineColor(1); g_smeared_hist->SetFillColor(42); g_smeared_hist->SetLineStyle(1);
+        g_smeared_hist->GetXaxis()->SetTitle("METl");
+        g_smeared_hist->GetYaxis()->SetTitle("entries / bin");
+        g_smeared_hist->Draw("hist");
+        canvas->Print(g_smeared_plot_name);
+
+        delete canvas, g_smeared_hist;
+    }
+
+    //-----------------------------
+    // Write tree and histograms
     //-----------------------------
 
     outputFile->cd();
