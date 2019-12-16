@@ -4,3 +4,4 @@ Studies/*.eps
 Studies/run*
 Studies/Plots/
 */test*.sh
+PhotonSmearing/Plots

@@ -85,7 +85,7 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
     return histoZ;
 }
 
-TH1D* hist_z_mll_bin_pt_metl[bins::smearing_bin_size][bins::METl_bin_size];
+TH1D* hist_z_mll_bin_pt_metl[bins::n_pt_bins][bins::n_METl_bins];
 
 vector<TH1D*> GetSmearingDistribution(string channel, TString period, string data_or_mc) {
 
@@ -98,11 +98,13 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
     // FILL METL HISTOGRAMS
     //------------------------------------
 
-    TH1D* hist_z_metl_bin_pt[bins::smearing_bin_size];
-    TH1D* hist_g_metl_bin_pt[bins::smearing_bin_size];
-    TH1D* hist_z_onshell_metl_bin_pt[bins::smearing_bin_size];
+    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins];
+    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins];
+    //TH1D* hist_z_onshell_metl_bin_pt[bins::n_pt_bins];
 
-    auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt, &hist_z_onshell_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
+
+    //auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt, &hist_z_onshell_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
+    auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
 
         /**
          * Fills histogram arrays hist_z_metl_bin_pt, hist_z_onshell_metl_bin_pt, hist_g_metl_bin_pt, and hist_z_mll_bin_pt_metl (2D)
@@ -111,15 +113,16 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
 
         cout << "Filling smearing histograms" << endl;
 
-        for (int bin=0; bin<bins::smearing_bin_size; bin++) {
-            hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-            hist_z_onshell_metl_bin_pt[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
-            hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",40000,-30000,10000);
+        for (int bin=0; bin<bins::n_pt_bins; bin++) {
+
+            hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+            //hist_z_onshell_metl_bin_pt[bin] = new TH1D(TString("hist_z_jetmetl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins_smearing_low,bins_smearing_high);
+            hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
         }
 
-        for (int bin0=0; bin0<bins::smearing_bin_size; bin0++) {
-            for (int bin1=0; bin1<bins::METl_bin_size; bin1++) {
-                hist_z_mll_bin_pt_metl[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::mll_bin_size,bins::mll_bin);
+        for (int bin0=0; bin0<bins::n_pt_bins; bin0++) {
+            for (int bin1=0; bin1<bins::n_METl_bins; bin1++) {
+                hist_z_mll_bin_pt_metl[bin0][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin0,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin);
             }
         }
 
@@ -167,8 +170,8 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
                 int pt_bin = bins::hist_pt_bins->FindBin(ptll)-1;
                 int METl_bin = bins::hist_METl_bins->FindBin(METl)-1;
                 hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
-                if (mll>90 && mll<92)
-                    hist_z_onshell_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+                //if (mll>90 && mll<92)
+                    //hist_z_onshell_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
                 if (METl_bin>=0 && pt_bin>=0)
                     hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
             }
@@ -205,7 +208,6 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
         }
 
         photon_file->Close();
-
     };
 
     FillHistograms(channel, period, data_or_mc);
@@ -225,7 +227,7 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
          */
 
         float negative_yield = 0.; // sum of bins with negative values
-        float positive_yield = 0.; // sum of bins with positive values
+        float positive_yield = 0.001; // sum of bins with positive values
         float core_yield = 0.; // sum of bins within one sigma of axis center
 
         if (rebin==0) {
@@ -268,19 +270,19 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
     //------------------------------------
 
     vector<TH1D*> g_pt_smear_dist;
-    for (int pt_bin=0;pt_bin<bins::smearing_bin_size;pt_bin++)
+    for (int pt_bin=0;pt_bin<bins::n_pt_bins;pt_bin++)
         g_pt_smear_dist.push_back(new TH1D(TString("g_pt_smear_")+TString::Itoa(pt_bin,10),"",500,-1000,1000));
 
     TSpectrum pfinder;
-    for (int pt_bin=0;pt_bin<bins::smearing_bin_size;pt_bin++) {
+    for (int pt_bin=0;pt_bin<bins::n_pt_bins;pt_bin++) {
 
         //--- Rebin METl histograms to look reasonable
         int rebin_factor = RebinHistogram(hist_z_metl_bin_pt[pt_bin],0);
         RebinHistogram(hist_g_metl_bin_pt[pt_bin],rebin_factor);
-        for (int met_bin=0; met_bin<bins::METl_bin_size; met_bin++) {
+        for (int met_bin=0; met_bin<bins::n_METl_bins; met_bin++) {
             RebinHistogram(hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
         }
-        int n_hist_bins = 40000/rebin_factor;
+        int n_hist_bins = bins::n_smearing_bins/rebin_factor;
 
         //--- Use photon METl to deconvolve Z METl
         Double_t *z_metl_dist = new Double_t[n_hist_bins]; // pointer for passing to TSpectrum
@@ -291,10 +293,10 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
             if (i<n_hist_bins/2) g_metl_dist[i] = max(hist_g_metl_bin_pt[pt_bin]->GetBinContent(i+1+n_hist_bins/2),0.);
             else g_metl_dist[i] = 0.;
         }
-        //pfinder.Deconvolution(z_metl_dist,g_metl_dist,n_hist_bins,1000,1,1.0);
+        pfinder.Deconvolution(z_metl_dist,g_metl_dist,n_hist_bins,1000,1,1.0);
 
         //--- Set smearing distribution to Z METl distribution, but 0 in certain bins
-        TH1D* processed_z_metl_dist = new TH1D(TString("smear_raw_")+TString::Itoa(pt_bin,10),"",n_hist_bins,-30000,10000);
+        TH1D* processed_z_metl_dist = new TH1D(TString("smear_raw_")+TString::Itoa(pt_bin,10),"",n_hist_bins,bins::smearing_low,bins::smearing_high);
         for (int i=0;i<n_hist_bins;i++) {
             processed_z_metl_dist->SetBinContent(i+1,z_metl_dist[i]);
         }
@@ -316,6 +318,45 @@ vector<TH1D*> GetSmearingDistribution(string channel, TString period, string dat
             int z_metl_for_bin = processed_z_metl_dist->GetBinContent(which_bin);
             g_pt_smear_dist[pt_bin]->SetBinContent(i+1,max(z_metl_for_bin-g_original_metl_mean, 0.f));
         }
+
+        //-- Save all photon and Z METl histograms
+        TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
+        canvas->cd();
+        canvas->SetLogy();
+
+        TH1D* z_hist = hist_z_metl_bin_pt[pt_bin];
+        TString z_plot_name = Form("Plots/z_ptbin_%d.eps", pt_bin);
+        z_hist->SetLineColor(1); z_hist->SetFillColor(42); z_hist->SetLineStyle(1);
+        z_hist->GetXaxis()->SetTitle("METl");
+        z_hist->GetYaxis()->SetTitle("entries / bin");
+        z_hist->Draw("hist");
+        canvas->Print(z_plot_name);
+
+        TH1D* g_hist = hist_g_metl_bin_pt[pt_bin];
+        TString g_plot_name = Form("Plots/g_ptbin_%d.eps", pt_bin);
+        g_hist->SetLineColor(1); g_hist->SetFillColor(42); g_hist->SetLineStyle(1);
+        g_hist->GetXaxis()->SetTitle("METl");
+        g_hist->GetYaxis()->SetTitle("entries / bin");
+        g_hist->Draw("hist");
+        canvas->Print(g_plot_name);
+
+        TH1D* processed_z_hist = processed_z_metl_dist;
+        TString processed_z_plot_name = Form("Plots/processed_z_ptbin_%d.eps", pt_bin);
+        processed_z_hist->SetLineColor(1); processed_z_hist->SetFillColor(42); processed_z_hist->SetLineStyle(1);
+        processed_z_hist->GetXaxis()->SetTitle("METl");
+        processed_z_hist->GetYaxis()->SetTitle("entries / bin");
+        processed_z_hist->Draw("hist");
+        canvas->Print(processed_z_plot_name);
+
+        TH1D* g_smear_hist = g_pt_smear_dist[pt_bin];
+        TString g_smear_plot_name = Form("Plots/g_smear_ptbin_%d.eps", pt_bin);
+        g_smear_hist->SetLineColor(1); g_smear_hist->SetFillColor(42); g_smear_hist->SetLineStyle(1);
+        g_smear_hist->GetXaxis()->SetTitle("METl");
+        g_smear_hist->GetYaxis()->SetTitle("entries / bin");
+        g_smear_hist->Draw("hist");
+        canvas->Print(g_smear_plot_name);
+
+        delete canvas, z_hist, g_hist, processed_z_hist, g_smear_hist;
     }
 
     return g_pt_smear_dist;

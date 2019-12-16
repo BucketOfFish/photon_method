@@ -223,7 +223,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
 
         int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared)-1;
-        //if (gamma_pt_smeared>bins::pt_bins[bins::smearing_bin_size]) gamma_pt_smear_bin = bins::smearing_bin_size-1;
+        //if (gamma_pt_smeared>bins::pt_bins[bins::n_pt_bins]) gamma_pt_smear_bin = bins::n_pt_bins-1;
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared)-1;
         mll = 91.1876;
         if (METl_bin>=0 && gamma_pt_smear_bin>=0) {
