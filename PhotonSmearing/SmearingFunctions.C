@@ -87,7 +87,7 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
 
 TH1D* hist_z_mll_bin_pt_metl[bins::n_pt_bins+2][bins::n_METl_bins+2];
 
-map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc) {
+map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool make_diagnostic_plots) {
 
     /**
      * Returns map with key = photon pt bin, value = (mean, std).
@@ -100,7 +100,6 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
 
     TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
     TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
-
 
     auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
 
@@ -159,7 +158,7 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
                 tree->GetEntry(entry);
                 if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
                 if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
-                if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
+                //if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
                 int pt_bin = bins::hist_pt_bins->FindBin(ptll);
                 int METl_bin = bins::hist_METl_bins->FindBin(METl);
                 hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
@@ -273,12 +272,16 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         float smear_mean = hist_z_metl_bin_pt[pt_bin]->GetMean() - hist_g_metl_bin_pt[pt_bin]->GetMean();
         float smear_rms = sqrt(pow(hist_z_metl_bin_pt[pt_bin]->GetRMS(), 2) - pow(hist_g_metl_bin_pt[pt_bin]->GetRMS(), 2));
         pair<float, float> gaussian = make_pair(0.0, 0.0);
-        if (smear_rms > 0)
+        if (channel=="ee")
+            gaussian = make_pair(smear_mean, 0);
+        else if (smear_rms > 0)
             gaussian = make_pair(smear_mean, smear_rms);
         smearing_gaussians.insert(pair<int, pair<float, float>>(pt_bin, gaussian));
         cout << "Pt bin " << pt_bin << " has a smearing mean, std of " << gaussian.first << ", " << gaussian.second << endl;
 
         //-- Save all photon and Z METl histograms
+        if (!make_diagnostic_plots) continue;
+
         TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
         canvas->cd();
         canvas->SetLogy();
@@ -299,8 +302,30 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         g_hist->Draw("hist");
         canvas->Print(g_plot_name);
 
-        delete canvas, z_hist, g_hist;
+        for (int metl_bin=0; metl_bin<bins::n_METl_bins+2; metl_bin++) {
+            TH1D* z_mll_hist = hist_z_mll_bin_pt_metl[pt_bin][metl_bin];
+            TString z_mll_plot_name = Form("Plots/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
+            z_mll_hist->SetLineColor(1); z_mll_hist->SetFillColor(42); z_mll_hist->SetLineStyle(1);
+            z_mll_hist->GetXaxis()->SetTitle("mll");
+            z_mll_hist->GetYaxis()->SetTitle("entries / bin");
+            z_mll_hist->Draw("hist");
+            canvas->Print(z_mll_plot_name);
+        }
+
+        delete canvas;
     }
 
     return smearing_gaussians;
+
+        //TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
+        //gamma_4vec.SetPtEtaPhiM(gamma_pt, 0, gamma_phi, 0);
+        //gamma_smeared_4vec.SetPtEtaPhiM(gamma_pt_smeared, 0, gamma_phi_smeared, 0);
+        //MET_4vec.SetPtEtaPhiM(MET_raw,0,MET_phi,0);
+        //MET_smeared_4vec = MET_4vec + gamma_4vec - gamma_smeared_4vec;
+
+        //MET_smeared = MET_smeared_4vec.Pt();
+        //DPhi_METPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
+        //METl_smeared = MET_smeared * TMath::Cos(DPhi_METPhoton_smear);
+        //METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
+
 }

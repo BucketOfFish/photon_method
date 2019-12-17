@@ -169,7 +169,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     //-----------------------------
 
     bins::init_binning_histograms();
-    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc);
+    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, make_diagnostic_plots=false);
 
     //-----------------------------
     // get Z lepton CM theta distribution
@@ -204,25 +204,23 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
         inputTree->GetEntry(i);
 
         //--- get random smearing values, then apply smearing (note signs)
+        float gamma_pt_smear = 0;
+        float gamma_phi_smear = 0;
+        gamma_pt_smeared = gamma_pt - gamma_pt_smear;
+        gamma_phi_smeared = gamma_phi + gamma_phi_smear;
+
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
         auto gaussian_vals = smearing_gaussians.find(pt_bin);
         normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
-        float gamma_pt_smear = -smearing_gaussian(random_generator);
-        gamma_pt_smeared = gamma_pt - gamma_pt_smear;
-        //float gamma_phi_smear = 0;
-        //gamma_phi_smeared = gamma_phi + gamma_phi_smear;
-        hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl+gamma_pt_smear, totalWeight);
 
-        TLorentzVector gamma_4vec, gamma_smeared_4vec, MET_4vec, MET_smeared_4vec;
-        gamma_4vec.SetPtEtaPhiM(gamma_pt, 0, gamma_phi, 0);
-        gamma_smeared_4vec.SetPtEtaPhiM(gamma_pt_smeared, 0, gamma_phi_smeared, 0);
-        MET_4vec.SetPtEtaPhiM(MET_raw,0,MET_phi,0);
-        MET_smeared_4vec = MET_4vec + gamma_4vec - gamma_smeared_4vec;
+        METl_smeared = METl + smearing_gaussian(random_generator);
+        METt_smeared = METt;
+        MET_smeared = sqrt(pow(METl_smeared, 2) + pow(METt_smeared, 2));
+        hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
 
-        MET_smeared = MET_smeared_4vec.Pt();
+        TLorentzVector MET_smeared_4vec;
+        MET_smeared_4vec.SetPtEtaPhiM(MET_smeared,0,MET_phi,0);
         DPhi_METPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
-        METl_smeared = MET_smeared * TMath::Cos(DPhi_METPhoton_smear);
-        METt_smeared = MET_smeared * TMath::Sin(DPhi_METPhoton_smear);
 
         int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared);
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
