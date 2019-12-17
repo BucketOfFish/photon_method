@@ -169,7 +169,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
     //-----------------------------
 
     bins::init_binning_histograms();
-    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, make_diagnostic_plots=false);
+    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, false);
 
     //-----------------------------
     // get Z lepton CM theta distribution
