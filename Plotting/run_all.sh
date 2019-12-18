@@ -11,16 +11,19 @@
 # source run_all.sh mm data18 MC VR "1" METt
 
 CHANNELS=("ee" "mm")
-#CHANNELS=("mm")
 #PERIODS=("data15-16" "data17" "data18")
-PERIODS=("data18")
-TYPES=("Data" "MC")
+#TYPES=("Data" "MC")
 #REGIONS=("VR" "SR" "VRcom" "SRZ2016" "SRlow2016" "SRmed2016" "SRhigh2016")
-REGIONS=("SR")
-#REGIONS=("reweight")
 #CUTS=("1" "mll>81&&mll<101" "Ptll>200" "Ptll>400" "HT>200" "HT>400")
-CUTS=("1")
-FEATURES=("met_Et" "METt" "METl" "nJet30" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min" "mll" "mt2leplsp_0")
+#FEATURES=("met_Et" "METt" "METl" "nJet30" "HT" "lepPt[0]" "lepPt[1]" "lep_eta[0]" "lep_eta[1]" "dPhiMetJet1" "dPhiMetJet2" "dPhiMetJet12Min" "mll" "mt2leplsp_0")
+PERIODS=("data18")
+TYPES=("MC")
+REGIONS=("SR")
+#CUTS=("1" "Ptll>50&&Ptll<75" "Ptll>100&&Ptll<125" "Ptll>300&&Ptll<400" "Ptll>1000&&Ptll<1200")
+#FEATURES=("met_Et" "METt" "METl" "mll")
+#CUTS=("1" "mll<50" "METt>100||METt<-100" "METl>100" "met_Et>150")
+CUTS=("met_Et>150")
+FEATURES=("Ptll")
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -88,7 +91,8 @@ do
                 do
                     for REGION in "${REGIONS[@]}"
                     do
-                        sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$PHOTON'","'$REGION'","'$CUT'")'\'
+                        #sem -j 6 root -l -b -q \''quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$PHOTON'","'$REGION'","'$CUT'")'\'
+                        root -l -b -q 'quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$PHOTON'","'$REGION'","'$CUT'")'
                     done
                 done
             done

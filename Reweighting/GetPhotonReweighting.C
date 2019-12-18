@@ -2,7 +2,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_or_mc, string photon_filename, string reweight_var){
+TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_or_mc, string photon_filename, string reweight_var) {
 
     cout << "Making reweighting histograms for period and year " << period << " " << channel << endl;
     gStyle->SetOptStat(0);
@@ -54,12 +54,16 @@ TH1F* GetSimpleReweightingHistograms(string period, string channel, string data_
     cout << "g selection          " << reweight_region.GetTitle() << endl;
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
 
+    //--- set reweighting variable
+    int n_reweighting_bins = bins::n_pt_bins;
+    double *reweighting_bins = bins::pt_bins;
+
     //--- fill reweighting histograms
-    TH1F* hdata  = new TH1F("hdata", "", bins::n_reweighting_bins, bins::reweighting_bins);
-    TH1F* htt    = new TH1F("htt", "", bins::n_reweighting_bins, bins::reweighting_bins);
-    TH1F* hvv    = new TH1F("hvv", "", bins::n_reweighting_bins, bins::reweighting_bins);
-    TH1F* hz     = new TH1F("hz", "", bins::n_reweighting_bins, bins::reweighting_bins);
-    TH1F* histoG = new TH1F("histoG", "", bins::n_reweighting_bins, bins::reweighting_bins);    
+    TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, reweighting_bins);
+    TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, reweighting_bins);
+    TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, reweighting_bins);
+    TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, reweighting_bins);
+    TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, reweighting_bins);    
 
     if (data_or_mc == "Data") {
         tch_data->Draw((reweight_var+">>hdata").c_str(), reweight_region, "goff");
@@ -152,8 +156,8 @@ void GetPhotonReweighting(string period, string channel, string data_or_mc, stri
         outputTree->GetEntry(i);
 
         //float gamma_var_truncated = gamma_var;
-        //if(gamma_var_truncated < bins::reweighting_bins[0]) gamma_var_truncated = bins::reweighting_bins[0];
-        //if(gamma_var_truncated > bins::reweighting_bins[bins::n_reweighting_bins]) gamma_var_truncated = bins::reweighting_bins[bins::n_reweighting_bins];
+        //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
+        //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
         int var_bin = h_reweight->FindBin(gamma_var);
         reweight = h_reweight->GetBinContent(var_bin);
 
