@@ -29,29 +29,29 @@ void CopyBranch(TTree* inputTree, TTree* outputTree, string inputBranchName, str
     }
 }
 
-//vector<string> histFitterBranches {"DatasetNumber/I", "Etall/F", "H2PP/D", "H5PP/D", "H5PP_VR/D", "METOverPtISR/F", "METOverPtW/F", "METOverPtZ/F", "MJ/D", "MJ_VR/D", "MZ/D", "MZ_VR/D", "NjISR/D", "NjS/D", "PTCM/D", "PTCM_VR/D", "PTI/D", "PTISR/D", "PTISR_VR/D", "PTI_VR/D", "RISR/D", "RISR_VR/D", "RPT_HT5PP/D", "RPT_HT5PP_VR/D", "R_minH2P_minH3P/D", "R_minH2P_minH3P_VR/D", "Rjj/F", "Rll/F", "dPhiMetISR/F", "dPhiMetJet1/F", "dPhiMetJet2/F", "dPhiMetJet12Min/F", "dPhiPjjMet/F", "dPhiPllMet/F", "dphiISRI/D", "dphiISRI_VR/D", "dphiVP/D", "dphiVP_VR/D", "lept1Pt_VR/D", "lept2Pt_VR/D", "mTl3/D", "met_Sign/F", "minDphi/D", "mll_RJ/D", "mll_RJ_VR/D", "mt2leplsp_0/F", "nJet20/I", "mjj/F", "lepIsPR/I"};
-//CopyAllBranches(inputTree, BaselineTree, histFitterBranches);
-
 vector<int> int_copy_vars;
 vector<double> double_copy_vars;
 vector<float> float_copy_vars;
 
 void CopyAllBranches(TTree* inputTree, TTree* outputTree, vector<string> branches) {
-    for (auto branch : branches) {
+    int_copy_vars.clear(); int_copy_vars.reserve(100);
+    double_copy_vars.clear(); double_copy_vars.reserve(100);
+    float_copy_vars.clear(); float_copy_vars.reserve(100);
+    for (string branch : branches) {
         string branch_name = branch.substr(0,branch.length()-2);
         char branch_type = branch.substr(branch.length()-1)[0];
         switch (branch_type) {
             case 'I':
                 int int_copy_var; int_copy_vars.push_back(int_copy_var);
-                CopyBranch(inputTree, outputTree, branch_name, branch_name, &(*int_copy_vars.end()), "I");
+                CopyBranch(inputTree, outputTree, branch_name, branch_name, &int_copy_vars.back(), "I");
                 break;
             case 'D':
                 double double_copy_var; double_copy_vars.push_back(double_copy_var);
-                CopyBranch(inputTree, outputTree, branch_name, branch_name, &(*double_copy_vars.end()), "D");
+                CopyBranch(inputTree, outputTree, branch_name, branch_name, &double_copy_vars.back(), "D");
                 break;
             case 'F':
                 float float_copy_var; float_copy_vars.push_back(float_copy_var);
-                CopyBranch(inputTree, outputTree, branch_name, branch_name, &(*float_copy_vars.end()), "F");
+                CopyBranch(inputTree, outputTree, branch_name, branch_name, &float_copy_vars.back(), "F");
                 break;
             default:
                 cout << "Unknown branch type" << endl;

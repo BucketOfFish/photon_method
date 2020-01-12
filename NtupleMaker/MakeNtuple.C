@@ -143,54 +143,13 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     vector<float>* jet_phi = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetPhi", "jet_phi", &jet_phi, "vector<float>");
 
     //--- HistFitter branches
-    int DatasetNumber; CopyBranch(inputTree, BaselineTree, "DatasetNumber", "DatasetNumber", &DatasetNumber, "I");
-    float Etall; CopyBranch(inputTree, BaselineTree, "Etall", "Etall", &Etall, "F");
-    double H2PP; CopyBranch(inputTree, BaselineTree, "H2PP", "H2PP", &H2PP, "D");
-    double H5PP; CopyBranch(inputTree, BaselineTree, "H5PP", "H5PP", &H5PP, "D");
-    double H5PP_VR; CopyBranch(inputTree, BaselineTree, "H5PP_VR", "H5PP_VR", &H5PP_VR, "D");
-    float METOverPtISR; CopyBranch(inputTree, BaselineTree, "METOverPtISR", "METOverPtISR", &METOverPtISR, "F");
-    float METOverPtW; CopyBranch(inputTree, BaselineTree, "METOverPtW", "METOverPtW", &METOverPtW, "F");
-    float METOverPtZ; CopyBranch(inputTree, BaselineTree, "METOverPtZ", "METOverPtZ", &METOverPtZ, "F");
-    double MJ; CopyBranch(inputTree, BaselineTree, "MJ", "MJ", &MJ, "D");
-    double MJ_VR; CopyBranch(inputTree, BaselineTree, "MJ_VR", "MJ_VR", &MJ_VR, "D");
-    double MZ; CopyBranch(inputTree, BaselineTree, "MZ", "MZ", &MZ, "D");
-    double MZ_VR; CopyBranch(inputTree, BaselineTree, "MZ_VR", "MZ_VR", &MZ_VR, "D");
-    double NjISR; CopyBranch(inputTree, BaselineTree, "NjISR", "NjISR", &NjISR, "D");
-    double NjS; CopyBranch(inputTree, BaselineTree, "NjS", "NjS", &NjS, "D");
-    double PTCM; CopyBranch(inputTree, BaselineTree, "PTCM", "PTCM", &PTCM, "D");
-    double PTCM_VR; CopyBranch(inputTree, BaselineTree, "PTCM_VR", "PTCM_VR", &PTCM_VR, "D");
-    double PTI; CopyBranch(inputTree, BaselineTree, "PTI", "PTI", &PTI, "D");
-    double PTISR; CopyBranch(inputTree, BaselineTree, "PTISR", "PTISR", &PTISR, "D");
-    double PTISR_VR; CopyBranch(inputTree, BaselineTree, "PTISR_VR", "PTISR_VR", &PTISR_VR, "D");
-    double PTI_VR; CopyBranch(inputTree, BaselineTree, "PTI_VR", "PTI_VR", &PTI_VR, "D");
-    //float Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Z_pt", &Z_pt, "F");
-    float Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Z_pt, "F");
-    double RISR; CopyBranch(inputTree, BaselineTree, "RISR", "RISR", &RISR, "D");
-    double RISR_VR; CopyBranch(inputTree, BaselineTree, "RISR_VR", "RISR_VR", &RISR_VR, "D");
-    double RPT_HT5PP; CopyBranch(inputTree, BaselineTree, "RPT_HT5PP", "RPT_HT5PP", &RPT_HT5PP, "D");
-    double RPT_HT5PP_VR; CopyBranch(inputTree, BaselineTree, "RPT_HT5PP_VR", "RPT_HT5PP_VR", &RPT_HT5PP_VR, "D");
-    double R_minH2P_minH3P; CopyBranch(inputTree, BaselineTree, "R_minH2P_minH3P", "R_minH2P_minH3P", &R_minH2P_minH3P, "D");
-    double R_minH2P_minH3P_VR; CopyBranch(inputTree, BaselineTree, "R_minH2P_minH3P_VR", "R_minH2P_minH3P_VR", &R_minH2P_minH3P_VR, "D");
-    float Rjj; CopyBranch(inputTree, BaselineTree, "Rjj", "Rjj", &Rjj, "F");
-    float Rll; CopyBranch(inputTree, BaselineTree, "Rll", "Rll", &Rll, "F");
-    float dPhiMetISR; CopyBranch(inputTree, BaselineTree, "dPhiMetISR", "dPhiMetISR", &dPhiMetISR, "F");
-    float dPhiPjjMet; CopyBranch(inputTree, BaselineTree, "dPhiPjjMet", "dPhiPjjMet", &dPhiPjjMet, "F");
-    float dPhiPllMet; CopyBranch(inputTree, BaselineTree, "dPhiPllMet", "dPhiPllMet", &dPhiPllMet, "F");
-    double dphiISRI; CopyBranch(inputTree, BaselineTree, "dphiISRI", "dphiISRI", &dphiISRI, "D");
-    double dphiISRI_VR; CopyBranch(inputTree, BaselineTree, "dphiISRI_VR", "dphiISRI_VR", &dphiISRI_VR, "D");
-    double dphiVP; CopyBranch(inputTree, BaselineTree, "dphiVP", "dphiVP", &dphiVP, "D");
-    double dphiVP_VR; CopyBranch(inputTree, BaselineTree, "dphiVP_VR", "dphiVP_VR", &dphiVP_VR, "D");
-    double lept1Pt_VR; CopyBranch(inputTree, BaselineTree, "lept1Pt_VR", "lept1Pt_VR", &lept1Pt_VR, "D");
-    double lept2Pt_VR; CopyBranch(inputTree, BaselineTree, "lept2Pt_VR", "lept2Pt_VR", &lept2Pt_VR, "D");
-    double mTl3; CopyBranch(inputTree, BaselineTree, "mTl3", "mTl3", &mTl3, "D");
-    float met_Sign; CopyBranch(inputTree, BaselineTree, "met_Sign", "met_Sign", &met_Sign, "F");
-    double minDphi; CopyBranch(inputTree, BaselineTree, "minDphi", "minDphi", &minDphi, "D");
-    double mll_RJ; CopyBranch(inputTree, BaselineTree, "mll_RJ", "mll_RJ", &mll_RJ, "D");
-    double mll_RJ_VR; CopyBranch(inputTree, BaselineTree, "mll_RJ_VR", "mll_RJ_VR", &mll_RJ_VR, "D");
-    float mt2leplsp_0; CopyBranch(inputTree, BaselineTree, "mt2leplsp_0", "mt2leplsp_0", &mt2leplsp_0, "F");
-    int nJet20; CopyBranch(inputTree, BaselineTree, "nJet20", "nJet20", &nJet20, "I");
-    float mjj; CopyBranch(inputTree, BaselineTree, "mjj", "mjj", &mjj, "F");
+    CopyAllBranches(inputTree, BaselineTree, histFitterBranches);
+
     float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
+    float Z_pt; CopyBranch(inputTree, BaselineTree, "Ptll", "Ptll", &Z_pt, "F");
+    float dPhiMetJet1; BaselineTree->Branch("dPhiMetJet1",&dPhiMetJet1,"dPhiMetJet1/F");
+    float dPhiMetJet2; BaselineTree->Branch("dPhiMetJet2",&dPhiMetJet2,"dPhiMetJet2/F");
+    float dPhiMetJet12Min; BaselineTree->Branch("dPhiMetJet12Min",&dPhiMetJet12Min,"dPhiMetJet12Min/F");
 
     vector<float>* jet_m = new vector<float>; CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "vector<float>");
     vector<int>* lepFlavor = new vector<int>; CopyBranch(inputTree, BaselineTree, "lepFlavor", "lepFlavor", &lepFlavor, "vector<int>");
@@ -201,10 +160,6 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     Int_t nLep_signal; CopyBranch(inputTree, BaselineTree, "nLep_signal", "nLep_signal", &nLep_signal, "I");
     Int_t nLep_base; CopyBranch(inputTree, BaselineTree, "nLep_base", "nLep_base", &nLep_base, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
-
-    float dPhiMetJet1; BaselineTree->Branch("dPhiMetJet1",&dPhiMetJet1,"dPhiMetJet1/F");
-    float dPhiMetJet2; BaselineTree->Branch("dPhiMetJet2",&dPhiMetJet2,"dPhiMetJet2/F");
-    float dPhiMetJet12Min; BaselineTree->Branch("dPhiMetJet12Min",&dPhiMetJet12Min,"dPhiMetJet12Min/F");
 
     // lepton angular distribution
     vector<float> *Z_cm_lep_theta = new vector<float>; BaselineTree->Branch("Z_cm_lep_theta","vector<float>",&Z_cm_lep_theta);
