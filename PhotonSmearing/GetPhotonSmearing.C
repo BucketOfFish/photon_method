@@ -3,7 +3,8 @@
 
 using namespace std;
 
-void GetPhotonSmearing(string period, string channel, string data_or_mc) {
+void GetPhotonSmearing(string period, string channel, string data_or_mc, bool turn_off_shifting_and_smearing=false) {
+//void GetPhotonSmearing(string period, string channel, string data_or_mc) {
 
     //---------------------------------------------
     // get unsmeared input file and create smeared output file
@@ -163,9 +164,13 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
 
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
         auto gaussian_vals = smearing_gaussians.find(pt_bin);
-        normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
-
-        METl_smeared = METl + smearing_gaussian(random_generator);
+            
+        if (turn_off_shifting_and_smearing)
+            METl_smeared = METl;
+        else {
+            normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
+            METl_smeared = METl + smearing_gaussian(random_generator);
+        }
         METt_smeared = METt;
         MET_smeared = sqrt(pow(METl_smeared, 2) + pow(METt_smeared, 2));
         hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
@@ -176,9 +181,10 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc) {
 
         int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared);
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
-        mll = 0;
-        if (hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
-            mll = hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
+        //mll = 0;
+        //if (hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
+            //mll = hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
+        mll = 91;
 
         //---------------------------------------------
         // compute two lepton kinematics

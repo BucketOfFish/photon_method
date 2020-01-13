@@ -53,7 +53,8 @@ do
     do
         for PERIOD in "${PERIODS[@]}"
         do
-            root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'")'
+            root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'",true)'
+            #root -l -b -q 'GetPhotonSmearing.C("'$PERIOD'","'$CHANNEL'","'$TYPE'")'
         done
     done
 done

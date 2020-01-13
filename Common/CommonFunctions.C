@@ -34,9 +34,9 @@ vector<double> double_copy_vars;
 vector<float> float_copy_vars;
 
 void CopyAllBranches(TTree* inputTree, TTree* outputTree, vector<string> branches) {
-    int_copy_vars.clear(); int_copy_vars.reserve(100);
-    double_copy_vars.clear(); double_copy_vars.reserve(100);
-    float_copy_vars.clear(); float_copy_vars.reserve(100);
+    int_copy_vars.clear(); int_copy_vars.reserve(branches.size());
+    double_copy_vars.clear(); double_copy_vars.reserve(branches.size());
+    float_copy_vars.clear(); float_copy_vars.reserve(branches.size());
     for (string branch : branches) {
         string branch_name = branch.substr(0,branch.length()-2);
         char branch_type = branch.substr(branch.length()-1)[0];

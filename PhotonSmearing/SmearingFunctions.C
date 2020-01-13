@@ -85,7 +85,7 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
     return histoZ;
 }
 
-TH1D* hist_z_mll_bin_pt_metl[bins::n_pt_bins+2][bins::n_METl_bins+2];
+//TH1D* hist_z_mll_bin_pt_metl[bins::n_pt_bins+2][bins::n_METl_bins+2];
 
 map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
 
@@ -114,7 +114,7 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
             hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
             hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
             for (int bin1=0; bin1<bins::n_METl_bins+2; bin1++) {
-                hist_z_mll_bin_pt_metl[bin][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin);
+                //hist_z_mll_bin_pt_metl[bin][bin1] = new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin);
             }
         }
 
@@ -160,7 +160,7 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
                 if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
                 int pt_bin = bins::hist_pt_bins->FindBin(ptll);
                 int METl_bin = bins::hist_METl_bins->FindBin(METl);
-                hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
+                //hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
                 if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
                 hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
             }
@@ -264,8 +264,8 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         //--- Rebin METl histograms to look reasonable
         int rebin_factor = RebinHistogram(hist_z_metl_bin_pt[pt_bin],0);
         RebinHistogram(hist_g_metl_bin_pt[pt_bin],rebin_factor);
-        for (int met_bin=0; met_bin<bins::n_METl_bins+2; met_bin++)
-            RebinHistogram(hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
+        //for (int met_bin=0; met_bin<bins::n_METl_bins+2; met_bin++)
+            //RebinHistogram(hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
         int n_hist_bins = bins::n_smearing_bins/rebin_factor;
 
         //--- Save smearing value
@@ -303,15 +303,15 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         g_hist->Draw("hist");
         canvas->Print(g_plot_name);
 
-        for (int metl_bin=0; metl_bin<bins::n_METl_bins+2; metl_bin++) {
-            TH1D* z_mll_hist = hist_z_mll_bin_pt_metl[pt_bin][metl_bin];
-            TString z_mll_plot_name = Form("Plots/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
-            z_mll_hist->SetLineColor(1); z_mll_hist->SetFillColor(42); z_mll_hist->SetLineStyle(1);
-            z_mll_hist->GetXaxis()->SetTitle("mll");
-            z_mll_hist->GetYaxis()->SetTitle("entries / bin");
-            z_mll_hist->Draw("hist");
-            canvas->Print(z_mll_plot_name);
-        }
+        //for (int metl_bin=0; metl_bin<bins::n_METl_bins+2; metl_bin++) {
+            //TH1D* z_mll_hist = hist_z_mll_bin_pt_metl[pt_bin][metl_bin];
+            //TString z_mll_plot_name = Form("Plots/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
+            //z_mll_hist->SetLineColor(1); z_mll_hist->SetFillColor(42); z_mll_hist->SetLineStyle(1);
+            //z_mll_hist->GetXaxis()->SetTitle("mll");
+            //z_mll_hist->GetYaxis()->SetTitle("entries / bin");
+            //z_mll_hist->Draw("hist");
+            //canvas->Print(z_mll_plot_name);
+        //}
 
         delete canvas;
     }
