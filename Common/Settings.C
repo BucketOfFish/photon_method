@@ -6,7 +6,7 @@
 #include "CommonBins.C"
 #include "CommonFunctions.C"
 
-std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/VeryTinySamples/";
+std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TinySamples/";
 std::string sampling_method = "HistogramSampling";
 
 std::string ntuple_path =  sample_folder + "Ntuples/";

@@ -19,11 +19,10 @@ CHANNELS=("ee" "mm")
 PERIODS=("data18")
 TYPES=("MC")
 REGIONS=("SR")
-#CUTS=("1" "Ptll>50&&Ptll<75" "Ptll>100&&Ptll<125" "Ptll>300&&Ptll<400" "Ptll>1000&&Ptll<1200")
-#FEATURES=("met_Et" "METt" "METl" "mll")
-#CUTS=("1" "mll<50" "METt>100||METt<-100" "METl>100" "met_Et>150")
-CUTS=("met_Et>150")
-FEATURES=("Ptll")
+#CUTS=("1" "Ptll<50" "Ptll>50&&Ptll<80" "Ptll>80&&Ptll<160" "Ptll>160" "PhotonConversionType==0" "PhotonConversionType==1" "PhotonConversionType==2" "PhotonConversionType==3" "PhotonConversionType==4" "PhotonConversionType==5" "lep_theta_cm<1" "lep_theta_cm>1 && lep_theta_cm<2" "lep_theta_cm>2")
+CUTS=("1" "Ptll<50" "Ptll>50&&Ptll<80" "Ptll>80&&Ptll<160" "Ptll>160")
+#CUTS=("Ptll<20" "Ptll>20&&Ptll<25" "Ptll>25&&Ptll<30" "Ptll>30&&Ptll<35" "Ptll>35&&Ptll<40" "Ptll>40&&Ptll<45" "Ptll>45&&Ptll<50" "Ptll>50&&Ptll<55" "Ptll>55&&Ptll<60" "Ptll>60&&Ptll<70" "Ptll>70&&Ptll<80" "Ptll>80&&Ptll<100" "Ptll>100&&Ptll<120" "Ptll>120&&Ptll<140" "Ptll>140&&Ptll<160" "Ptll>160&&Ptll<180" "Ptll>180&&Ptll<200" "Ptll>200&&Ptll<220" "Ptll>220&&Ptll<260" "Ptll>260&&Ptll<280" "Ptll>280&&Ptll<300" "Ptll>300&&Ptll<350" "Ptll>350&&Ptll<400" "Ptll>400&&Ptll<600" "Ptll>600&&Ptll<1000" "Ptll>1000")
+FEATURES=("met_Et" "METt" "METl")
 
 if [ $# == 1 ]; then
     if [[ ${CHANNELS[*]} =~ $(echo $1) ]]; then
@@ -40,6 +39,14 @@ if [ $# == 1 ]; then
         REGIONS=( $1 )
     elif [ $1 != "all" ]; then
         echo "Unrecognized argument"
+        return
+    fi
+elif [ $# == 2 ]; then
+    if [[ ${CHANNELS[*]} =~ $(echo $1) ]] && [[ ${FEATURES[*]} =~ $(echo $2) ]]; then
+        CHANNELS=( $1 )
+        FEATURES=( $2 )
+    else
+        echo "Unrecognized arguments"
         return
     fi
 elif [ $# == 3 ]; then

@@ -7,9 +7,9 @@ namespace cuts {
     TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
     TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
-    TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
+    TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
 
-    TCut SR("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
+    TCut SR("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
     TCut CR("met_Et<100.0");
     TCut VR("nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100");  
 

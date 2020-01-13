@@ -208,10 +208,13 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     if(!DF) mcstack->Add(h_photon_reweighted);
 
     //--- create comparison "stacks"
-    h_photon->Add(h_tt); h_photon->Add(h_vv);
-    h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
+    if (photon_data_or_mc == "Data") {
+        h_photon->Add(h_tt); h_photon->Add(h_vv);
+        h_zmc->Add(h_tt); h_zmc->Add(h_vv);
+    }
 
-    h_zmc->Add(h_tt); h_zmc->Add(h_vv);
+    //--- set plotting options
+    h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
     h_zmc->SetLineColor(2); h_zmc->SetLineWidth(1); h_zmc->SetLineStyle(7);
 
     //--- turn on overflow bin
@@ -306,22 +309,50 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     ratio_pad->cd();
     ratio_pad->SetGridy();
 
-    TH1F* hratio;
-    hratio = (TH1F*) h_data->Clone("hratio");
-    TH1F* hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-    hmctot->Add(h_tt);
-    hmctot->Add(h_vv);
+    TH1F *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (photon_data_or_mc == "MC") {
         hratio = (TH1F*) h_zmc->Clone("hratio");
+        hratio_unreweighted = (TH1F*) h_zmc->Clone("hratio");
         hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
+        hmctot_unreweighted = (TH1F*) h_photon->Clone("hmctot");
+    }
+    else {
+        hratio = (TH1F*) h_data->Clone("hratio");
+        hratio_unreweighted = (TH1F*) h_data->Clone("hratio");
+        hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
+        hmctot->Add(h_tt);
+        hmctot->Add(h_vv);
+        hmctot_unreweighted = (TH1F*) h_photon->Clone("hmctot");
+        hmctot_unreweighted->Add(h_tt);
+        hmctot_unreweighted->Add(h_vv);
     }
 
-    for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++)
+    for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++) {
         hmctot->SetBinError(ibin, 0.0);
+        hmctot_unreweighted->SetBinError(ibin, 0.0);
+    }
+
+    hratio_unreweighted->Divide(hmctot_unreweighted);
+    hratio_unreweighted->SetMarkerStyle(20);
+    hratio_unreweighted->SetMarkerColor(kBlue);
+    hratio_unreweighted->SetLineColor(kBlue);
+    hratio_unreweighted->GetXaxis()->SetTitle("");
+    hratio_unreweighted->GetXaxis()->SetLabelSize(0.);
+    hratio_unreweighted->GetYaxis()->SetNdivisions(5);
+    hratio_unreweighted->GetYaxis()->SetTitle("");
+    hratio_unreweighted->GetYaxis()->SetTitleSize(0.15);
+    hratio_unreweighted->GetYaxis()->SetTitleOffset(0.3);
+    hratio_unreweighted->GetYaxis()->SetLabelSize(0.15);
+    hratio_unreweighted->SetMinimum(0.0);
+    hratio_unreweighted->SetMaximum(2.0);
+    hratio_unreweighted->GetYaxis()->SetRangeUser(0.0,2.0);
+    hratio_unreweighted->Draw("E1");
+
     hratio->Divide(hmctot);
     hratio->SetMarkerStyle(20);
-
+    hratio->SetMarkerColor(kRed);
+    hratio->SetLineColor(kRed);
     hratio->GetXaxis()->SetTitle("");
     hratio->GetXaxis()->SetLabelSize(0.);
     hratio->GetYaxis()->SetNdivisions(5);
@@ -335,7 +366,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     hratio->SetMinimum(0.0);
     hratio->SetMaximum(2.0);
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
-    hratio->Draw("E1");
+    hratio->Draw("sameE1");
 
     //--- save plot
     TString plot_name;
