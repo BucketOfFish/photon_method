@@ -5,3 +5,6 @@ Studies/run*
 Studies/Plots/
 */test*.sh
 PhotonSmearing/Plots
+*/run_all.sh
+*/*/run_all.sh
+Plotting/Studies/Plots
