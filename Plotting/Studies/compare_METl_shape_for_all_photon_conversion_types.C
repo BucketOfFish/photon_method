@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void compare_METl_shape_for_all_photon_conversion_types(string period="data18", string channel="mm" , string plot_feature="met_Et", string region="SR", string additional_cut="1") {
+void compare_METl_shape_for_all_photon_conversion_types(string period="data18", string channel="ee" , string plot_feature="METl", string region="SR", string additional_cut="1") {
 
     gStyle->SetOptStat(0);
 
