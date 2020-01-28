@@ -87,7 +87,8 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
 
 //TH1D* hist_z_mll_bin_pt_metl[bins::n_pt_bins+2][bins::n_METl_bins+2];
 
-map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
+vector<TH1D> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
+//map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
 
     /**
      * Returns map with key = photon pt bin, value = (mean, std).
@@ -259,6 +260,8 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
     //------------------------------------
 
     map<int, pair<float, float>> smearing_gaussians;
+    TSpectrum deconv_tool;
+    vector<TH1D> metl_deconv_hists;
     for (int pt_bin=0;pt_bin<bins::n_pt_bins+2;pt_bin++) {
 
         //--- Rebin METl histograms to look reasonable
@@ -277,6 +280,20 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         if (channel=="ee") gaussian = make_pair(smear_mean, 0.0);
         else gaussian = make_pair(smear_mean, smear_rms);
         smearing_gaussians.insert(pair<int, pair<float, float>>(pt_bin, gaussian));
+
+        //--- Deconvolution
+        Double_t *z_metl_dist = new Double_t[n_hist_bins]; // pointer for passing to TSpectrum
+        Double_t g_metl_dist[n_hist_bins];
+        for (int i=0;i<n_hist_bins;i++) {
+            z_metl_dist[i] = max(hist_z_metl_bin_pt[pt_bin]->GetBinContent(i+1),0.);
+            g_metl_dist[i] = max(hist_g_metl_bin_pt[pt_bin]->GetBinContent(i+1),0.);
+        }
+        deconv_tool.Deconvolution(z_metl_dist,g_metl_dist,n_hist_bins,1000,1,1.0);
+        TH1D new_metl_deconv_hist = TH1D(TString("metl_deconv_")+TString::Itoa(pt_bin, 10),"",n_hist_bins,-10000,10000);
+        for (int i=1;i<=n_hist_bins;i++) {
+            new_metl_deconv_hist.SetBinContent(i, z_metl_dist[i-1]);
+        }
+        metl_deconv_hists.push_back(new_metl_deconv_hist);
 
         //-- Print diagnostics and save histograms
         if (!diagnostics) continue;
@@ -316,5 +333,6 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
         delete canvas;
     }
 
-    return smearing_gaussians;
+    //return smearing_gaussians;
+    return metl_deconv_hists;
 }

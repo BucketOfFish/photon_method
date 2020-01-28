@@ -122,7 +122,8 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     //-----------------------------
 
     bins::init_binning_histograms();
-    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, diagnostics);
+    //map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, diagnostics);
+    vector<TH1D> smearing_hists = GetSmearingDistribution(channel, period, data_or_mc, diagnostics);
 
     //-----------------------------
     // get Z lepton CM theta distribution
@@ -163,13 +164,18 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
         gamma_phi_smeared = gamma_phi + gamma_phi_smear;
 
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
-        auto gaussian_vals = smearing_gaussians.find(pt_bin);
+        //auto gaussian_vals = smearing_gaussians.find(pt_bin);
             
         if (turn_off_shifting_and_smearing)
             METl_smeared = METl;
         else {
-            normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
-            METl_smeared = METl + smearing_gaussian(random_generator);
+            //normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
+            //normal_distribution<float> smearing_gaussian(0, 0);
+            //METl_smeared = METl + smearing_gaussian(random_generator);
+            float blah = 0.0;
+            if (smearing_hists[pt_bin].Integral()>0)
+                blah = smearing_hists[pt_bin].GetRandom();
+            METl_smeared = METl + blah;
         }
         METt_smeared = METt;
         MET_smeared = sqrt(pow(METl_smeared, 2) + pow(METt_smeared, 2));
