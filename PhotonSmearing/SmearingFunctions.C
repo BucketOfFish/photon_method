@@ -153,16 +153,22 @@ vector<TH1D> GetSmearingDistribution(string channel, TString period, string data
             float mll; SetInputBranch(tree, "mll", &mll);
             float METl; SetInputBranch(tree, "METl", &METl);
             int channel; SetInputBranch(tree, "channel", &channel);
+            int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
 
-            for (int entry=0; entry<tree->GetEntries(); entry++) {
-                tree->GetEntry(entry);
+            //tree->Draw(">>event_list", cuts::reweight_region);
+            //tree->Draw(">>event_list", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25");
+            tree->Draw(">>event_list", "nJet30>=2");
+            auto event_list = (TEventList*) gDirectory->Get("event_list");
+            for (int entry=0; entry<event_list->GetN(); entry++) {
+                tree->GetEntry(event_list->GetEntry(entry));
                 if (TString(target_channel).EqualTo("ee") && channel != 1) continue;
                 if (TString(target_channel).EqualTo("mm") && channel != 0) continue;
                 int pt_bin = bins::hist_pt_bins->FindBin(ptll);
                 int METl_bin = bins::hist_METl_bins->FindBin(METl);
                 //hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
-                if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
+                //if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
+                if (jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
                 hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
             }
         }
@@ -188,11 +194,15 @@ vector<TH1D> GetSmearingDistribution(string channel, TString period, string data
         int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
         int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
         float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
+        int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
         float METl; SetInputBranch(tree, "METl_raw", &METl);
 
-        for (int entry=0; entry<tree->GetEntries(); entry++) {
-            tree->GetEntry(entry);
-            if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
+        //tree->Draw(">>event_list", cuts::reweight_region);
+        tree->Draw(">>event_list", "nJet30>=2");
+        auto event_list = (TEventList*) gDirectory->Get("event_list");
+        for (int entry=0; entry<event_list->GetN(); entry++) {
+            tree->GetEntry(event_list->GetEntry(entry));
+            //if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
             int pt_bin = bins::hist_pt_bins->FindBin(ptll);
             hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
         }
@@ -280,6 +290,18 @@ vector<TH1D> GetSmearingDistribution(string channel, TString period, string data
         if (channel=="ee") gaussian = make_pair(smear_mean, 0.0);
         else gaussian = make_pair(smear_mean, smear_rms);
         smearing_gaussians.insert(pair<int, pair<float, float>>(pt_bin, gaussian));
+
+        //cout << "Pt bin " << pt_bin << endl;
+        //cout << "Z_METl " << ": [" << endl;
+        //for (int i=0;i<n_hist_bins+1;i++) {
+            //cout << hist_z_metl_bin_pt[pt_bin]->GetBinContent(i) << ", ";
+        //}
+        //cout << "]" << endl;
+        //cout << "g_METl " << ": [" << endl;
+        //for (int i=0;i<n_hist_bins+1;i++) {
+            //cout << hist_g_metl_bin_pt[pt_bin]->GetBinContent(i) << ", ";
+        //}
+        //cout << "]" << endl;
 
         //--- Deconvolution
         Double_t *z_metl_dist = new Double_t[n_hist_bins]; // pointer for passing to TSpectrum
