@@ -293,12 +293,12 @@ vector<TH1D> GetSmearingDistribution(string channel, TString period, string data
 
         //cout << "Pt bin " << pt_bin << endl;
         //cout << "Z_METl " << ": [" << endl;
-        //for (int i=0;i<n_hist_bins+1;i++) {
+        //for (int i=0;i<n_hist_bins+2;i++) {
             //cout << hist_z_metl_bin_pt[pt_bin]->GetBinContent(i) << ", ";
         //}
         //cout << "]" << endl;
         //cout << "g_METl " << ": [" << endl;
-        //for (int i=0;i<n_hist_bins+1;i++) {
+        //for (int i=0;i<n_hist_bins+2;i++) {
             //cout << hist_g_metl_bin_pt[pt_bin]->GetBinContent(i) << ", ";
         //}
         //cout << "]" << endl;
