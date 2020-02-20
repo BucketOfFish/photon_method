@@ -51,7 +51,7 @@ void higgsino_cut_efficiency_grid() {
         auto canvas = new TCanvas("canvas", "canvas", 700, 700);
         gStyle->SetOptStat(0);
         auto hist_grid = new TH2F("hist_grid","hist_grid",25,0,2500,200,0,2000);
-        auto color_grid = new TH2F("color_grid","Efficiency of Ptll>50 Cut on SLN1 Grid",25,0,2500,200,0,2000);
+        auto color_grid = new TH2F("color_grid",("Efficiency of " + (string)additional_cut + " Cut on SLN1 Grid").c_str(),25,0,2500,200,0,2000);
         for (auto result : results) {
             color_grid->Fill(get<0>(result), get<1>(result), get<2>(result));
             hist_grid->Fill(get<0>(result), get<1>(result), get<2>(result));
@@ -122,7 +122,7 @@ void higgsino_cut_efficiency_grid() {
         }
 
         cout << "\\begin{table}" << endl;
-        cout << "\\caption{Ptll Cut Efficiency}" << endl;
+        cout << "\\caption{" + (string)additional_cut + " Cut Efficiency}" << endl;
         cout << "\\begin{center}" << endl;
         cout << "\\begin{tabular}{l|l|l|l}" << endl;
         for (int period=0; period<periods.size(); period++)
