@@ -18,6 +18,11 @@ max_n_events = -1
 Z_mc_file = ROOT.TFile(ntuple_path + "/bkg_mc/" + mc_period + "_Zjets.root")
 Z_mc_tree = Z_mc_file.BaselineTree
 
+Z_mc_tree.SetBranchStatus("*", 0)
+used_branches = ['Ptll', 'nJet30', 'jet_pT', 'nLep_signal', 'lepPt']
+for branch in used_branches:
+    Z_mc_tree.SetBranchStatus(branch, 1)
+
 def process_Z_event(i, event):
     if i % 100000 == 0:
         print(str(i) + " events processed", end="\r")
@@ -49,6 +54,11 @@ del Z_METl
 
 photon_mc_file = ROOT.TFile(ntuple_path + "/g_mc/" + mc_period + "_SinglePhoton222.root")
 photon_mc_tree = photon_mc_file.BaselineTree
+
+photon_mc_tree.SetBranchStatus("*", 0)
+used_branches = ['Ptll', 'nJet30', 'jet_pT']
+for branch in used_branches:
+    photon_mc_tree.SetBranchStatus(branch, 1)
 
 def process_photon_event(i, event):
     if max_n_events > -1 and i > max_n_events:
