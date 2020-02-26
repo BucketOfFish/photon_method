@@ -7,6 +7,14 @@ namespace cuts {
     TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
     TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
+    TCut ee("channel==1");
+    TCut mm("channel==0");
+    TCut em("channel==2 || channel==3");
+
+    TCut bkg_weight("totalWeight");
+    TCut photon_weight("totalWeight");
+    TCut photon_weight_rw("totalWeight*reweight_Ptll");
+
     TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
 
     TCut SR("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
@@ -20,11 +28,37 @@ namespace cuts {
     TCut SRmed2016("nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && met_Et>200 && HT>400");  
     TCut SRhigh2016("nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && met_Et>200 && HT>700");  
 
-    TCut ee("channel==1");
-    TCut mm("channel==0");
-    TCut em("channel==2 || channel==3");
+    // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
+    unordered_map<string, TCut> signal_regions = {
+        {"SRC", "nLep_signal==2 && nJet30>=2 && met_Et>250 && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && mll<50"},
+        {"SRCZ", "nLep_signal==2 && nJet30>=4 && met_Et>250 && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && (mll>81 && mll<101)"},
+        {"SRLow4", "nLep_signal==2 && nJet30>=4 && HT>250 && met_Et>250 && MT2>100 && (Ptll>40 && Ptll<500) && (mll<150 && ~(mll>81 && mll<101))"},
+        {"SRLowZ", "nLep_signal==2 && nJet30>=6 && HT>250 && met_Et>250 && MT2>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
+        {"SRMed4", "nLep_signal==2 && nJet30>=4 && HT>500 && met_Et>300 && MT2>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
+        {"SRMedZ", "nLep_signal==2 && nJet30>=6 && HT>500 && met_Et>300 && MT2>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
+        {"SRHigh4", "nLep_signal==2 && nJet30>=4 && HT>800 && met_Et>300 && MT2>75 && Ptll>40 && (mll>150 && mll<950)"},
+        {"SRHighZ", "nLep_signal==2 && nJet30>=6 && HT>800 && met_Et>300 && MT2>75 && Ptll>40 && (mll>81 && mll<101)"}
+    };
 
-    TCut bkg_weight("totalWeight");
-    TCut photon_weight("totalWeight");
-    TCut photon_weight_rw("totalWeight*reweight_Ptll");
+    unordered_map<string, TCut> validation_regions = {
+        {"VRC", "nLep_signal==2 && nJet30>=2 && (met_Et>150 && met_Et<250) && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && mll<50"},
+        {"VRCZ", "nLep_signal==2 && nJet30>=4 && (met_Et>150 && met_Et<250) && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && (mll>81 && mll<101)"},
+        {"VRLow4", "nLep_signal==2 && nJet30>=4 && HT>250 && (met_Et>150 && met_Et<250) && MT2>100 && (Ptll>40 && Ptll<500) && (mll<150 && ~(mll>81 && mll<101))"},
+        {"VRLowZ", "nLep_signal==2 && nJet30>=6 && HT>250 && (met_Et>150 && met_Et<250) && MT2>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
+        {"VRMed4", "nLep_signal==2 && nJet30>=4 && HT>500 && (met_Et>200 && met_Et<300) && MT2>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
+        {"VRMedZ", "nLep_signal==2 && nJet30>=6 && HT>500 && (met_Et>200 && met_Et<300) && MT2>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
+        {"VRHigh4", "nLep_signal==2 && nJet30>=4 && HT>800 && (met_Et>200 && met_Et<300) && MT2>75 && Ptll>40 && (mll>150 && mll<950)"},
+        {"VRHighZ", "nLep_signal==2 && nJet30>=6 && HT>800 && (met_Et>200 && met_Et<300) && MT2>75 && Ptll>40 && (mll>81 && mll<101)"}
+    };
+
+    unordered_map<string, TCut> plot_control_regions = {
+        {"CRC", "nLep_signal==2 && nJet30>=2 && met_Et<100 && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && mll<50"},
+        {"CRCZ", "nLep_signal==2 && nJet30>=4 && met_Et<100 && MT2>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && (mll>81 && mll<101)"},
+        {"CRLow4", "nLep_signal==2 && nJet30>=4 && HT>250 && met_Et<100 && MT2>100 && (Ptll>40 && Ptll<500) && (mll<150 && ~(mll>81 && mll<101))"},
+        {"CRLowZ", "nLep_signal==2 && nJet30>=6 && HT>250 && met_Et<100 && MT2>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
+        {"CRMed4", "nLep_signal==2 && nJet30>=4 && HT>500 && met_Et<100 && MT2>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
+        {"CRMedZ", "nLep_signal==2 && nJet30>=6 && HT>500 && met_Et<100 && MT2>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
+        {"CRHigh4", "nLep_signal==2 && nJet30>=4 && HT>800 && met_Et<100 && MT2>75 && Ptll>40 && (mll>150 && mll<950)"},
+        {"CRHighZ", "nLep_signal==2 && nJet30>=6 && HT>800 && met_Et<100 && MT2>75 && Ptll>40 && (mll>81 && mll<101)"}
+    };
 }
