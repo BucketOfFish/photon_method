@@ -160,6 +160,7 @@ void MakeNtuple(string outputFolder, string period, string pathToNtuples, string
     Int_t nLep_signal; CopyBranch(inputTree, BaselineTree, "nLep_signal", "nLep_signal", &nLep_signal, "I");
     Int_t nLep_base; CopyBranch(inputTree, BaselineTree, "nLep_base", "nLep_base", &nLep_base, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
+    float MET_sig; CopyBranch(inputTree, BaselineTree, "met_Sign", "MET_sig", &MET_sig, "F");
 
     // lepton angular distribution
     vector<float> *Z_cm_lep_theta = new vector<float>; BaselineTree->Branch("Z_cm_lep_theta","vector<float>",&Z_cm_lep_theta);

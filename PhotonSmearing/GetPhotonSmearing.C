@@ -92,6 +92,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
     bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
+    float MET_sig; CopyBranch(inputTree, BaselineTree, "MET_sig", "MET_sig", &MET_sig, "F");
 
     //---------------------------------------------
     // set diagnostics printing
