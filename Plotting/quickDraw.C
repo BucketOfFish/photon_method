@@ -49,16 +49,7 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
 
     //--- define selections
     TCut plot_region;
-    if (region == "CR") plot_region = cuts::CR;
-    else if (region == "baseline") plot_region = cuts::baseline;
-    else if (region == "reweight") plot_region = cuts::reweight_region;
-    else if (region == "VR") plot_region = cuts::VR;
-    else if (region == "SR") plot_region = cuts::SR;
-    else if (region == "VRcom") plot_region = cuts::VRcom;
-    else if (region == "SRZ2016") plot_region = cuts::SRZ2016;
-    else if (region == "SRlow2016") plot_region = cuts::SRlow2016;
-    else if (region == "SRmed2016") plot_region = cuts::SRmed2016;
-    else if (region == "SRhigh2016") plot_region = cuts::SRhigh2016;
+    if (cuts::plot_regions.count(region)) plot_region = cuts::plot_regions[region];
     else {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
@@ -148,7 +139,7 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     cout << "g reweighted int.    " << h_photon_reweighted->Integral() << endl;
     cout << "" << endl;
 
-    //--- normalize Z to CR region
+    //--- normalize Z to CR
     cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
     TH1F* h_data_cr = new TH1F("h_data_cr", "", 1, 0, 1);
