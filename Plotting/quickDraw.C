@@ -3,7 +3,7 @@
 
 using namespace std;
 
-void quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string photon_data_or_mc="Data", string region="SR", string additional_cut="1") {
+float quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string photon_data_or_mc="Data", string region="SR", string additional_cut="1", bool return_photon_yield_only=false) {
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -148,7 +148,7 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
     cout << "g reweighted int.    " << h_photon_reweighted->Integral() << endl;
     cout << "" << endl;
 
-    //--- normalize Z to MET<60 GeV region
+    //--- normalize Z to CR region
     cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
 
     TH1F* h_data_cr = new TH1F("h_data_cr", "", 1, 0, 1);
@@ -179,6 +179,11 @@ void quickDraw(string period="data15-16", string channel="mm" , string plot_feat
 
     h_photon->Scale(SF);
     h_photon_reweighted->Scale(SFrw);
+
+    if (return_photon_yield_only) {
+        cout << "Photon yield of " << h_photon_reweighted->Integral() << endl;
+        return h_photon_reweighted->Integral();
+    }
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
