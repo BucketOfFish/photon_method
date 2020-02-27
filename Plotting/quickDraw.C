@@ -48,13 +48,11 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
     //--- define selections
-    TCut plot_region;
-    if (cuts::plot_regions.count(region)) plot_region = cuts::plot_regions[region];
-    else {
+    if (cuts::plot_regions.count(region) == 0) {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
     }
-
+    TCut plot_region = cuts::plot_regions[region];
     if (additional_cut != "1") plot_region += TCut(additional_cut.c_str());
     if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
     else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
@@ -64,6 +62,9 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
         exit(0);
     }
     plot_region += TCut(additional_cut.c_str());
+
+    TCut plot_CR = plot_region + cuts::CR;
+    plot_region += cuts::plot_region_met_portions[region];
 
     cout << "Z selection          " << plot_region.GetTitle() << endl;  
     cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
@@ -149,13 +150,12 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
     TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
 
-    TCut current_CR = plot_region + cuts::CR;
-    tch_data->Draw("0.5>>h_data_cr", current_CR*cuts::bkg_weight, "goff");
-    tch_tt-> Draw("0.5>>h_tt_cr", current_CR*cuts::bkg_weight, "goff");
-    tch_vv-> Draw("0.5>>h_vv_cr", current_CR*cuts::bkg_weight, "goff");
-    tch_zmc->Draw("0.5>>h_zmc_cr", current_CR*cuts::bkg_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_cr", current_CR*cuts::photon_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_reweighted_cr", current_CR*cuts::photon_weight_rw, "goff");
+    tch_data->Draw("0.5>>h_data_cr", plot_CR*cuts::bkg_weight, "goff");
+    tch_tt-> Draw("0.5>>h_tt_cr", plot_CR*cuts::bkg_weight, "goff");
+    tch_vv-> Draw("0.5>>h_vv_cr", plot_CR*cuts::bkg_weight, "goff");
+    tch_zmc->Draw("0.5>>h_zmc_cr", plot_CR*cuts::bkg_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_cr", plot_CR*cuts::photon_weight, "goff");
+    tch_photon->Draw("0.5>>h_photon_reweighted_cr", plot_CR*cuts::photon_weight_rw, "goff");
 
     float SF = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
     float SFrw = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
@@ -374,4 +374,6 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
         plot_name += ("_" + additional_cut).c_str();
     plot_name += ".eps";
     can->Print(plot_name);
+
+    return 0.0;
 }
