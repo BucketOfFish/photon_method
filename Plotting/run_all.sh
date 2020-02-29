@@ -13,7 +13,7 @@
 CHANNELS=("ee" "mm")
 PERIODS=("data18")
 TYPES=("MC")
-REGIONS=("SR")
+REGIONS=("SRC" "SRCZ" "SRLow4" "SRLowZ" "SRMed4" "SRMedZ" "SRHigh4" "SRHighZ" "VRC" "VRCZ" "VRLow4" "VRLowZ" "VRMed4" "VRMedZ" "VRHigh4" "VRHighZ")
 CUTS=("1" "Ptll<50" "Ptll>50&&Ptll<80" "Ptll>80&&Ptll<160" "Ptll>160")
 FEATURES=("METl")
 GETPHOTONYIELDONLY="true"

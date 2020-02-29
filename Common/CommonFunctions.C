@@ -68,13 +68,17 @@ float GetLumi(TString period) {
     return lumi;
 }
 
-TString MCPeriod(TString period) {
+TString getMCPeriod(TString period) {
     TString mc_period;
     if (period == "data15-16") mc_period = "mc16a";
     else if (period == "data17") mc_period = "mc16cd";
     else if (period == "data18") mc_period = "mc16e";
     else mc_period = period;
     return mc_period;
+}
+
+string getMCPeriod(string period) {
+    return string(getMCPeriod(TString(period)));
 }
 
 TString DataPeriod(TString period) {

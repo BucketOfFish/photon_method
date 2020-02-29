@@ -1,24 +1,12 @@
 #include "../Common/Settings.C"
+#include <unordered_map>
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
 
-float quickDraw(string period="data15-16", string channel="mm" , string plot_feature="HT", string photon_data_or_mc="Data", string region="SR", string additional_cut="1", bool return_photon_yield_only=false) {
-
-    bool DF = TString(channel).EqualTo("em");
-    gStyle->SetOptStat(0);
-
-    cout << "period               " << period << endl;
-    cout << "channel              " << channel << endl;
-    cout << "DF?                  " << DF << endl;
-    cout << "photon data          " << photon_data_or_mc << endl;
-
+unordered_map<string, TChain*> getTChains(string period, string channel, string photon_data_or_mc, bool DF) {
     //--- load files
-    string mc_period = "";
-    if (TString(period).Contains("data15-16")) mc_period = "mc16a";
-    else if (TString(period).Contains("data17")) mc_period = "mc16cd";
-    else if (TString(period).Contains("data18")) mc_period = "mc16e";
-
+    string mc_period = getMCPeriod(period);
     string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
     string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
     string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
@@ -47,7 +35,18 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     cout << "Z MC entries         " << tch_zmc->GetEntries() << endl;
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
 
-    //--- define selections
+    unordered_map<string, TChain*> TChains = {
+        {"data", tch_data},
+        {"tt", tch_tt},
+        {"vv", tch_vv},
+        {"zmc", tch_zmc},
+        {"photon", tch_photon},
+    };
+
+    return TChains;
+}
+
+tuple<TCut, TCut> getPlotRegions(string channel, string region, string additional_cut) {
     if (cuts::plot_regions.count(region) == 0) {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
@@ -72,7 +71,10 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
     cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
 
-    //--- set histogram binning
+    return make_tuple(plot_region, plot_CR);
+}
+
+tuple<TString, unordered_map<string, TH1F*>> initializeHistograms(string plot_feature) {
     std::tuple<string, int, float, float> plot_settings;
 
     if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 30, 0, 300);
@@ -121,23 +123,35 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
     h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
 
-    //--- draw histograms
-    tch_data->Draw(Form("%s>>h_data", plot_feature.c_str()), plot_region, "goff");
-    tch_tt->Draw(Form("%s>>h_tt", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
-    tch_vv->Draw(Form("%s>>h_vv", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
+    unordered_map<string, TH1F*> histograms = {
+        {"data", h_data},
+        {"tt", h_tt},
+        {"vv", h_vv},
+        {"zmc", h_zmc},
+        {"photon", h_photon},
+        {"photon_reweighted", h_photon_reweighted},
+    };
+
+    return make_tuple(formatted_feature, histograms);
+}
+
+float fillHistograms(unordered_map<string, TChain*> TChains, unordered_map<string, TH1F*> histograms, string plot_feature, TCut plot_region, TCut plot_CR, string photon_data_or_mc, bool DF) {
+    TChains["data"]->Draw(Form("%s>>h_data", plot_feature.c_str()), plot_region, "goff");
+    TChains["tt"]->Draw(Form("%s>>h_tt", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
+    TChains["vv"]->Draw(Form("%s>>h_vv", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
     if (!DF) {
-        tch_zmc->Draw(Form("%s>>h_zmc", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon", plot_feature.c_str()), plot_region*cuts::photon_weight, "goff");
-        tch_photon->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), plot_region*cuts::photon_weight_rw, "goff");
+        TChains["zmc"]->Draw(Form("%s>>h_zmc", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
+        TChains["photon"]->Draw(Form("%s>>h_photon", plot_feature.c_str()), plot_region*cuts::photon_weight, "goff");
+        TChains["photon"]->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), plot_region*cuts::photon_weight_rw, "goff");
     }
 
     cout << "" << endl;
-    cout << "data integral        " << h_data->Integral() << endl;
-    cout << "tt integral          " << h_tt->Integral() << endl;
-    cout << "VV integral          " << h_vv->Integral() << endl;
-    cout << "Z MC integral        " << h_zmc->Integral() << endl;
-    cout << "g raw integral       " << h_photon->Integral() << endl;
-    cout << "g reweighted int.    " << h_photon_reweighted->Integral() << endl;
+    cout << "data integral        " << histograms["data"]->Integral() << endl;
+    cout << "tt integral          " << histograms["tt"]->Integral() << endl;
+    cout << "VV integral          " << histograms["vv"]->Integral() << endl;
+    cout << "Z MC integral        " << histograms["zmc"]->Integral() << endl;
+    cout << "g raw integral       " << histograms["photon"]->Integral() << endl;
+    cout << "g reweighted int.    " << histograms["photon_reweighted"]->Integral() << endl;
     cout << "" << endl;
 
     //--- normalize Z to CR
@@ -150,12 +164,12 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
     TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
 
-    tch_data->Draw("0.5>>h_data_cr", plot_CR*cuts::bkg_weight, "goff");
-    tch_tt-> Draw("0.5>>h_tt_cr", plot_CR*cuts::bkg_weight, "goff");
-    tch_vv-> Draw("0.5>>h_vv_cr", plot_CR*cuts::bkg_weight, "goff");
-    tch_zmc->Draw("0.5>>h_zmc_cr", plot_CR*cuts::bkg_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_cr", plot_CR*cuts::photon_weight, "goff");
-    tch_photon->Draw("0.5>>h_photon_reweighted_cr", plot_CR*cuts::photon_weight_rw, "goff");
+    TChains["data"]->Draw("0.5>>h_data_cr", plot_CR*cuts::bkg_weight, "goff");
+    TChains["tt"]-> Draw("0.5>>h_tt_cr", plot_CR*cuts::bkg_weight, "goff");
+    TChains["vv"]-> Draw("0.5>>h_vv_cr", plot_CR*cuts::bkg_weight, "goff");
+    TChains["zmc"]->Draw("0.5>>h_zmc_cr", plot_CR*cuts::bkg_weight, "goff");
+    TChains["photon"]->Draw("0.5>>h_photon_cr", plot_CR*cuts::photon_weight, "goff");
+    TChains["photon"]->Draw("0.5>>h_photon_reweighted_cr", plot_CR*cuts::photon_weight_rw, "goff");
 
     float SF = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
     float SFrw = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
@@ -168,56 +182,76 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     cout << "Scale raw photon data by " << SF << endl;
     cout << "Scale reweighted photon data by " << SFrw << endl;
 
-    h_photon->Scale(SF);
-    h_photon_reweighted->Scale(SFrw);
-
-    if (return_photon_yield_only) {
-        cout << "Photon yield of " << h_photon_reweighted->Integral() << endl;
-        return h_photon_reweighted->Integral();
-    }
+    histograms["photon"]->Scale(SF);
+    histograms["photon_reweighted"]->Scale(SFrw);
 
     //--- print MET integrals
     cout << "MET100-150" << endl;
-    cout << "2L data                " << h_data->Integral(11,15) << endl;
-    cout << "VV MC                  " << h_vv->Integral(11,15) << endl;
-    cout << "tt MC                  " << h_tt->Integral(11,15) << endl;
-    cout << "Z+jets MC              " << h_zmc->Integral(11,15) << endl;
-    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(11,15) << endl;
-    cout << "g data (raw)           " << h_photon->Integral(11,15) << endl;
+    cout << "2L data                " << histograms["data"]->Integral(11,15) << endl;
+    cout << "VV MC                  " << histograms["vv"]->Integral(11,15) << endl;
+    cout << "tt MC                  " << histograms["tt"]->Integral(11,15) << endl;
+    cout << "Z+jets MC              " << histograms["zmc"]->Integral(11,15) << endl;
+    cout << "g data (reweighted)    " << histograms["photon_reweighted"]->Integral(11,15) << endl;
+    cout << "g data (raw)           " << histograms["photon"]->Integral(11,15) << endl;
 
     cout << "MET150-200" << endl;
-    cout << "2L data                " << h_data->Integral(16,21) << endl;
-    cout << "VV MC                  " << h_vv->Integral(16,21) << endl;
-    cout << "tt MC                  " << h_tt->Integral(16,21) << endl;
-    cout << "Z+jets MC              " << h_zmc->Integral(16,21) << endl;
-    cout << "g data (reweighted)    " << h_photon_reweighted->Integral(16,21) << endl;
-    cout << "g data (raw)           " << h_photon->Integral(16,21) << endl;
+    cout << "2L data                " << histograms["data"]->Integral(16,21) << endl;
+    cout << "VV MC                  " << histograms["vv"]->Integral(16,21) << endl;
+    cout << "tt MC                  " << histograms["tt"]->Integral(16,21) << endl;
+    cout << "Z+jets MC              " << histograms["zmc"]->Integral(16,21) << endl;
+    cout << "g data (reweighted)    " << histograms["photon_reweighted"]->Integral(16,21) << endl;
+    cout << "g data (raw)           " << histograms["photon"]->Integral(16,21) << endl;
 
+    float photon_yield = histograms["photon_reweighted"]->Integral();
+    cout << endl;
+    cout << "Photon yield of " << photon_yield << endl;
+    cout << endl;
+
+    return photon_yield;
+}
+
+THStack* createStacks(unordered_map<string, TH1F*> histograms, string photon_data_or_mc, bool DF) {
     //--- create MC stack
     THStack *mcstack = new THStack("mcstack", "");
 
-    h_tt->SetLineColor(1); h_tt->SetFillColor(kRed-2);
-    h_vv->SetLineColor(1); h_vv->SetFillColor(kGreen-2);
-    h_photon_reweighted->SetLineColor(1); h_photon_reweighted->SetFillColor(kOrange-2);
-    mcstack->Add(h_tt);
-    mcstack->Add(h_vv);
-    if(!DF) mcstack->Add(h_photon_reweighted);
+    histograms["tt"]->SetLineColor(1); histograms["tt"]->SetFillColor(kRed-2);
+    histograms["vv"]->SetLineColor(1); histograms["vv"]->SetFillColor(kGreen-2);
+    histograms["photon_reweighted"]->SetLineColor(1); histograms["photon_reweighted"]->SetFillColor(kOrange-2);
+    mcstack->Add(histograms["tt"]);
+    mcstack->Add(histograms["vv"]);
+    if(!DF) mcstack->Add(histograms["photon_reweighted"]);
 
     //--- create comparison "stacks"
     if (photon_data_or_mc == "Data") {
-        h_photon->Add(h_tt); h_photon->Add(h_vv);
-        h_zmc->Add(h_tt); h_zmc->Add(h_vv);
+        histograms["photon"]->Add(histograms["tt"]); histograms["photon"]->Add(histograms["vv"]);
+        histograms["zmc"]->Add(histograms["tt"]); histograms["zmc"]->Add(histograms["vv"]);
     }
 
     //--- set plotting options
-    h_photon->SetLineColor(4); h_photon->SetLineWidth(1); h_photon->SetLineStyle(2);
-    h_zmc->SetLineColor(2); h_zmc->SetLineWidth(1); h_zmc->SetLineStyle(7);
+    histograms["photon"]->SetLineColor(4); histograms["photon"]->SetLineWidth(1); histograms["photon"]->SetLineStyle(2);
+    histograms["zmc"]->SetLineColor(2); histograms["zmc"]->SetLineWidth(1); histograms["zmc"]->SetLineStyle(7);
 
     //--- turn on overflow bin
-    h_zmc->GetXaxis()->SetRange(0, h_zmc->GetNbinsX() + 1);
-    h_photon->GetXaxis()->SetRange(0, h_photon->GetNbinsX() + 1);
-    h_photon_reweighted->GetXaxis()->SetRange(0, h_photon_reweighted->GetNbinsX() + 1);
+    histograms["zmc"]->GetXaxis()->SetRange(0, histograms["zmc"]->GetNbinsX() + 1);
+    histograms["photon"]->GetXaxis()->SetRange(0, histograms["photon"]->GetNbinsX() + 1);
+    histograms["photon_reweighted"]->GetXaxis()->SetRange(0, histograms["photon_reweighted"]->GetNbinsX() + 1);
 
+    return mcstack;
+}
+
+TString getPlotName(string period, string channel, string plot_feature, string photon_data_or_mc, string additional_cut, string region) {
+    TString plot_name;
+    if (photon_data_or_mc == "Data")
+        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
+    else
+        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), getMCPeriod(period).c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
+    if (additional_cut != "1")
+        plot_name += ("_" + additional_cut).c_str();
+    plot_name += ".eps";
+    return plot_name;
+}
+
+void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string additional_cut, string region, bool DF) {
     //--- draw title
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
@@ -227,7 +261,8 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     TString plot_title = formatted_feature + " in " + region;
     if (additional_cut != "1")
         plot_title += (", " + additional_cut).c_str();
-    TH1F *h_name = new TH1F("h_name", plot_title, nbins, xmin, xmax);
+    //TH1F *h_name = new TH1F("h_name", plot_title, nbins, xmin, xmax);
+    TH1F *h_name = new TH1F("h_name", plot_title, 1, 0, 1);
     h_name->Draw();
 
     //--- draw plot
@@ -242,38 +277,38 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
         mcstack->GetYaxis()->SetTitle("entries / bin");
 
         if( !DF ) {
-            h_zmc->Draw("samehist");
-            h_photon->Draw("samehist");
+            histograms["zmc"]->Draw("samehist");
+            histograms["photon"]->Draw("samehist");
         }
-        h_data->SetLineColor(1); h_data->SetLineWidth(2); h_data->SetMarkerStyle(20);
-        h_data->Draw("sameE1");
+        histograms["data"]->SetLineColor(1); histograms["data"]->SetLineWidth(2); histograms["data"]->SetMarkerStyle(20);
+        histograms["data"]->Draw("sameE1");
     }
     else {
-        h_zmc->SetLineColor(1); h_zmc->SetFillColor(42); h_zmc->SetLineStyle(1);
-        h_zmc->GetXaxis()->SetTitle(formatted_feature);
-        h_zmc->GetYaxis()->SetTitle("entries / bin");
-        h_zmc->Draw("hist");
-        h_photon->Draw("samehist");
-        h_photon_reweighted->SetLineWidth(1); h_photon_reweighted->SetLineColor(kRed); h_photon_reweighted->SetFillStyle(0);
-        h_photon_reweighted->Draw("samehist");
+        histograms["zmc"]->SetLineColor(1); histograms["zmc"]->SetFillColor(42); histograms["zmc"]->SetLineStyle(1);
+        histograms["zmc"]->GetXaxis()->SetTitle(formatted_feature);
+        histograms["zmc"]->GetYaxis()->SetTitle("entries / bin");
+        histograms["zmc"]->Draw("hist");
+        histograms["photon"]->Draw("samehist");
+        histograms["photon_reweighted"]->SetLineWidth(1); histograms["photon_reweighted"]->SetLineColor(kRed); histograms["photon_reweighted"]->SetFillStyle(0);
+        histograms["photon_reweighted"]->Draw("samehist");
     }
 
     //--- draw legend and labels
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     if (photon_data_or_mc == "Data") {
-        leg->AddEntry(h_data,"data","lp");
+        leg->AddEntry(histograms["data"],"data","lp");
         if(!DF){
-            leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-            leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
-            leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
+            leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
+            leg->AddEntry(histograms["photon"], "Z+jets (from #gamma+jets, raw)", "f");
+            leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
         }
-        leg->AddEntry(h_vv, "VV", "f");
-        leg->AddEntry(h_tt, "t#bar{t}+tW", "f");
+        leg->AddEntry(histograms["vv"], "VV", "f");
+        leg->AddEntry(histograms["tt"], "t#bar{t}+tW", "f");
     }
     else {
-        leg->AddEntry(h_zmc, "Z+jets (from MC)", "f");
-        leg->AddEntry(h_photon, "Z+jets (from #gamma+jets, raw)", "f");
-        leg->AddEntry(h_photon_reweighted, "Z+jets (from #gamma+jets, reweighted)", "f");
+        leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
+        leg->AddEntry(histograms["photon"], "Z+jets (from #gamma+jets, raw)", "f");
+        leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
     }
 
     leg->SetBorderSize(0);
@@ -290,6 +325,7 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
         if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"60 fb^{-1} 2018 data");
     }
     else {
+        string mc_period = getMCPeriod(period);
         if(TString(mc_period).Contains("mc16a")) tex->DrawLatex(0.6,0.61,"MC16a");
         if(TString(mc_period).Contains("mc16cd")) tex->DrawLatex(0.6,0.61,"MC16cd");
         if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16e");
@@ -308,20 +344,20 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     TH1F *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (photon_data_or_mc == "MC") {
-        hratio = (TH1F*) h_zmc->Clone("hratio");
-        hratio_unreweighted = (TH1F*) h_zmc->Clone("hratio");
-        hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-        hmctot_unreweighted = (TH1F*) h_photon->Clone("hmctot");
+        hratio = (TH1F*) histograms["zmc"]->Clone("hratio");
+        hratio_unreweighted = (TH1F*) histograms["zmc"]->Clone("hratio");
+        hmctot = (TH1F*) histograms["photon_reweighted"]->Clone("hmctot");
+        hmctot_unreweighted = (TH1F*) histograms["photon"]->Clone("hmctot");
     }
     else {
-        hratio = (TH1F*) h_data->Clone("hratio");
-        hratio_unreweighted = (TH1F*) h_data->Clone("hratio");
-        hmctot = (TH1F*) h_photon_reweighted->Clone("hmctot");
-        hmctot->Add(h_tt);
-        hmctot->Add(h_vv);
-        hmctot_unreweighted = (TH1F*) h_photon->Clone("hmctot");
-        hmctot_unreweighted->Add(h_tt);
-        hmctot_unreweighted->Add(h_vv);
+        hratio = (TH1F*) histograms["data"]->Clone("hratio");
+        hratio_unreweighted = (TH1F*) histograms["data"]->Clone("hratio");
+        hmctot = (TH1F*) histograms["photon_reweighted"]->Clone("hmctot");
+        hmctot->Add(histograms["tt"]);
+        hmctot->Add(histograms["vv"]);
+        hmctot_unreweighted = (TH1F*) histograms["photon"]->Clone("hmctot");
+        hmctot_unreweighted->Add(histograms["tt"]);
+        hmctot_unreweighted->Add(histograms["vv"]);
     }
 
     for (int ibin=1; ibin <= hmctot->GetXaxis()->GetNbins(); ibin++) {
@@ -365,15 +401,35 @@ float quickDraw(string period="data15-16", string channel="mm" , string plot_fea
     hratio->Draw("sameE1");
 
     //--- save plot
-    TString plot_name;
-    if (photon_data_or_mc == "Data")
-        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
-    else
-        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), mc_period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
-    if (additional_cut != "1")
-        plot_name += ("_" + additional_cut).c_str();
-    plot_name += ".eps";
     can->Print(plot_name);
+}
 
-    return 0.0;
+float quickDraw(string period, string channel, string plot_feature, string photon_data_or_mc, string region, string additional_cut, bool return_photon_yield_only) {
+
+    bool DF = TString(channel).EqualTo("em");
+    gStyle->SetOptStat(0);
+
+    cout << "period               " << period << endl;
+    cout << "channel              " << channel << endl;
+    cout << "DF?                  " << DF << endl;
+    cout << "photon data          " << photon_data_or_mc << endl;
+
+    //--- get TChains; define plotting regions; initialize histograms
+    unordered_map<string, TChain*> TChains = getTChains(period, channel, photon_data_or_mc, DF);
+    auto [formatted_feature, histograms] = initializeHistograms(plot_feature);
+    auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
+
+    //--- fill histograms and get yields
+    float photon_yield = fillHistograms(TChains, histograms, plot_feature, plot_region, plot_CR, photon_data_or_mc, DF);
+    if (return_photon_yield_only)
+        return histograms["photon_reweighted"]->Integral();
+
+    //--- create histogram stacks and set their plotting options
+    THStack *mcstack = createStacks(histograms, photon_data_or_mc, DF);
+
+    //--- draw and save plot
+    TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, additional_cut, region);
+    makePlot(histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, additional_cut, region, DF);
+
+    return photon_yield;
 }
