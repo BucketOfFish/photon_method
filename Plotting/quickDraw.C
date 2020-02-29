@@ -1,8 +1,14 @@
 #include "../Common/Settings.C"
 #include <unordered_map>
-#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
+
+vector<string> splitStringBySpaces(string input) {
+    vector<string> output;
+    boost::algorithm::split(output, input, boost::is_any_of(" "));
+    return output;
+}
 
 unordered_map<string, TChain*> getTChains(string period, string channel, string photon_data_or_mc, bool DF) {
     //--- load files
@@ -20,7 +26,7 @@ unordered_map<string, TChain*> getTChains(string period, string channel, string 
     cout << "diboson filename     " << vv_filename << endl;
     cout << "Z MC filename        " << zmc_filename << endl;
     cout << "photon filename      " << photon_filename << endl;
-    cout << "" << endl;
+    cout << endl;
 
     //--- add files to TChain
     TChain* tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
@@ -34,6 +40,7 @@ unordered_map<string, TChain*> getTChains(string period, string channel, string 
     cout << "diboson entries      " << tch_vv->GetEntries() << endl;
     cout << "Z MC entries         " << tch_zmc->GetEntries() << endl;
     cout << "photon entries       " << tch_photon->GetEntries() << endl;
+    cout << endl;
 
     unordered_map<string, TChain*> TChains = {
         {"data", tch_data},
@@ -52,7 +59,9 @@ tuple<TCut, TCut> getPlotRegions(string channel, string region, string additiona
         exit(0);
     }
     TCut plot_region = cuts::plot_regions[region];
+
     if (additional_cut != "1") plot_region += TCut(additional_cut.c_str());
+
     if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
     else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
     else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
@@ -60,7 +69,6 @@ tuple<TCut, TCut> getPlotRegions(string channel, string region, string additiona
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
     }
-    plot_region += TCut(additional_cut.c_str());
 
     TCut plot_CR = plot_region + cuts::CR;
     plot_region += cuts::plot_region_met_portions[region];
@@ -70,6 +78,7 @@ tuple<TCut, TCut> getPlotRegions(string channel, string region, string additiona
     cout << "g selection          " << plot_region.GetTitle() << endl;
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
     cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
+    cout << endl;
 
     return make_tuple(plot_region, plot_CR);
 }
@@ -145,14 +154,13 @@ float fillHistograms(unordered_map<string, TChain*> TChains, unordered_map<strin
         TChains["photon"]->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), plot_region*cuts::photon_weight_rw, "goff");
     }
 
-    cout << "" << endl;
     cout << "data integral        " << histograms["data"]->Integral() << endl;
     cout << "tt integral          " << histograms["tt"]->Integral() << endl;
     cout << "VV integral          " << histograms["vv"]->Integral() << endl;
     cout << "Z MC integral        " << histograms["zmc"]->Integral() << endl;
     cout << "g raw integral       " << histograms["photon"]->Integral() << endl;
     cout << "g reweighted int.    " << histograms["photon_reweighted"]->Integral() << endl;
-    cout << "" << endl;
+    cout << endl;
 
     //--- normalize Z to CR
     cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
@@ -404,7 +412,8 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
     can->Print(plot_name);
 }
 
-float quickDraw(string period, string channel, string plot_feature, string photon_data_or_mc, string region, string additional_cut, bool return_photon_yield_only) {
+float quickDraw(string period, string channel, string plot_feature_list, string photon_data_or_mc, string region_list, string additional_cut, bool return_photon_yield_only) {
+    ROOT::EnableImplicitMT();
 
     bool DF = TString(channel).EqualTo("em");
     gStyle->SetOptStat(0);
@@ -413,21 +422,28 @@ float quickDraw(string period, string channel, string plot_feature, string photo
     cout << "channel              " << channel << endl;
     cout << "DF?                  " << DF << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
+    cout << endl;
+
+    //--- parse arguments
+    vector<string> plot_features = splitStringBySpaces(plot_feature_list);
+    vector<string> regions = splitStringBySpaces(region_list);
+
+    //--- CHECKPOINT: using just first arguments for now
+    string plot_feature = plot_features[0];
+    string region = regions[0];
 
     //--- get TChains; define plotting regions; initialize histograms
+    auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
     unordered_map<string, TChain*> TChains = getTChains(period, channel, photon_data_or_mc, DF);
     auto [formatted_feature, histograms] = initializeHistograms(plot_feature);
-    auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
 
     //--- fill histograms and get yields
     float photon_yield = fillHistograms(TChains, histograms, plot_feature, plot_region, plot_CR, photon_data_or_mc, DF);
     if (return_photon_yield_only)
         return histograms["photon_reweighted"]->Integral();
 
-    //--- create histogram stacks and set their plotting options
+    //--- create histogram stacks and set their plotting options; draw and save plot
     THStack *mcstack = createStacks(histograms, photon_data_or_mc, DF);
-
-    //--- draw and save plot
     TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, additional_cut, region);
     makePlot(histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, additional_cut, region, DF);
 
