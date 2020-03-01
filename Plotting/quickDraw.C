@@ -10,7 +10,7 @@ vector<string> splitStringBySpaces(string input) {
     return output;
 }
 
-unordered_map<string, TChain*> getTChains(string period, string channel, string photon_data_or_mc, bool DF) {
+unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string channel, string photon_data_or_mc) {
     //--- load files
     string mc_period = getMCPeriod(period);
     string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
@@ -28,29 +28,23 @@ unordered_map<string, TChain*> getTChains(string period, string channel, string 
     cout << "photon filename      " << photon_filename << endl;
     cout << endl;
 
-    //--- add files to TChain
-    TChain* tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
-    TChain* tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-    TChain* tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
-    TChain* tch_zmc = new TChain("BaselineTree"); tch_zmc->Add(zmc_filename.c_str());
-    TChain* tch_photon = new TChain("BaselineTree"); if (!DF) tch_photon->Add(photon_filename.c_str());
-
-    cout << "Z data entries       " << tch_data->GetEntries() << endl;
-    cout << "ttbar entries        " << tch_tt->GetEntries() << endl;
-    cout << "diboson entries      " << tch_vv->GetEntries() << endl;
-    cout << "Z MC entries         " << tch_zmc->GetEntries() << endl;
-    cout << "photon entries       " << tch_photon->GetEntries() << endl;
-    cout << endl;
-
-    unordered_map<string, TChain*> TChains = {
-        {"data", tch_data},
-        {"tt", tch_tt},
-        {"vv", tch_vv},
-        {"zmc", tch_zmc},
-        {"photon", tch_photon},
+    //--- add files to RDataFrame
+    unordered_map<string, ROOT::RDataFrame*> RDataFrames = {
+        {"data", new ROOT::RDataFrame("BaselineTree", data_filename)},
+        {"tt", new ROOT::RDataFrame("BaselineTree", tt_filename)},
+        {"vv", new ROOT::RDataFrame("BaselineTree", vv_filename)},
+        {"zmc", new ROOT::RDataFrame("BaselineTree", zmc_filename)},
+        {"photon", new ROOT::RDataFrame("BaselineTree", photon_filename)},
     };
 
-    return TChains;
+    cout << "data entries         " << *(RDataFrames["data"]->Count()) << endl;
+    cout << "ttbar entries        " << *(RDataFrames["tt"]->Count()) << endl;
+    cout << "diboson entries      " << *(RDataFrames["vv"]->Count()) << endl;
+    cout << "Z MC entries         " << *(RDataFrames["zmc"]->Count()) << endl;
+    cout << "photon entries       " << *(RDataFrames["photon"]->Count()) << endl;
+    cout << endl;
+
+    return RDataFrames;
 }
 
 tuple<TCut, TCut> getPlotRegions(string channel, string region, string additional_cut) {
@@ -73,8 +67,8 @@ tuple<TCut, TCut> getPlotRegions(string channel, string region, string additiona
     TCut plot_CR = plot_region + cuts::CR;
     plot_region += cuts::plot_region_met_portions[region];
 
-    cout << "Z selection          " << plot_region.GetTitle() << endl;  
-    cout << "Z weight             " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "bkg selection        " << plot_region.GetTitle() << endl;  
+    cout << "bkg weight           " << cuts::bkg_weight.GetTitle() << endl;
     cout << "g selection          " << plot_region.GetTitle() << endl;
     cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
     cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
@@ -83,7 +77,7 @@ tuple<TCut, TCut> getPlotRegions(string channel, string region, string additiona
     return make_tuple(plot_region, plot_CR);
 }
 
-tuple<TString, unordered_map<string, TH1F*>> initializeHistograms(string plot_feature) {
+tuple<TString, unordered_map<string, TH1D*>> initializeHistograms(string plot_feature) {
     std::tuple<string, int, float, float> plot_settings;
 
     if (plot_feature == "met_Et") plot_settings = std::make_tuple("E_{T}^{miss} [GeV]", 30, 0, 300);
@@ -123,16 +117,16 @@ tuple<TString, unordered_map<string, TH1F*>> initializeHistograms(string plot_fe
     float xmax = std::get<3>(plot_settings);
 
     //--- initialize histograms
-    TH1F *h_data, *h_photon, *h_photon_reweighted, *h_tt, *h_vv, *h_zmc;
+    TH1D *h_data, *h_photon, *h_photon_reweighted, *h_tt, *h_vv, *h_zmc;
 
-    h_data = new TH1F("h_data", "", nbins, xmin, xmax);
-    h_tt = new TH1F("h_tt", "", nbins, xmin, xmax);
-    h_vv = new TH1F("h_vv", "", nbins, xmin, xmax);
-    h_zmc = new TH1F("h_zmc", "", nbins, xmin, xmax);
-    h_photon = new TH1F("h_photon", "", nbins, xmin, xmax);
-    h_photon_reweighted = new TH1F("h_photon_reweighted", "", nbins, xmin, xmax);
+    h_data = new TH1D("h_data", "", nbins, xmin, xmax);
+    h_tt = new TH1D("h_tt", "", nbins, xmin, xmax);
+    h_vv = new TH1D("h_vv", "", nbins, xmin, xmax);
+    h_zmc = new TH1D("h_zmc", "", nbins, xmin, xmax);
+    h_photon = new TH1D("h_photon", "", nbins, xmin, xmax);
+    h_photon_reweighted = new TH1D("h_photon_reweighted", "", nbins, xmin, xmax);
 
-    unordered_map<string, TH1F*> histograms = {
+    unordered_map<string, TH1D*> histograms = {
         {"data", h_data},
         {"tt", h_tt},
         {"vv", h_vv},
@@ -144,81 +138,73 @@ tuple<TString, unordered_map<string, TH1F*>> initializeHistograms(string plot_fe
     return make_tuple(formatted_feature, histograms);
 }
 
-float fillHistograms(unordered_map<string, TChain*> TChains, unordered_map<string, TH1F*> histograms, string plot_feature, TCut plot_region, TCut plot_CR, string photon_data_or_mc, bool DF) {
-    TChains["data"]->Draw(Form("%s>>h_data", plot_feature.c_str()), plot_region, "goff");
-    TChains["tt"]->Draw(Form("%s>>h_tt", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
-    TChains["vv"]->Draw(Form("%s>>h_vv", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
-    if (!DF) {
-        TChains["zmc"]->Draw(Form("%s>>h_zmc", plot_feature.c_str()), plot_region*cuts::bkg_weight, "goff");
-        TChains["photon"]->Draw(Form("%s>>h_photon", plot_feature.c_str()), plot_region*cuts::photon_weight, "goff");
-        TChains["photon"]->Draw(Form("%s>>h_photon_reweighted", plot_feature.c_str()), plot_region*cuts::photon_weight_rw, "goff");
-    }
-
-    cout << "data integral        " << histograms["data"]->Integral() << endl;
-    cout << "tt integral          " << histograms["tt"]->Integral() << endl;
-    cout << "VV integral          " << histograms["vv"]->Integral() << endl;
-    cout << "Z MC integral        " << histograms["zmc"]->Integral() << endl;
-    cout << "g raw integral       " << histograms["photon"]->Integral() << endl;
-    cout << "g reweighted int.    " << histograms["photon_reweighted"]->Integral() << endl;
+tuple<unordered_map<string, TH1D*>, float> fillHistograms(unordered_map<string, ROOT::RDataFrame*> RDataFrames, unordered_map<string, TH1D*> histograms, string plot_feature, string plot_region, string plot_CR, string photon_data_or_mc, bool DF) {
+    cout << "plot region          " << plot_region << endl;
+    cout << "normalization reg.   " << plot_CR << endl;
     cout << endl;
 
-    //--- normalize Z to CR
-    cout << "normalize to CR " << cuts::CR.GetTitle() << endl;
+    unordered_map<string, string> plot_weights;
+    plot_weights["data"] = "1";
+    plot_weights["tt"] = cuts::bkg_weight;
+    plot_weights["vv"] = cuts::bkg_weight;
+    plot_weights["zmc"] = cuts::bkg_weight;
+    plot_weights["photon_raw"] = cuts::photon_weight;
+    plot_weights["photon_reweighted"] = cuts::photon_weight_rw;
 
-    TH1F* h_data_cr = new TH1F("h_data_cr", "", 1, 0, 1);
-    TH1F* h_tt_cr = new TH1F("h_tt_cr", "", 1, 0, 1);
-    TH1F* h_vv_cr = new TH1F("h_vv_cr", "", 1, 0, 1);
-    TH1F* h_zmc_cr = new TH1F("h_zmc_cr", "", 1, 0, 1);
-    TH1F* h_photon_cr = new TH1F("h_photon_cr", "", 1, 0, 1);
-    TH1F* h_photon_reweighted_cr = new TH1F("h_photon_reweighted_cr", "", 1, 0, 1);
-
-    TChains["data"]->Draw("0.5>>h_data_cr", plot_CR*cuts::bkg_weight, "goff");
-    TChains["tt"]-> Draw("0.5>>h_tt_cr", plot_CR*cuts::bkg_weight, "goff");
-    TChains["vv"]-> Draw("0.5>>h_vv_cr", plot_CR*cuts::bkg_weight, "goff");
-    TChains["zmc"]->Draw("0.5>>h_zmc_cr", plot_CR*cuts::bkg_weight, "goff");
-    TChains["photon"]->Draw("0.5>>h_photon_cr", plot_CR*cuts::photon_weight, "goff");
-    TChains["photon"]->Draw("0.5>>h_photon_reweighted_cr", plot_CR*cuts::photon_weight_rw, "goff");
-
-    float SF = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_cr->Integral();
-    float SFrw = (h_data_cr->Integral() - h_tt_cr->Integral() - h_vv_cr->Integral()) / h_photon_reweighted_cr->Integral();
-
-    if (photon_data_or_mc == "MC") {
-        SF = h_zmc_cr->Integral() / h_photon_cr->Integral();
-        SFrw = h_zmc_cr->Integral() / h_photon_reweighted_cr->Integral();
+    unordered_map<string, ROOT::RDF::RResultPtr<TH1D>> plot_region_histograms;
+    unordered_map<string, ROOT::RDF::RResultPtr<TH1D>> control_region_histograms;
+    for (auto const& [process, dataframe] : RDataFrames) {
+        ROOT::RDF::TH1DModel hist_model = ROOT::RDF::TH1DModel(*histograms[process]);
+        //cout << hist_model.fName << " " << hist_model.fNbinsX << " " << hist_model.fTitle << " " << hist_model.fXLow << " " << hist_model.fXUp << endl;
+        if (process == "photon") {
+            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"]).Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
+            plot_region_histograms["photon_raw"] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_raw_weight");
+            plot_region_histograms["photon_reweighted"] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+            control_region_histograms["photon_raw"] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_raw_weight");
+            control_region_histograms["photon_reweighted"] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+        }
+        else {
+            auto weighted_dataframe = dataframe->Define("plot_weight", plot_weights[process]);
+            plot_region_histograms[process] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_weight");
+            control_region_histograms[process] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_weight");
+        }
     }
 
-    cout << "Scale raw photon data by " << SF << endl;
-    cout << "Scale reweighted photon data by " << SFrw << endl;
-
-    histograms["photon"]->Scale(SF);
-    histograms["photon_reweighted"]->Scale(SFrw);
-
-    //--- print MET integrals
-    cout << "MET100-150" << endl;
-    cout << "2L data                " << histograms["data"]->Integral(11,15) << endl;
-    cout << "VV MC                  " << histograms["vv"]->Integral(11,15) << endl;
-    cout << "tt MC                  " << histograms["tt"]->Integral(11,15) << endl;
-    cout << "Z+jets MC              " << histograms["zmc"]->Integral(11,15) << endl;
-    cout << "g data (reweighted)    " << histograms["photon_reweighted"]->Integral(11,15) << endl;
-    cout << "g data (raw)           " << histograms["photon"]->Integral(11,15) << endl;
-
-    cout << "MET150-200" << endl;
-    cout << "2L data                " << histograms["data"]->Integral(16,21) << endl;
-    cout << "VV MC                  " << histograms["vv"]->Integral(16,21) << endl;
-    cout << "tt MC                  " << histograms["tt"]->Integral(16,21) << endl;
-    cout << "Z+jets MC              " << histograms["zmc"]->Integral(16,21) << endl;
-    cout << "g data (reweighted)    " << histograms["photon_reweighted"]->Integral(16,21) << endl;
-    cout << "g data (raw)           " << histograms["photon"]->Integral(16,21) << endl;
-
-    float photon_yield = histograms["photon_reweighted"]->Integral();
+    cout << "data integral        " << plot_region_histograms["data"]->Integral() << endl;
+    cout << "ttbar integral       " << plot_region_histograms["tt"]->Integral() << endl;
+    cout << "diboson integral     " << plot_region_histograms["vv"]->Integral() << endl;
+    cout << "Z MC integral        " << plot_region_histograms["zmc"]->Integral() << endl;
+    cout << "g raw integral       " << plot_region_histograms["photon_raw"]->Integral() << endl;
+    cout << "g reweighted int.    " << plot_region_histograms["photon_reweighted"]->Integral() << endl;
     cout << endl;
+
+    float zdata_integral = control_region_histograms["data"]->Integral() - control_region_histograms["tt"]->Integral() - control_region_histograms["vv"]->Integral();
+    if (photon_data_or_mc == "MC")
+        zdata_integral = control_region_histograms["zmc"]->Integral();
+    float SF = zdata_integral / control_region_histograms["photon_raw"]->Integral();
+    float SFrw = zdata_integral / control_region_histograms["photon_reweighted"]->Integral();
+
+    cout << "Scaling raw photon data by " << SF << endl;
+    cout << "Scaling reweighted photon data by " << SFrw << endl;
+
+    plot_region_histograms["photon_raw"]->Scale(SF);
+    plot_region_histograms["photon_reweighted"]->Scale(SFrw);
+
+    float photon_yield = plot_region_histograms["photon_reweighted"]->Integral();
     cout << "Photon yield of " << photon_yield << endl;
     cout << endl;
 
-    return photon_yield;
+    for (auto [process, histogram] : plot_region_histograms) {
+        if (process == "photon_raw" || process == "photon_reweighted")
+            histograms[process] = new TH1D;
+        histogram->Copy(*histograms[process]);
+    }
+    histograms.erase("photon");
+
+    return make_tuple(histograms, photon_yield);
 }
 
-THStack* createStacks(unordered_map<string, TH1F*> histograms, string photon_data_or_mc, bool DF) {
+THStack* createStacks(unordered_map<string, TH1D*> histograms, string photon_data_or_mc, bool DF) {
     //--- create MC stack
     THStack *mcstack = new THStack("mcstack", "");
 
@@ -231,17 +217,17 @@ THStack* createStacks(unordered_map<string, TH1F*> histograms, string photon_dat
 
     //--- create comparison "stacks"
     if (photon_data_or_mc == "Data") {
-        histograms["photon"]->Add(histograms["tt"]); histograms["photon"]->Add(histograms["vv"]);
+        histograms["photon_raw"]->Add(histograms["tt"]); histograms["photon_raw"]->Add(histograms["vv"]);
         histograms["zmc"]->Add(histograms["tt"]); histograms["zmc"]->Add(histograms["vv"]);
     }
 
     //--- set plotting options
-    histograms["photon"]->SetLineColor(4); histograms["photon"]->SetLineWidth(1); histograms["photon"]->SetLineStyle(2);
+    histograms["photon_raw"]->SetLineColor(4); histograms["photon_raw"]->SetLineWidth(1); histograms["photon_raw"]->SetLineStyle(2);
     histograms["zmc"]->SetLineColor(2); histograms["zmc"]->SetLineWidth(1); histograms["zmc"]->SetLineStyle(7);
 
     //--- turn on overflow bin
     histograms["zmc"]->GetXaxis()->SetRange(0, histograms["zmc"]->GetNbinsX() + 1);
-    histograms["photon"]->GetXaxis()->SetRange(0, histograms["photon"]->GetNbinsX() + 1);
+    histograms["photon_raw"]->GetXaxis()->SetRange(0, histograms["photon_raw"]->GetNbinsX() + 1);
     histograms["photon_reweighted"]->GetXaxis()->SetRange(0, histograms["photon_reweighted"]->GetNbinsX() + 1);
 
     return mcstack;
@@ -259,7 +245,7 @@ TString getPlotName(string period, string channel, string plot_feature, string p
     return plot_name;
 }
 
-void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string additional_cut, string region, bool DF) {
+void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string additional_cut, string region) {
     //--- draw title
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
@@ -269,8 +255,8 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
     TString plot_title = formatted_feature + " in " + region;
     if (additional_cut != "1")
         plot_title += (", " + additional_cut).c_str();
-    //TH1F *h_name = new TH1F("h_name", plot_title, nbins, xmin, xmax);
-    TH1F *h_name = new TH1F("h_name", plot_title, 1, 0, 1);
+    //TH1D *h_name = new TH1D("h_name", plot_title, nbins, xmin, xmax);
+    TH1D *h_name = new TH1D("h_name", plot_title, 1, 0, 1);
     h_name->Draw();
 
     //--- draw plot
@@ -279,6 +265,7 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
     mainpad->cd();
     mainpad->SetLogy();
 
+    bool DF = TString(channel).EqualTo("em");
     if (photon_data_or_mc == "Data") {
         mcstack->Draw("hist");
         mcstack->GetXaxis()->SetTitle(formatted_feature);
@@ -286,7 +273,7 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
 
         if( !DF ) {
             histograms["zmc"]->Draw("samehist");
-            histograms["photon"]->Draw("samehist");
+            histograms["photon_raw"]->Draw("samehist");
         }
         histograms["data"]->SetLineColor(1); histograms["data"]->SetLineWidth(2); histograms["data"]->SetMarkerStyle(20);
         histograms["data"]->Draw("sameE1");
@@ -296,7 +283,7 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
         histograms["zmc"]->GetXaxis()->SetTitle(formatted_feature);
         histograms["zmc"]->GetYaxis()->SetTitle("entries / bin");
         histograms["zmc"]->Draw("hist");
-        histograms["photon"]->Draw("samehist");
+        histograms["photon_raw"]->Draw("samehist");
         histograms["photon_reweighted"]->SetLineWidth(1); histograms["photon_reweighted"]->SetLineColor(kRed); histograms["photon_reweighted"]->SetFillStyle(0);
         histograms["photon_reweighted"]->Draw("samehist");
     }
@@ -307,7 +294,7 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
         leg->AddEntry(histograms["data"],"data","lp");
         if(!DF){
             leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
-            leg->AddEntry(histograms["photon"], "Z+jets (from #gamma+jets, raw)", "f");
+            leg->AddEntry(histograms["photon_raw"], "Z+jets (from #gamma+jets, raw)", "f");
             leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
         }
         leg->AddEntry(histograms["vv"], "VV", "f");
@@ -315,7 +302,7 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
     }
     else {
         leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
-        leg->AddEntry(histograms["photon"], "Z+jets (from #gamma+jets, raw)", "f");
+        leg->AddEntry(histograms["photon_raw"], "Z+jets (from #gamma+jets, raw)", "f");
         leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
     }
 
@@ -349,21 +336,21 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
     ratio_pad->cd();
     ratio_pad->SetGridy();
 
-    TH1F *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
+    TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (photon_data_or_mc == "MC") {
-        hratio = (TH1F*) histograms["zmc"]->Clone("hratio");
-        hratio_unreweighted = (TH1F*) histograms["zmc"]->Clone("hratio");
-        hmctot = (TH1F*) histograms["photon_reweighted"]->Clone("hmctot");
-        hmctot_unreweighted = (TH1F*) histograms["photon"]->Clone("hmctot");
+        hratio = (TH1D*) histograms["zmc"]->Clone("hratio");
+        hratio_unreweighted = (TH1D*) histograms["zmc"]->Clone("hratio");
+        hmctot = (TH1D*) histograms["photon_reweighted"]->Clone("hmctot");
+        hmctot_unreweighted = (TH1D*) histograms["photon_raw"]->Clone("hmctot");
     }
     else {
-        hratio = (TH1F*) histograms["data"]->Clone("hratio");
-        hratio_unreweighted = (TH1F*) histograms["data"]->Clone("hratio");
-        hmctot = (TH1F*) histograms["photon_reweighted"]->Clone("hmctot");
+        hratio = (TH1D*) histograms["data"]->Clone("hratio");
+        hratio_unreweighted = (TH1D*) histograms["data"]->Clone("hratio");
+        hmctot = (TH1D*) histograms["photon_reweighted"]->Clone("hmctot");
         hmctot->Add(histograms["tt"]);
         hmctot->Add(histograms["vv"]);
-        hmctot_unreweighted = (TH1F*) histograms["photon"]->Clone("hmctot");
+        hmctot_unreweighted = (TH1D*) histograms["photon_raw"]->Clone("hmctot");
         hmctot_unreweighted->Add(histograms["tt"]);
         hmctot_unreweighted->Add(histograms["vv"]);
     }
@@ -415,12 +402,8 @@ void makePlot(unordered_map<string, TH1F*> histograms, THStack *mcstack, TString
 float quickDraw(string period, string channel, string plot_feature_list, string photon_data_or_mc, string region_list, string additional_cut, bool return_photon_yield_only) {
     ROOT::EnableImplicitMT();
 
-    bool DF = TString(channel).EqualTo("em");
-    gStyle->SetOptStat(0);
-
     cout << "period               " << period << endl;
     cout << "channel              " << channel << endl;
-    cout << "DF?                  " << DF << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
 
@@ -432,20 +415,22 @@ float quickDraw(string period, string channel, string plot_feature_list, string 
     string plot_feature = plot_features[0];
     string region = regions[0];
 
-    //--- get TChains; define plotting regions; initialize histograms
+    //--- get input data in the form of RDataFrames; define plotting regions; initialize histograms
+    gStyle->SetOptStat(0);
     auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
-    unordered_map<string, TChain*> TChains = getTChains(period, channel, photon_data_or_mc, DF);
-    auto [formatted_feature, histograms] = initializeHistograms(plot_feature);
+    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, channel, photon_data_or_mc);
+    auto [formatted_feature, empty_histograms] = initializeHistograms(plot_feature);
 
     //--- fill histograms and get yields
-    float photon_yield = fillHistograms(TChains, histograms, plot_feature, plot_region, plot_CR, photon_data_or_mc, DF);
-    if (return_photon_yield_only)
-        return histograms["photon_reweighted"]->Integral();
+    bool DF = TString(channel).EqualTo("em");
+    auto [filled_histograms, photon_yield] = fillHistograms(RDataFrames, empty_histograms, plot_feature, string(plot_region), string(plot_CR), photon_data_or_mc, DF);
 
     //--- create histogram stacks and set their plotting options; draw and save plot
-    THStack *mcstack = createStacks(histograms, photon_data_or_mc, DF);
-    TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, additional_cut, region);
-    makePlot(histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, additional_cut, region, DF);
+    if (!return_photon_yield_only) {
+        THStack *mcstack = createStacks(filled_histograms, photon_data_or_mc, DF);
+        TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, additional_cut, region);
+        makePlot(filled_histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, additional_cut, region);
+    }
 
     return photon_yield;
 }
