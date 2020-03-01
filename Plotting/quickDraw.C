@@ -10,23 +10,35 @@ vector<string> splitStringBySpaces(string input) {
     return output;
 }
 
-unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string channel, string photon_data_or_mc) {
+unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string photon_data_or_mc) {
     //--- load files
     string mc_period = getMCPeriod(period);
     string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
     string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
     string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
     string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
-    string photon_filename;
-    if (photon_data_or_mc == "MC") photon_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_" + channel + ".root";
-    else photon_filename = reweighting_path + "g_data/" + period + "_photon_" + channel + ".root";
+    string photon_ee_filename, photon_mm_filename;
+    if (photon_data_or_mc == "MC") {
+        photon_ee_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_ee.root";
+        photon_mm_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_mm.root";
+    }
+    else {
+        photon_ee_filename = reweighting_path + "g_data/" + period + "_photon_ee.root";
+        photon_mm_filename = reweighting_path + "g_data/" + period + "_photon_mm.root";
+    }
 
     cout << "data filename        " << data_filename << endl;
     cout << "ttbar filename       " << tt_filename << endl;
     cout << "diboson filename     " << vv_filename << endl;
     cout << "Z MC filename        " << zmc_filename << endl;
-    cout << "photon filename      " << photon_filename << endl;
+    cout << "photon filename (ee) " << photon_ee_filename << endl;
+    cout << "photon filename (mm) " << photon_mm_filename << endl;
     cout << endl;
+
+    //--- combine photon files
+    TChain *tch_photon = new TChain("BaselineTree");
+    tch_photon->Add(photon_ee_filename.c_str());
+    tch_photon->Add(photon_mm_filename.c_str());
 
     //--- add files to RDataFrame
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = {
@@ -34,7 +46,7 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ch
         {"tt", new ROOT::RDataFrame("BaselineTree", tt_filename)},
         {"vv", new ROOT::RDataFrame("BaselineTree", vv_filename)},
         {"zmc", new ROOT::RDataFrame("BaselineTree", zmc_filename)},
-        {"photon", new ROOT::RDataFrame("BaselineTree", photon_filename)},
+        {"photon", new ROOT::RDataFrame(*tch_photon)},
     };
 
     cout << "data entries         " << *(RDataFrames["data"]->Count()) << endl;
@@ -143,6 +155,7 @@ tuple<unordered_map<string, TH1D*>, float> fillHistograms(unordered_map<string, 
     cout << "normalization reg.   " << plot_CR << endl;
     cout << endl;
 
+    //--- add weight branches
     unordered_map<string, string> plot_weights;
     plot_weights["data"] = "1";
     plot_weights["tt"] = cuts::bkg_weight;
@@ -155,18 +168,36 @@ tuple<unordered_map<string, TH1D*>, float> fillHistograms(unordered_map<string, 
     unordered_map<string, ROOT::RDF::RResultPtr<TH1D>> control_region_histograms;
     for (auto const& [process, dataframe] : RDataFrames) {
         ROOT::RDF::TH1DModel hist_model = ROOT::RDF::TH1DModel(*histograms[process]);
-        //cout << hist_model.fName << " " << hist_model.fNbinsX << " " << hist_model.fTitle << " " << hist_model.fXLow << " " << hist_model.fXUp << endl;
         if (process == "photon") {
-            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"]).Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
-            plot_region_histograms["photon_raw"] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_raw_weight");
-            plot_region_histograms["photon_reweighted"] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
-            control_region_histograms["photon_raw"] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_raw_weight");
-            control_region_histograms["photon_reweighted"] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"])
+                                             .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
+            //for (auto plot_feature : plot_features) {
+                //string ptn = getPlotTypeName(plot_region, plot_feature);
+                plot_region_histograms["photon_raw"] =
+                    weighted_dataframe.Filter(plot_region)
+                                      .Histo1D(hist_model, plot_feature, "plot_raw_weight");
+                plot_region_histograms["photon_reweighted"] =
+                    weighted_dataframe.Filter(plot_region)
+                                      .Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+                control_region_histograms["photon_raw"] =
+                    weighted_dataframe.Filter(plot_CR)
+                                      .Histo1D(hist_model, plot_feature, "plot_raw_weight");
+                control_region_histograms["photon_reweighted"] =
+                    weighted_dataframe.Filter(plot_CR)
+                                      .Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+            //}
         }
         else {
             auto weighted_dataframe = dataframe->Define("plot_weight", plot_weights[process]);
-            plot_region_histograms[process] = weighted_dataframe.Filter(plot_region).Histo1D(hist_model, plot_feature, "plot_weight");
-            control_region_histograms[process] = weighted_dataframe.Filter(plot_CR).Histo1D(hist_model, plot_feature, "plot_weight");
+            //for (auto plot_feature : plot_features) {
+                //string ptn = getPlotTypeName(plot_region, plot_feature);
+                plot_region_histograms[process] =
+                    weighted_dataframe.Filter(plot_region)
+                                      .Histo1D(hist_model, plot_feature, "plot_weight");
+                control_region_histograms[process] =
+                    weighted_dataframe.Filter(plot_CR)
+                                      .Histo1D(hist_model, plot_feature, "plot_weight");
+            //}
         }
     }
 
@@ -418,7 +449,7 @@ float quickDraw(string period, string channel, string plot_feature_list, string 
     //--- get input data in the form of RDataFrames; define plotting regions; initialize histograms
     gStyle->SetOptStat(0);
     auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
-    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, channel, photon_data_or_mc);
+    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
     auto [formatted_feature, empty_histograms] = initializeHistograms(plot_feature);
 
     //--- fill histograms and get yields
