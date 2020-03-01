@@ -14,7 +14,6 @@ CHANNELS=("ee" "mm")
 PERIODS=("data18")
 TYPES=("MC")
 REGIONS=("SRC" "SRCZ" "SRLow4" "SRLowZ" "SRMed4" "SRMedZ" "SRHigh4" "SRHighZ" "VRC" "VRCZ" "VRLow4" "VRLowZ" "VRMed4" "VRMedZ" "VRHigh4" "VRHighZ")
-CUTS=("1" "Ptll<50" "Ptll>50&&Ptll<80" "Ptll>80&&Ptll<160" "Ptll>160")
 FEATURES=("METl")
 GETPHOTONYIELDONLY="true"
 
@@ -88,12 +87,9 @@ do
         do
             for FEATURE in "${FEATURES[@]}"
             do
-                for CUT in "${CUTS[@]}"
+                for REGION in "${REGIONS[@]}"
                 do
-                    for REGION in "${REGIONS[@]}"
-                    do
-                        root -l -b -q 'quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$PHOTON'","'$REGION'","'$CUT'","'$GETPHOTONYIELDONLY'")'
-                    done
+                    root -l -b -q 'quickDraw.C("'$PERIOD'","'$CHANNEL'","'$FEATURE'","'$PHOTON'","'$REGION'","'$GETPHOTONYIELDONLY'")'
                 done
             done
         done

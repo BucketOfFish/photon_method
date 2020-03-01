@@ -59,14 +59,12 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
     return RDataFrames;
 }
 
-tuple<TCut, TCut> getPlotRegions(string channel, string region, string additional_cut) {
+tuple<TCut, TCut> getPlotRegions(string channel, string region) {
     if (cuts::plot_regions.count(region) == 0) {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
     }
     TCut plot_region = cuts::plot_regions[region];
-
-    if (additional_cut != "1") plot_region += TCut(additional_cut.c_str());
 
     if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
     else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
@@ -264,19 +262,17 @@ THStack* createStacks(unordered_map<string, TH1D*> histograms, string photon_dat
     return mcstack;
 }
 
-TString getPlotName(string period, string channel, string plot_feature, string photon_data_or_mc, string additional_cut, string region) {
+TString getPlotName(string period, string channel, string plot_feature, string photon_data_or_mc, string region) {
     TString plot_name;
     if (photon_data_or_mc == "Data")
         plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
     else
         plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), getMCPeriod(period).c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
-    if (additional_cut != "1")
-        plot_name += ("_" + additional_cut).c_str();
     plot_name += ".eps";
     return plot_name;
 }
 
-void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string additional_cut, string region) {
+void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string region) {
     //--- draw title
     TCanvas *can = new TCanvas("can","can",600,600);
     can->cd();
@@ -284,8 +280,6 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
     namepad->Draw();
     namepad->cd();
     TString plot_title = formatted_feature + " in " + region;
-    if (additional_cut != "1")
-        plot_title += (", " + additional_cut).c_str();
     //TH1D *h_name = new TH1D("h_name", plot_title, nbins, xmin, xmax);
     TH1D *h_name = new TH1D("h_name", plot_title, 1, 0, 1);
     h_name->Draw();
@@ -430,7 +424,7 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
     can->Print(plot_name);
 }
 
-float quickDraw(string period, string channel, string plot_feature_list, string photon_data_or_mc, string region_list, string additional_cut, bool return_photon_yield_only) {
+float quickDraw(string period, string channel, string plot_feature_list, string photon_data_or_mc, string region_list, bool return_photon_yield_only) {
     ROOT::EnableImplicitMT();
 
     cout << "period               " << period << endl;
@@ -448,7 +442,7 @@ float quickDraw(string period, string channel, string plot_feature_list, string 
 
     //--- get input data in the form of RDataFrames; define plotting regions; initialize histograms
     gStyle->SetOptStat(0);
-    auto [plot_region, plot_CR] = getPlotRegions(channel, region, additional_cut);
+    auto [plot_region, plot_CR] = getPlotRegions(channel, region);
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
     auto [formatted_feature, empty_histograms] = initializeHistograms(plot_feature);
 
@@ -459,8 +453,8 @@ float quickDraw(string period, string channel, string plot_feature_list, string 
     //--- create histogram stacks and set their plotting options; draw and save plot
     if (!return_photon_yield_only) {
         THStack *mcstack = createStacks(filled_histograms, photon_data_or_mc, DF);
-        TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, additional_cut, region);
-        makePlot(filled_histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, additional_cut, region);
+        TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, region);
+        makePlot(filled_histograms, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, region);
     }
 
     return photon_yield;
