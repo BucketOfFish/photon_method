@@ -59,34 +59,6 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
     return RDataFrames;
 }
 
-tuple<TCut, TCut> getPlotRegions(string channel, string region) {
-    if (cuts::plot_regions.count(region) == 0) {
-        cout << "Unrecognized region! Exiting." << endl;
-        exit(0);
-    }
-    TCut plot_region = cuts::plot_regions[region];
-
-    if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
-    else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
-    else {
-        cout << "Unrecognized channel! quitting   " << channel << endl;
-        exit(0);
-    }
-
-    TCut plot_CR = plot_region + cuts::CR;
-    plot_region += cuts::plot_region_met_portions[region];
-
-    cout << "bkg selection        " << plot_region.GetTitle() << endl;  
-    cout << "bkg weight           " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "g selection          " << plot_region.GetTitle() << endl;
-    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
-    cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
-    cout << endl;
-
-    return make_tuple(plot_region, plot_CR);
-}
-
 tuple<TString, unordered_map<string, TH1D*>> initializeHistograms(string plot_feature) {
     std::tuple<string, int, float, float> plot_settings;
 
@@ -148,7 +120,36 @@ tuple<TString, unordered_map<string, TH1D*>> initializeHistograms(string plot_fe
     return make_tuple(formatted_feature, histograms);
 }
 
-tuple<unordered_map<string, TH1D*>, float> fillHistograms(unordered_map<string, ROOT::RDataFrame*> RDataFrames, unordered_map<string, TH1D*> histograms, string plot_feature, string plot_region, string plot_CR, string photon_data_or_mc, bool DF) {
+tuple<string, string> getPlotRegions(string channel, string region) {
+    if (cuts::plot_regions.count(region) == 0) {
+        cout << "Unrecognized region! Exiting." << endl;
+        exit(0);
+    }
+    TCut plot_region = cuts::plot_regions[region];
+
+    if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
+    else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
+    else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
+    else {
+        cout << "Unrecognized channel! quitting   " << channel << endl;
+        exit(0);
+    }
+
+    TCut plot_CR = plot_region + cuts::CR;
+    plot_region += cuts::plot_region_met_portions[region];
+
+    cout << "bkg selection        " << plot_region.GetTitle() << endl;  
+    cout << "bkg weight           " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "g selection          " << plot_region.GetTitle() << endl;
+    cout << "g weight             " << cuts::photon_weight.GetTitle() << endl;
+    cout << "g weight (reweight)  " << cuts::photon_weight_rw.GetTitle() << endl;
+    cout << endl;
+
+    return make_tuple(string(plot_region), string(plot_CR));
+}
+
+tuple<unordered_map<string, TH1D*>, float> fillHistograms(unordered_map<string, ROOT::RDataFrame*> RDataFrames, unordered_map<string, TH1D*> histograms, string plot_feature, string channel, string region, string photon_data_or_mc, bool DF) {
+    auto [plot_region, plot_CR] = getPlotRegions(channel, region);
     cout << "plot region          " << plot_region << endl;
     cout << "normalization reg.   " << plot_CR << endl;
     cout << endl;
@@ -435,20 +436,18 @@ float quickDraw(string period, string channel, string plot_feature_list, string 
     //--- parse arguments
     vector<string> plot_features = splitStringBySpaces(plot_feature_list);
     vector<string> regions = splitStringBySpaces(region_list);
-
     //--- CHECKPOINT: using just first arguments for now
     string plot_feature = plot_features[0];
     string region = regions[0];
 
     //--- get input data in the form of RDataFrames; define plotting regions; initialize histograms
     gStyle->SetOptStat(0);
-    auto [plot_region, plot_CR] = getPlotRegions(channel, region);
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
     auto [formatted_feature, empty_histograms] = initializeHistograms(plot_feature);
 
     //--- fill histograms and get yields
     bool DF = TString(channel).EqualTo("em");
-    auto [filled_histograms, photon_yield] = fillHistograms(RDataFrames, empty_histograms, plot_feature, string(plot_region), string(plot_CR), photon_data_or_mc, DF);
+    auto [filled_histograms, photon_yield] = fillHistograms(RDataFrames, empty_histograms, plot_feature, channel, region, photon_data_or_mc, DF);
 
     //--- create histogram stacks and set their plotting options; draw and save plot
     if (!return_photon_yield_only) {
