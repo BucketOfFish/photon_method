@@ -40,7 +40,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
     return make_tuple(region_name, string(plot_region), string(plot_CR));
 }
 
-ROOT::RDF::TH1DModel getHistogramOptions(string plot_feature) {
+ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     unordered_map<string, ROOT::RDF::TH1DModel> plot_settings;
     plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 30, 0, 300);
     plot_settings["MET"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 30, 0, 300);
@@ -173,7 +173,7 @@ tuple<histDictionary, histDictionary> setUpHistograms(unordered_map<string, uniq
 
             for (auto plot_feature : plot_features) {
                 for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
-                    ROOT::RDF::TH1DModel hist_model = getHistogramOptions(plot_feature);
+                    ROOT::RDF::TH1DModel hist_model = getHistogramInfo(plot_feature);
                     if (process == "photon") {
                         plot_region_histograms[region_name][plot_feature]["photon_raw"] =
                                             weighted_dataframe->Filter(plot_region)
@@ -218,21 +218,24 @@ histResults fillHistograms(histDictionary plot_region_histograms, histDictionary
             auto prh0 = prh[first_feature];
             auto crh0 = crh[first_feature];
 
+            int nbins = getHistogramInfo(first_feature).fNbinsX;
+            auto fullInt = [nbins](TH1D* hist) {return hist->Integral(0, nbins+1);};
+
             cout << "\tregion name          " << region_name << endl;
             cout << endl;
-            cout << "\tdata integral        " << prh0["data"]->Integral() << endl;
-            cout << "\tttbar integral       " << prh0["tt"]->Integral() << endl;
-            cout << "\tdiboson integral     " << prh0["vv"]->Integral() << endl;
-            cout << "\tZ MC integral        " << prh0["zmc"]->Integral() << endl;
-            cout << "\tg raw integral       " << prh0["photon_raw"]->Integral() << endl;
-            cout << "\tg reweighted int.    " << prh0["photon_reweighted"]->Integral() << endl;
+            cout << "\tdata integral        " << prh0["data"]->Integral(0, nbins+1) << endl;
+            cout << "\tttbar integral       " << prh0["tt"]->Integral(0, nbins+1) << endl;
+            cout << "\tdiboson integral     " << prh0["vv"]->Integral(0, nbins+1) << endl;
+            cout << "\tZ MC integral        " << prh0["zmc"]->Integral(0, nbins+1) << endl;
+            cout << "\tg raw integral       " << prh0["photon_raw"]->Integral(0, nbins+1) << endl;
+            cout << "\tg reweighted int.    " << prh0["photon_reweighted"]->Integral(0, nbins+1) << endl;
             cout << endl;
 
-            float zdata_integral = crh0["data"]->Integral() - crh0["tt"]->Integral() - crh0["vv"]->Integral();
+            float zdata_integral = crh0["data"]->Integral(0, nbins+1) - crh0["tt"]->Integral(0, nbins+1) - crh0["vv"]->Integral(0, nbins+1);
             if (photon_data_or_mc == "MC")
-                zdata_integral = crh0["zmc"]->Integral();
-            float SF = zdata_integral / crh0["photon_raw"]->Integral();
-            float SFrw = zdata_integral / crh0["photon_reweighted"]->Integral();
+                zdata_integral = crh0["zmc"]->Integral(0, nbins+1);
+            float SF = zdata_integral / crh0["photon_raw"]->Integral(0, nbins+1);
+            float SFrw = zdata_integral / crh0["photon_reweighted"]->Integral(0, nbins+1);
 
             cout << "\tScaling raw photon data by " << SF << endl;
             cout << "\tScaling reweighted photon data by " << SFrw << endl;
@@ -242,7 +245,7 @@ histResults fillHistograms(histDictionary plot_region_histograms, histDictionary
                 prh[plot_feature]["photon_reweighted"]->Scale(SFrw);
             }
 
-            float photon_yield = prh0["photon_reweighted"]->Integral();
+            float photon_yield = prh0["photon_reweighted"]->Integral(0, nbins+1);
             cout << "\tPhoton yield of " << photon_yield << endl;
             cout << endl;
 
@@ -265,6 +268,13 @@ histResults fillHistograms(histDictionary plot_region_histograms, histDictionary
 //-------------
 
 void printPhotonYieldTables(histResults filled_histograms) {
+    // [region][feature], with a dictionary of hists by process and a photon yield value
+    cout << "photon yields" << endl;
+    cout << endl;
+    for (auto [region, region_hists] : filled_histograms) {
+        string first_feature = region_hists.begin()->first;
+        cout << region << ": " << get<1>(region_hists[first_feature]) << endl;
+    }
 }
 
 //------------
@@ -467,8 +477,6 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 //---------------
 
 void quickDraw(string period, string plot_feature_list, string photon_data_or_mc, string region_list, bool print_photon_yield_only) {
-    ROOT::EnableImplicitMT();
-
     cout << "period               " << period << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
@@ -478,8 +486,11 @@ void quickDraw(string period, string plot_feature_list, string photon_data_or_mc
     vector<string> regions = splitStringBySpaces(region_list);
     vector<string> channels{"ee", "mm"};
 
-    //--- get input data in the form of RDataFrames
+    //--- set global options
     gStyle->SetOptStat(0);
+    ROOT::EnableImplicitMT();
+
+    //--- get input data in the form of RDataFrames
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
     unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames);
 
