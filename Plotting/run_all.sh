@@ -1,5 +1,5 @@
 # Example usages:
-# source run_all.sh all
+# source run_all.sh
 # source run_all.sh data17
 # source run_all.sh MC
 # source run_all.sh data15-16 Data
@@ -15,7 +15,7 @@ if [ $# == 1 ]; then
         PERIODS=( $1 )
     elif [[ ${TYPES[*]} =~ $(echo $1) ]]; then
         TYPES=( $1 )
-    elif [ $1 != "all" ]; then
+    else
         echo "Unrecognized argument"
         return
     fi
@@ -33,6 +33,6 @@ for PERIOD in "${PERIODS[@]}"
 do
     for TYPE in "${TYPES[@]}"
     do
-        root -l -b -q 'quickDraw.C("'"$PERIOD"'","'"$FEATURES"'","'"$TYPE"'","'"$REGIONS"'",'"$GETPHOTONYIELDONLY"')' | tee $PERIOD'_'$TYPE'_output.txt'
+        root -l -b -q 'quickDraw.C("'"$PERIOD"'","'"$TYPE"'","'"$FEATURES"'","'"$REGIONS"'",'"$GETPHOTONYIELDONLY"')' | tee 'Output/'$PERIOD'_'$TYPE'_output.txt'
     done
 done

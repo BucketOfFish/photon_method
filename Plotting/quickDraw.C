@@ -476,7 +476,7 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 // MAIN FUNCTION
 //---------------
 
-void quickDraw(string period, string plot_feature_list, string photon_data_or_mc, string region_list, bool print_photon_yield_only) {
+void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool print_photon_yield_only) {
     cout << "period               " << period << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
