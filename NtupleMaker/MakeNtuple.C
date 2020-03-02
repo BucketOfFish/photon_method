@@ -174,40 +174,28 @@ void MakeNtuple(string inFolder, string outFolder, string period, string sampleI
     // loop over events
     //-----------------------------
 
-    Long64_t nentries = inTree->GetEntries();
+    cout << "Applying baseline selections" << endl;
+	cout << "Background baseline    : " << cuts::bkg_baseline << endl;
+	cout << "Photon baseline        : " << cuts::photon_baseline << endl;
+    if (isPhoton) inTree->Draw(">>eventList", cuts::photon_baseline, "goff");
+    else inTree->Draw(">>eventList", cuts::bkg_baseline, "goff");
+    TEventList *eventList = (TEventList*)gDirectory->Get("eventList");
+	cout << "N events selected      : " << eventList->GetN() << endl;
 
-    for (Long64_t i=0; i<nentries; i+=everyNEntries) {
-
+    for (Long64_t i=0; i<eventList->GetN(); i+=everyNEntries) {
         if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
-        inTree->GetEntry(i);
+        inTree->GetEntry(eventList->GetEntry(i));
 
-        //--- event selection
-        if (isPhoton) {
-            if (nLep_base > 0) continue;
-            if (jet_n < 1) continue;
-            if (gamma_pt<15.) continue;
-        }
-        else {
-            if ( nLep_signal  != 2                 ) continue; // exactly 2 signal leptons
-            if ( nLep_base    != 2                 ) continue; // exactly 2 baseline leptons
-            if ( lep_pT->at(0) < cuts::leading_lep_pt_cut ) continue; // 1st lep pT > 25 GeV
-            if ( lep_pT->at(1) < cuts::second_lep_pt_cut  ) continue; // 2nd lep pT > 25 GeV
-            if ( jet_n < 1   ) continue; // require at least 1 pT > 30 GeV jets
-            if ( !trigMatch_1L2LTrigOR ) continue; // need 2 lepton trigger
-
+        if (!isPhoton) {
             //--- determine channel
             channel = -1;
             if ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 2 ) channel = 0; // mumu
             if ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 1 ) channel = 1; // ee
             if ( lepFlavor->at(0) == 1 && lepFlavor->at(1) == 2 ) channel = 2; // em
             if ( lepFlavor->at(0) == 2 && lepFlavor->at(1) == 1 ) channel = 3; // me
-            if ( channel < 0 ) continue; // require exactly 2 signal leptons
 
             //--- determine OS / SS
-            is_OS = -1;
-            if ( lepCharge->at(0) != lepCharge->at(1) ) is_OS = 1;
-            if ( lepCharge->at(0) == lepCharge->at(1) ) is_OS = 0;
-            if ( is_OS != 1 ) continue; // require opposite-sign
+            is_OS = (lepCharge->at(0)!=lepCharge->at(1));
         }
 
         //--- evaluate weight
