@@ -35,13 +35,13 @@ do
     for PERIOD in "${PERIODS[@]}"
     do
         if [ $TYPE == "MC" ]; then
-            #root -l -b -q 'MakeNtuple.C("'$PHOTON_MC_PATH'","g_mc","'$PERIOD'","SinglePhoton222","photon",'$EVERYNENTRIES')'
+            root -l -b -q 'MakeNtuple.C("'$PHOTON_MC_PATH'","g_mc","'$PERIOD'","SinglePhoton222","photon",'$EVERYNENTRIES')'
             root -l -b -q 'MakeNtuple.C("'$BKG_MC_PATH'","bkg_mc","'$PERIOD'","Zjets","non-photon",'$EVERYNENTRIES')'
-            #root -l -b -q 'MakeNtuple.C("'$BKG_MC_PATH'","bkg_mc","'$PERIOD'","ttbar","non-photon",'$EVERYNENTRIES')'
-            #root -l -b -q 'MakeNtuple.C("'$BKG_MC_PATH'","bkg_mc","'$PERIOD'","diboson","non-photon",'$EVERYNENTRIES')'
-        #else
-            #root -l -b -q 'MakeNtuple.C("'$PHOTON_DATA_PATH'","g_data","'$PERIOD'","data","photon",'$EVERYNENTRIES')'
-            #root -l -b -q 'MakeNtuple.C("'$BKG_DATA_PATH'","bkg_data","'$PERIOD'","data","non-photon",'$EVERYNENTRIES')'
+            root -l -b -q 'MakeNtuple.C("'$BKG_MC_PATH'","bkg_mc","'$PERIOD'","ttbar","non-photon",'$EVERYNENTRIES')'
+            root -l -b -q 'MakeNtuple.C("'$BKG_MC_PATH'","bkg_mc","'$PERIOD'","diboson","non-photon",'$EVERYNENTRIES')'
+        else
+            root -l -b -q 'MakeNtuple.C("'$PHOTON_DATA_PATH'","g_data","'$PERIOD'","data","photon",'$EVERYNENTRIES')'
+            root -l -b -q 'MakeNtuple.C("'$BKG_DATA_PATH'","bkg_data","'$PERIOD'","data","non-photon",'$EVERYNENTRIES')'
         fi
     done
 done

@@ -3,13 +3,18 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1]");
-    TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
+    //TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1]");
+    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
+    TCut bkg_baseline("nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_1L2LTrigOR");
+    TCut photon_baseline("nJet30>=1 && gamma_pt>15 && nLep_base==0");
     TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
-    TCut ee("channel==1");
     TCut mm("channel==0");
-    TCut em("channel==2 || channel==3");
+    TCut ee("channel==1");
+    TCut em("channel==2");
+    TCut me("channel==3");
+    TCut SF("channel==0 || channel==1");
+    TCut OF("channel==2 || channel==3");
 
     TCut bkg_weight("totalWeight");
     TCut photon_weight("totalWeight");

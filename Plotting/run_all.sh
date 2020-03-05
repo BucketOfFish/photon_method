@@ -9,6 +9,7 @@ TYPES=("MC" "Data")
 REGIONS="SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ"
 FEATURES="METl"
 GETPHOTONYIELDONLY="true"
+BLIND="true"
 
 if [ $# == 1 ]; then
     if [[ ${PERIODS[*]} =~ $(echo $1) ]]; then
@@ -33,6 +34,6 @@ for PERIOD in "${PERIODS[@]}"
 do
     for TYPE in "${TYPES[@]}"
     do
-        root -l -b -q 'quickDraw.C("'"$PERIOD"'","'"$TYPE"'","'"$FEATURES"'","'"$REGIONS"'",'"$GETPHOTONYIELDONLY"')' | tee 'Output/'$PERIOD'_'$TYPE'_output.txt'
+        root -l -b -q 'quickDraw.C("'"$PERIOD"'","'"$TYPE"'","'"$FEATURES"'","'"$REGIONS"'",'"$BLIND"','"$GETPHOTONYIELDONLY"')' | tee 'Output/'$PERIOD'_'$TYPE'_output.txt'
     done
 done
