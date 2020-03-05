@@ -310,7 +310,7 @@ void printPhotonYieldTables(resultsDictionary results_dict, vector<string> regio
         float data_ee = results_dict[region + " ee"].data_yield;
         float data_mm = results_dict[region + " mm"].data_yield;
         float data_SF = results_dict[region + " SF"].data_yield;
-        if (blind)
+        if (blind && (region.find("SR") != std::string::npos))
             cout << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
         else
             cout << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
@@ -524,7 +524,7 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 
 void testTablePrintout() {
     resultsDictionary results_dict;
-    vector<string> regions{"SR_test1", "SR_test2", "SR_test3"};
+    vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
     unordered_map<string, unordered_map<string, TH1D*>> empty_hists; // [feature][process] histogram
 
     results_dict["SR_test1 ee"] = Result{empty_hists, 1.3, 1.5, 1.4};
@@ -538,6 +538,10 @@ void testTablePrintout() {
     results_dict["SR_test3 ee"] = Result{empty_hists, 12.9, 13.3, 11.2};
     results_dict["SR_test3 mm"] = Result{empty_hists, 11.6, 12.8, 12.0};
     results_dict["SR_test3 SF"] = Result{empty_hists, 24.5, 26.1, 23.2};
+
+    results_dict["VR_test1 ee"] = Result{empty_hists, 112.9, 113.3, 111.2};
+    results_dict["VR_test1 mm"] = Result{empty_hists, 111.6, 112.8, 112.0};
+    results_dict["VR_test1 SF"] = Result{empty_hists, 124.5, 126.1, 123.2};
 
     printPhotonYieldTables(results_dict, regions, true);
     printPhotonYieldTables(results_dict, regions, false);
