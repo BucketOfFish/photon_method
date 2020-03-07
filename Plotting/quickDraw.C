@@ -10,14 +10,21 @@ struct Selection {
     string feature;
     string process;
 };
-using histDictionary = unordered_map<string, unordered_map<string, unordered_map<string, ROOT::RDF::RResultPtr<TH1D>>>>; // [region][feature][process]
+using histMap = unordered_map<string, unordered_map<string, unordered_map<string, ROOT::RDF::RResultPtr<TH1D>>>>; // [region][feature][process]
 struct Result {
     unordered_map<string, unordered_map<string, TH1D*>> histograms; // [feature][process] histogram
     float photon_yield;
     float zmc_yield;
     float data_yield;
 };
-using resultsDictionary = unordered_map<string, Result>; // results by region
+struct resultsMap {
+    vector<string> regions;
+    unordered_map<string, Result> results; // results by [region]
+};
+
+//---------------
+// RESULTS CLASS
+//---------------
 
 //------------------
 // HELPER FUNCTIONS
@@ -171,12 +178,12 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
 // FILL HISTOGRAMS
 //-----------------
 
-tuple<histDictionary, histDictionary> setUpHistograms(unordered_map<string, unique_ptr<weightedDataFrame>>* WRDataFramesPtr, vector<string> plot_features, vector<string> regions, vector<string> channels) {
+tuple<histMap, histMap> setUpHistograms(unordered_map<string, unique_ptr<weightedDataFrame>>* WRDataFramesPtr, vector<string> plot_features, vector<string> regions, vector<string> channels) {
     cout << "setting up histograms" << endl;
     cout << endl;
 
-    histDictionary plot_region_histograms;
-    histDictionary control_region_histograms;
+    histMap plot_region_histograms;
+    histMap control_region_histograms;
 
     for (string region : regions) {
         for (string channel : channels) {
@@ -219,11 +226,13 @@ tuple<histDictionary, histDictionary> setUpHistograms(unordered_map<string, uniq
     return make_tuple(plot_region_histograms, control_region_histograms);
 };
 
-resultsDictionary fillHistograms(histDictionary plot_region_histograms, histDictionary control_region_histograms, vector<string> plot_features, vector<string> regions, vector<string> channels, string photon_data_or_mc) {
+resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> plot_features, vector<string> regions, vector<string> channels, string photon_data_or_mc) {
     cout << "making histograms" << endl;
     cout << endl;
 
-    resultsDictionary results_dict;
+    auto [plot_region_histograms, control_region_histograms] = region_hists;
+    resultsMap results_map;
+    results_map.regions = regions;
     for (string region : regions) {
         for (string channel : channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
@@ -274,18 +283,18 @@ resultsDictionary fillHistograms(histDictionary plot_region_histograms, histDict
                     region_hists[plot_feature][process] = new_histogram;
                 }
             }
-            results_dict[region_name] = Result{region_hists, photon_yield, zmc_yield, zdata_yield};
+            results_map.results[region_name] = Result{region_hists, photon_yield, zmc_yield, zdata_yield};
         }
     }
 
-    return results_dict;
+    return results_map;
 }
 
 //-------------
 // MAKE TABLES
 //-------------
 
-void printPhotonYieldTables(resultsDictionary results_dict, vector<string> regions, bool blind) {
+void printPhotonYieldTables(resultsMap results_map, bool blind) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     cout << "\\documentclass{article}" << endl;
@@ -300,16 +309,16 @@ void printPhotonYieldTables(resultsDictionary results_dict, vector<string> regio
     cout << "region & photon ee / mm / SF & Z MC ee / mm / SF & data ee / mm / SF \\\\" << endl;
     cout << "\\hline" << endl;
 
-    for (auto region : regions) {
-        float photon_ee = results_dict[region + " ee"].photon_yield;
-        float photon_mm = results_dict[region + " mm"].photon_yield;
-        float photon_SF = results_dict[region + " SF"].photon_yield;
-        float zmc_ee = results_dict[region + " ee"].zmc_yield;
-        float zmc_mm = results_dict[region + " mm"].zmc_yield;
-        float zmc_SF = results_dict[region + " SF"].zmc_yield;
-        float data_ee = results_dict[region + " ee"].data_yield;
-        float data_mm = results_dict[region + " mm"].data_yield;
-        float data_SF = results_dict[region + " SF"].data_yield;
+    for (auto region : results_map.regions) {
+        float photon_ee = results_map.results[region + " ee"].photon_yield;
+        float photon_mm = results_map.results[region + " mm"].photon_yield;
+        float photon_SF = results_map.results[region + " SF"].photon_yield;
+        float zmc_ee = results_map.results[region + " ee"].zmc_yield;
+        float zmc_mm = results_map.results[region + " mm"].zmc_yield;
+        float zmc_SF = results_map.results[region + " SF"].zmc_yield;
+        float data_ee = results_map.results[region + " ee"].data_yield;
+        float data_mm = results_map.results[region + " mm"].data_yield;
+        float data_SF = results_map.results[region + " SF"].data_yield;
         if (blind && (region.find("SR") != std::string::npos))
             cout << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
         else
@@ -522,33 +531,39 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 // TEST FUNCTIONS
 //----------------
 
-void testTablePrintout() {
-    resultsDictionary results_dict;
-    vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
-    unordered_map<string, unordered_map<string, TH1D*>> empty_hists; // [feature][process] histogram
+void testTablePrintout(resultsMap results_map) {
+    printPhotonYieldTables(results_map, true);
+    printPhotonYieldTables(results_map, false);
+}
 
-    results_dict["SR_test1 ee"] = Result{empty_hists, 1.3, 1.5, 1.4};
-    results_dict["SR_test1 mm"] = Result{empty_hists, 1.2, 1.6, 1.3};
-    results_dict["SR_test1 SF"] = Result{empty_hists, 2.5, 3.1, 2.7};
-
-    results_dict["SR_test2 ee"] = Result{empty_hists, 3.6, 3.5, 3.7};
-    results_dict["SR_test2 mm"] = Result{empty_hists, 3.1, 3.2, 3.4};
-    results_dict["SR_test2 SF"] = Result{empty_hists, 6.7, 6.7, 7.1};
-
-    results_dict["SR_test3 ee"] = Result{empty_hists, 12.9, 13.3, 11.2};
-    results_dict["SR_test3 mm"] = Result{empty_hists, 11.6, 12.8, 12.0};
-    results_dict["SR_test3 SF"] = Result{empty_hists, 24.5, 26.1, 23.2};
-
-    results_dict["VR_test1 ee"] = Result{empty_hists, 112.9, 113.3, 111.2};
-    results_dict["VR_test1 mm"] = Result{empty_hists, 111.6, 112.8, 112.0};
-    results_dict["VR_test1 SF"] = Result{empty_hists, 124.5, 126.1, 123.2};
-
-    printPhotonYieldTables(results_dict, regions, true);
-    printPhotonYieldTables(results_dict, regions, false);
+void testMakePlot(resultsMap results_map) {
+    //makePlot(results_map);
 }
 
 void test_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
-    testTablePrintout();
+    resultsMap results_map;
+    vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
+    results_map.regions = regions;
+    unordered_map<string, unordered_map<string, TH1D*>> empty_hists; // [feature][process] histogram
+
+    results_map.results["SR_test1 ee"] = Result{empty_hists, 1.3, 1.5, 1.4};
+    results_map.results["SR_test1 mm"] = Result{empty_hists, 1.2, 1.6, 1.3};
+    results_map.results["SR_test1 SF"] = Result{empty_hists, 2.5, 3.1, 2.7};
+
+    results_map.results["SR_test2 ee"] = Result{empty_hists, 3.6, 3.5, 3.7};
+    results_map.results["SR_test2 mm"] = Result{empty_hists, 3.1, 3.2, 3.4};
+    results_map.results["SR_test2 SF"] = Result{empty_hists, 6.7, 6.7, 7.1};
+
+    results_map.results["SR_test3 ee"] = Result{empty_hists, 12.9, 13.3, 11.2};
+    results_map.results["SR_test3 mm"] = Result{empty_hists, 11.6, 12.8, 12.0};
+    results_map.results["SR_test3 SF"] = Result{empty_hists, 24.5, 26.1, 23.2};
+
+    results_map.results["VR_test1 ee"] = Result{empty_hists, 112.9, 113.3, 111.2};
+    results_map.results["VR_test1 mm"] = Result{empty_hists, 111.6, 112.8, 112.0};
+    results_map.results["VR_test1 SF"] = Result{empty_hists, 124.5, 126.1, 123.2};
+
+    testTablePrintout(results_map);
+    testMakePlot(results_map);
 }
 
 //---------------
@@ -574,22 +589,22 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames);
 
     //--- set up all histograms and fill simulaneously
-    auto [plot_region_histograms, control_region_histograms] = setUpHistograms(&WRDataFrames, plot_features, regions, channels);
-    resultsDictionary results_dict = fillHistograms(plot_region_histograms, control_region_histograms, plot_features, regions, channels, photon_data_or_mc);
+    auto region_hists = setUpHistograms(&WRDataFrames, plot_features, regions, channels);
+    resultsMap results_map = fillHistograms(region_hists, plot_features, regions, channels, photon_data_or_mc);
 
     //--- print photon yield tables
-    printPhotonYieldTables(results_dict, regions, blind);
+    printPhotonYieldTables(results_map, blind);
 
     //--- create histogram stacks and set their plotting options; draw and save plot
     //if (!print_photon_yield_only) {
         //bool DF = TString(channel).EqualTo("em");
-        //THStack *mcstack = createStacks(results_dict, photon_data_or_mc, DF);
+        //THStack *mcstack = createStacks(results_map, photon_data_or_mc, DF);
         //TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, region);
-        //makePlot(results_dict, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, region);
+        //makePlot(results_map, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, region);
     //}
 }
 
 void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
-    //test_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
-    run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
+    test_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
+    //run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
 }
