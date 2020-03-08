@@ -176,8 +176,8 @@ void MakeNtuple(string inFolder, string outFolder, string period, string sampleI
 
     cout << "Applying baseline selections" << endl;
 	cout << "Background baseline    : " << cuts::bkg_baseline << endl;
-	cout << "Photon baseline        : " << cuts::photon_baseline << endl;
-    if (isPhoton) inTree->Draw(">>eventList", cuts::photon_baseline, "goff");
+	cout << "Photon baseline        : " << cuts::photon_baseline_ntuples << endl;
+    if (isPhoton) inTree->Draw(">>eventList", cuts::photon_baseline_ntuples, "goff");
     else inTree->Draw(">>eventList", cuts::bkg_baseline, "goff");
     TEventList *eventList = (TEventList*)gDirectory->Get("eventList");
 	cout << "N events selected      : " << eventList->GetN() << endl;

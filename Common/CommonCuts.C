@@ -6,6 +6,7 @@ namespace cuts {
     //TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1]");
     //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
     TCut bkg_baseline("nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_1L2LTrigOR");
+    TCut photon_baseline_ntuples("nJet30>=1 && PhotonPt>15 && nLep_base==0");
     TCut photon_baseline("nJet30>=1 && gamma_pt>15 && nLep_base==0");
     TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
 
