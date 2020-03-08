@@ -19,20 +19,20 @@ struct Result {
 };
 struct resultsMap {
     vector<string> regions;
+    vector<string> features;
+    vector<string> channels;
+    string period;
+    string data_or_mc;
     unordered_map<string, Result> results; // results by [region]
 };
-
-//---------------
-// RESULTS CLASS
-//---------------
 
 //------------------
 // HELPER FUNCTIONS
 //------------------
 
-vector<string> splitStringBySpaces(string input) {
+ vector<string> splitStringBy(string input, string splitter) {
     vector<string> output;
-    boost::algorithm::split(output, input, boost::is_any_of(" "));
+    boost::algorithm::split(output, input, boost::is_any_of(splitter));
     return output;
 }
 
@@ -48,7 +48,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
     else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
     else if (TString(channel).EqualTo("me")) plot_region += cuts::me;
     else if (TString(channel).EqualTo("SF")) plot_region += cuts::SF;
-    else if (TString(channel).EqualTo("OF")) plot_region += cuts::OF;
+    else if (TString(channel).EqualTo("DF")) plot_region += cuts::DF;
     else {
         cout << "Unrecognized channel! quitting   " << channel << endl;
         exit(0);
@@ -233,6 +233,9 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
     auto [plot_region_histograms, control_region_histograms] = region_hists;
     resultsMap results_map;
     results_map.regions = regions;
+    results_map.features = plot_features;
+    results_map.channels = channels;
+    results_map.data_or_mc = photon_data_or_mc;
     for (string region : regions) {
         for (string channel : channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
@@ -259,7 +262,9 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
             if (photon_data_or_mc == "MC")
                 zdata_integral = crh0["zmc"]->Integral(0, nbins+1);
             float SF = zdata_integral / crh0["photon_raw"]->Integral(0, nbins+1);
+            if (crh0["photon_raw"]->Integral(0, nbins+1) == 0) SF = 0;
             float SFrw = zdata_integral / crh0["photon_reweighted"]->Integral(0, nbins+1);
+            if (crh0["photon_reweighted"]->Integral(0, nbins+1) == 0) SFrw = 0;
 
             cout << "\tScaling raw photon data by " << SF << endl;
             cout << "\tScaling reweighted photon data by " << SFrw << endl;
@@ -294,20 +299,23 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
 // MAKE TABLES
 //-------------
 
-void printPhotonYieldTables(resultsMap results_map, bool blind) {
+void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
-    cout << "\\documentclass{article}" << endl;
-    cout << "\\usepackage[utf8]{inputenc}" << endl;
-    cout << endl;
-    cout << "\\begin{document}" << endl;
-    cout << endl;
-    cout << "\\begin{table}" << endl;
-    cout << "\\caption{Photon Method Yields}" << endl;
-    cout << "\\begin{center}" << endl;
-    cout << "\\begin{tabular}{c|c|c|c}" << endl;
-    cout << "region & photon ee / mm / SF & Z MC ee / mm / SF & data ee / mm / SF \\\\" << endl;
-    cout << "\\hline" << endl;
+    ofstream out_file;
+    out_file.open(save_name);
+
+    out_file << "\\documentclass{article}" << endl;
+    out_file << "\\usepackage[utf8]{inputenc}" << endl;
+    out_file << endl;
+    out_file << "\\begin{document}" << endl;
+    out_file << endl;
+    out_file << "\\begin{table}" << endl;
+    out_file << "\\caption{Photon Method Yields}" << endl;
+    out_file << "\\begin{center}" << endl;
+    out_file << "\\begin{tabular}{c|c|c|c}" << endl;
+    out_file << "region & photon ee / mm / SF & Z MC ee / mm / SF & data ee / mm / SF \\\\" << endl;
+    out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
         float photon_ee = results_map.results[region + " ee"].photon_yield;
@@ -320,52 +328,70 @@ void printPhotonYieldTables(resultsMap results_map, bool blind) {
         float data_mm = results_map.results[region + " mm"].data_yield;
         float data_SF = results_map.results[region + " SF"].data_yield;
         if (blind && (region.find("SR") != std::string::npos))
-            cout << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
+            out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
         else
-            cout << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
+            out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
     }
 
-    cout << "\\end{tabular}" << endl;
-    cout << "\\end{center}" << endl;
-    cout << "\\end{table}" << endl;
-    cout << endl;
-    cout << "\\end{document}" << endl;
+    out_file << "\\end{tabular}" << endl;
+    out_file << "\\end{center}" << endl;
+    out_file << "\\end{table}" << endl;
+    out_file << endl;
+    out_file << "\\end{document}" << endl;
+
+    out_file.close();
 }
 
 //------------
 // MAKE PLOTS
 //------------
 
-THStack* createStacks(unordered_map<string, TH1D*> histograms, string photon_data_or_mc, bool DF) {
-    //--- create MC stack
-    THStack *mcstack = new THStack("mcstack", "");
-
+tuple<THStack*, THStack*, THStack*> createStacks(unordered_map<string, TH1D*> histograms, string photon_data_or_mc, TString formatted_feature) {
+    //--- set plotting options
     histograms["tt"]->SetLineColor(1); histograms["tt"]->SetFillColor(kRed-2);
     histograms["vv"]->SetLineColor(1); histograms["vv"]->SetFillColor(kGreen-2);
-    histograms["photon_reweighted"]->SetLineColor(1); histograms["photon_reweighted"]->SetFillColor(kOrange-2);
-    mcstack->Add(histograms["tt"]);
-    mcstack->Add(histograms["vv"]);
-    if(!DF) mcstack->Add(histograms["photon_reweighted"]);
-
-    //--- create comparison "stacks"
+    histograms["photon_raw"]->SetLineColor(4); histograms["photon_raw"]->SetLineWidth(1); histograms["photon_raw"]->SetLineStyle(2);
     if (photon_data_or_mc == "Data") {
-        histograms["photon_raw"]->Add(histograms["tt"]); histograms["photon_raw"]->Add(histograms["vv"]);
-        histograms["zmc"]->Add(histograms["tt"]); histograms["zmc"]->Add(histograms["vv"]);
+        histograms["data"]->SetLineColor(1); histograms["data"]->SetLineWidth(2); histograms["data"]->SetMarkerStyle(20);
+        histograms["zmc"]->SetLineColor(2); histograms["zmc"]->SetLineWidth(1); histograms["zmc"]->SetLineStyle(7);
+        histograms["photon_reweighted"]->SetLineColor(1); histograms["photon_reweighted"]->SetFillColor(kOrange-2);
+    }
+    else {
+        histograms["zmc"]->SetLineColor(1); histograms["zmc"]->SetFillColor(42); histograms["zmc"]->SetLineStyle(1);
+        histograms["photon_reweighted"]->SetLineWidth(1); histograms["photon_reweighted"]->SetLineColor(kRed); histograms["photon_reweighted"]->SetFillStyle(0);
     }
 
-    //--- set plotting options
-    histograms["photon_raw"]->SetLineColor(4); histograms["photon_raw"]->SetLineWidth(1); histograms["photon_raw"]->SetLineStyle(2);
-    histograms["zmc"]->SetLineColor(2); histograms["zmc"]->SetLineWidth(1); histograms["zmc"]->SetLineStyle(7);
-
     //--- turn on overflow bin
-    histograms["zmc"]->GetXaxis()->SetRange(0, histograms["zmc"]->GetNbinsX() + 1);
-    histograms["photon_raw"]->GetXaxis()->SetRange(0, histograms["photon_raw"]->GetNbinsX() + 1);
-    histograms["photon_reweighted"]->GetXaxis()->SetRange(0, histograms["photon_reweighted"]->GetNbinsX() + 1);
+    vector<string> processes{"data", "tt", "vv", "zmc", "photon_raw", "photon_reweighted"};
+    for (auto process : processes)
+        histograms[process]->GetXaxis()->SetRange(0, histograms[process]->GetNbinsX() + 1);
 
-    return mcstack;
+    //--- make stacks
+    THStack *data_stack = new THStack("data_stack", "");
+    THStack *raw_g_stack = new THStack("raw_g_stack", "");
+    THStack *reweight_g_stack = new THStack("reweight_g_stack", "");
+
+    if (photon_data_or_mc == "Data")
+        data_stack->Add(histograms["data"]);
+    else
+        data_stack->Add(histograms["zmc"]);
+
+    if (photon_data_or_mc == "Data") {
+        raw_g_stack->Add(histograms["tt"]);
+        raw_g_stack->Add(histograms["vv"]);
+    }
+    raw_g_stack->Add(histograms["photon_raw"]);
+
+    if (photon_data_or_mc == "Data") {
+        reweight_g_stack->Add(histograms["tt"]);
+        reweight_g_stack->Add(histograms["vv"]);
+    }
+    reweight_g_stack->Add(histograms["photon_reweighted"]);
+
+    return make_tuple(data_stack, raw_g_stack, reweight_g_stack);
 }
 
-TString getPlotName(string period, string channel, string plot_feature, string photon_data_or_mc, string region) {
+TString getPlotSaveName(string period, string channel, string plot_feature, string photon_data_or_mc, string region) {
     TString plot_name;
     if (photon_data_or_mc == "Data")
         plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
@@ -375,56 +401,13 @@ TString getPlotName(string period, string channel, string plot_feature, string p
     return plot_name;
 }
 
-void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString plot_name, TString formatted_feature, string period, string channel, string photon_data_or_mc, string region) {
-    //--- draw title
-    TCanvas *can = new TCanvas("can","can",600,600);
-    can->cd();
-    TPad* namepad = new TPad("namepad","namepad",0.0,0.0,1.0,1.0);
-    namepad->Draw();
-    namepad->cd();
-    TString plot_title = formatted_feature + " in " + region;
-    //TH1D *h_name = new TH1D("h_name", plot_title, nbins, xmin, xmax);
-    TH1D *h_name = new TH1D("h_name", plot_title, 1, 0, 1);
-    h_name->Draw();
-
-    //--- draw plot
-    TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
-    mainpad->Draw();
-    mainpad->cd();
-    mainpad->SetLogy();
-
-    bool DF = TString(channel).EqualTo("em");
-    if (photon_data_or_mc == "Data") {
-        mcstack->Draw("hist");
-        mcstack->GetXaxis()->SetTitle(formatted_feature);
-        mcstack->GetYaxis()->SetTitle("entries / bin");
-
-        if( !DF ) {
-            histograms["zmc"]->Draw("samehist");
-            histograms["photon_raw"]->Draw("samehist");
-        }
-        histograms["data"]->SetLineColor(1); histograms["data"]->SetLineWidth(2); histograms["data"]->SetMarkerStyle(20);
-        histograms["data"]->Draw("sameE1");
-    }
-    else {
-        histograms["zmc"]->SetLineColor(1); histograms["zmc"]->SetFillColor(42); histograms["zmc"]->SetLineStyle(1);
-        histograms["zmc"]->GetXaxis()->SetTitle(formatted_feature);
-        histograms["zmc"]->GetYaxis()->SetTitle("entries / bin");
-        histograms["zmc"]->Draw("hist");
-        histograms["photon_raw"]->Draw("samehist");
-        histograms["photon_reweighted"]->SetLineWidth(1); histograms["photon_reweighted"]->SetLineColor(kRed); histograms["photon_reweighted"]->SetFillStyle(0);
-        histograms["photon_reweighted"]->Draw("samehist");
-    }
-
-    //--- draw legend and labels
+TLegend* getLegend(string photon_data_or_mc, unordered_map<string, TH1D*> histograms) {
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     if (photon_data_or_mc == "Data") {
         leg->AddEntry(histograms["data"],"data","lp");
-        if(!DF){
-            leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
-            leg->AddEntry(histograms["photon_raw"], "Z+jets (from #gamma+jets, raw)", "f");
-            leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
-        }
+        //leg->AddEntry(histograms["zmc"], "Z+jets (from MC)", "f");
+        //leg->AddEntry(histograms["photon_raw"], "Z+jets (from #gamma+jets, raw)", "f");
+        leg->AddEntry(histograms["photon_reweighted"], "Z+jets (from #gamma+jets, reweighted)", "f");
         leg->AddEntry(histograms["vv"], "VV", "f");
         leg->AddEntry(histograms["tt"], "t#bar{t}+tW", "f");
     }
@@ -436,34 +419,28 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 
     leg->SetBorderSize(0);
     leg->SetFillColor(0);
-    leg->Draw();
 
-    TLatex *tex = new TLatex();
-    tex->SetNDC();
-    tex->SetTextSize(0.03);
-    tex->DrawLatex(0.6,0.65,"ATLAS Internal");
+    return leg;
+}
+
+string getPlotTex(string period, string photon_data_or_mc) {
+    string tex_string;
     if (photon_data_or_mc == "Data") {
-        if(TString(period).Contains("data15-16")) tex->DrawLatex(0.6,0.61,"36 fb^{-1} 2015-2016 data");
-        if(TString(period).Contains("data17")) tex->DrawLatex(0.6,0.61,"44 fb^{-1} 2017 data");
-        if(TString(period).Contains("data18")) tex->DrawLatex(0.6,0.61,"60 fb^{-1} 2018 data");
+        if(TString(period).Contains("data15-16")) tex_string = "36 fb^{-1} 2015-2016 data";
+        if(TString(period).Contains("data17")) tex_string = "44 fb^{-1} 2017 data";
+        if(TString(period).Contains("data18")) tex_string = "60 fb^{-1} 2018 data";
     }
     else {
         string mc_period = getMCPeriod(period);
-        if(TString(mc_period).Contains("mc16a")) tex->DrawLatex(0.6,0.61,"MC16a");
-        if(TString(mc_period).Contains("mc16cd")) tex->DrawLatex(0.6,0.61,"MC16cd");
-        if(TString(mc_period).Contains("mc16e")) tex->DrawLatex(0.6,0.61,"MC16e");
+        if(TString(mc_period).Contains("mc16a")) tex_string = "MC16a";
+        if(TString(mc_period).Contains("mc16cd")) tex_string = "MC16cd";
+        if(TString(mc_period).Contains("mc16e")) tex_string = "MC16e";
     }
-    if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
-    if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
-    if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
 
-    //--- draw ratio
-    can->cd();
-    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.905);
-    ratio_pad->Draw();
-    ratio_pad->cd();
-    ratio_pad->SetGridy();
+    return tex_string;
+}
 
+tuple<TH1D*, TH1D*> getRatioPlots(unordered_map<string, TH1D*> histograms, string photon_data_or_mc) {
     TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (photon_data_or_mc == "MC") {
@@ -502,7 +479,6 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
     hratio_unreweighted->SetMinimum(0.0);
     hratio_unreweighted->SetMaximum(2.0);
     hratio_unreweighted->GetYaxis()->SetRangeUser(0.0,2.0);
-    hratio_unreweighted->Draw("E1");
 
     hratio->Divide(hmctot);
     hratio->SetMarkerStyle(20);
@@ -521,10 +497,96 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
     hratio->SetMinimum(0.0);
     hratio->SetMaximum(2.0);
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
-    hratio->Draw("sameE1");
 
-    //--- save plot
-    can->Print(plot_name);
+    hratio->SetTitle("");
+    hratio_unreweighted->SetTitle("");
+
+    return make_tuple(hratio, hratio_unreweighted);
+}
+
+void makePlot(resultsMap results_map, string period) {
+    for (auto region : results_map.regions) {
+        vector<string> channels = {"ee", "mm", "SF"};
+        for (auto channel : channels) {
+            string region_name = region + " " + channel;
+            for (auto feature : results_map.features) {
+                //--- draw title
+                TCanvas *can = new TCanvas("can","can",600,600);
+                can->cd();
+                TPad* namepad = new TPad("namepad","namepad",0.0,0.0,1.0,1.0);
+                namepad->Draw();
+                namepad->cd();
+                ROOT::RDF::TH1DModel plot_info = getHistogramInfo(feature);
+                TString formatted_feature = plot_info.fTitle;
+                TString plot_title = formatted_feature + " in " + region;
+                //TH1D *h_name = new TH1D("h_name", plot_title, nbins, xmin, xmax);
+                TH1D *h_name = new TH1D("h_name", plot_title, 1, 0, 1);
+                h_name->Draw();
+
+                //--- create comparison stacks
+                auto hist_map = results_map.results[region_name].histograms[feature]; // map of histograms by [process]
+                auto [data_stack, raw_g_stack, reweight_g_stack] = createStacks(hist_map, results_map.data_or_mc, formatted_feature);
+
+                //--- draw plot
+                TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
+                mainpad->Draw();
+                mainpad->cd();
+                mainpad->SetLogy();
+
+                data_stack->Draw();
+                if (results_map.data_or_mc == "Data") {
+                    reweight_g_stack->Draw("hist");
+                    data_stack->Draw("sameE1");
+                    reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
+                    reweight_g_stack->GetYaxis()->SetTitle("entries / bin");
+                }
+                else {
+                    data_stack->Draw("hist");
+                    raw_g_stack->Draw("samehist");
+                    reweight_g_stack->Draw("samehist");
+                    data_stack->GetXaxis()->SetTitle(formatted_feature);
+                    data_stack->GetYaxis()->SetTitle("entries / bin");
+                }
+
+                //--- draw legend and labels
+                TLegend *leg = getLegend(results_map.data_or_mc, hist_map);
+                leg->Draw();
+
+                //--- write info
+                TLatex *tex = new TLatex();
+                tex->SetNDC();
+                tex->SetTextSize(0.03);
+                tex->DrawLatex(0.6,0.65,"ATLAS Internal");
+                tex->DrawLatex(0.6,0.61,getPlotTex(period, results_map.data_or_mc).c_str());
+                if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
+                if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
+                if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
+                if(TString(channel).Contains("me")) tex->DrawLatex(0.6,0.57,"#mu e events");
+                if(TString(channel).Contains("SF")) tex->DrawLatex(0.6,0.57,"SF events");
+                if(TString(channel).Contains("DF")) tex->DrawLatex(0.6,0.57,"DF events");
+
+                //--- draw ratio
+                can->cd();
+                TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.905);
+                ratio_pad->Draw();
+                ratio_pad->cd();
+                ratio_pad->SetGridy();
+
+                auto [hratio, hratio_unreweighted] = getRatioPlots(hist_map, results_map.data_or_mc);
+                if (results_map.data_or_mc == "MC")
+                    hratio_unreweighted->Draw("E1");
+                hratio->Draw("sameE1");
+
+                //--- save plot
+                TString plot_name = getPlotSaveName(period, channel, feature, results_map.data_or_mc, region);
+                can->Print(plot_name);
+
+                //--- clean up
+                delete can;
+                delete h_name;
+            }
+        }
+    }
 }
 
 //----------------
@@ -532,38 +594,90 @@ void makePlot(unordered_map<string, TH1D*> histograms, THStack *mcstack, TString
 //----------------
 
 void testTablePrintout(resultsMap results_map) {
-    printPhotonYieldTables(results_map, true);
-    printPhotonYieldTables(results_map, false);
+    printPhotonYieldTables(results_map, "Output/test_table_blinded.txt", true);
+    printPhotonYieldTables(results_map, "Output/test_table_unblinded.txt", false);
 }
 
 void testMakePlot(resultsMap results_map) {
-    //makePlot(results_map);
+    results_map.data_or_mc = "Data";
+    makePlot(results_map, "data18");
+    results_map.data_or_mc = "MC";
+    makePlot(results_map, "data18");
 }
 
-void test_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
+void unit_tests() {
     resultsMap results_map;
     vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
+    vector<string> features{"METl", "METt", "met_Et"};
     results_map.regions = regions;
-    unordered_map<string, unordered_map<string, TH1D*>> empty_hists; // [feature][process] histogram
+    results_map.features = features;
 
-    results_map.results["SR_test1 ee"] = Result{empty_hists, 1.3, 1.5, 1.4};
-    results_map.results["SR_test1 mm"] = Result{empty_hists, 1.2, 1.6, 1.3};
-    results_map.results["SR_test1 SF"] = Result{empty_hists, 2.5, 3.1, 2.7};
+    unordered_map<string, unordered_map<string, TH1D*>> test_hists; // [feature][process] histogram
+    vector<string> processes{"data", "tt", "vv", "zmc", "photon_raw", "photon_reweighted"};
+    unordered_map<string, int> n_entries;
+    n_entries["data"] = 10000;
+    n_entries["tt"] = 6000;
+    n_entries["vv"] = 3000;
+    n_entries["zmc"] = 1000;
+    n_entries["photon_raw"] = 1000;
+    n_entries["photon_reweighted"] = 1000;
+    for (auto feature : features) {
+        for (auto process : processes) {
+            test_hists[feature][process] = new TH1D("", "", 100, -3, 3);
+            test_hists[feature][process]->FillRandom("gaus", n_entries[process]);
+        }
+    }
 
-    results_map.results["SR_test2 ee"] = Result{empty_hists, 3.6, 3.5, 3.7};
-    results_map.results["SR_test2 mm"] = Result{empty_hists, 3.1, 3.2, 3.4};
-    results_map.results["SR_test2 SF"] = Result{empty_hists, 6.7, 6.7, 7.1};
+    results_map.results["SR_test1 ee"] = Result{test_hists, 1.3, 1.5, 1.4};
+    results_map.results["SR_test1 mm"] = Result{test_hists, 1.2, 1.6, 1.3};
+    results_map.results["SR_test1 SF"] = Result{test_hists, 2.5, 3.1, 2.7};
 
-    results_map.results["SR_test3 ee"] = Result{empty_hists, 12.9, 13.3, 11.2};
-    results_map.results["SR_test3 mm"] = Result{empty_hists, 11.6, 12.8, 12.0};
-    results_map.results["SR_test3 SF"] = Result{empty_hists, 24.5, 26.1, 23.2};
+    results_map.results["SR_test2 ee"] = Result{test_hists, 3.6, 3.5, 3.7};
+    results_map.results["SR_test2 mm"] = Result{test_hists, 3.1, 3.2, 3.4};
+    results_map.results["SR_test2 SF"] = Result{test_hists, 6.7, 6.7, 7.1};
 
-    results_map.results["VR_test1 ee"] = Result{empty_hists, 112.9, 113.3, 111.2};
-    results_map.results["VR_test1 mm"] = Result{empty_hists, 111.6, 112.8, 112.0};
-    results_map.results["VR_test1 SF"] = Result{empty_hists, 124.5, 126.1, 123.2};
+    results_map.results["SR_test3 ee"] = Result{test_hists, 12.9, 13.3, 11.2};
+    results_map.results["SR_test3 mm"] = Result{test_hists, 11.6, 12.8, 12.0};
+    results_map.results["SR_test3 SF"] = Result{test_hists, 24.5, 26.1, 23.2};
+
+    results_map.results["VR_test1 ee"] = Result{test_hists, 112.9, 113.3, 111.2};
+    results_map.results["VR_test1 mm"] = Result{test_hists, 111.6, 112.8, 112.0};
+    results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2};
 
     testTablePrintout(results_map);
     testMakePlot(results_map);
+
+    n_entries["data"] = 0;
+    n_entries["tt"] = 0;
+    n_entries["vv"] = 0;
+    n_entries["zmc"] = 0;
+    n_entries["photon_raw"] = 0;
+    n_entries["photon_reweighted"] = 0;
+    for (auto feature : features) {
+        for (auto process : processes) {
+            test_hists[feature][process] = new TH1D("", "", 100, -3, 3);
+            test_hists[feature][process]->FillRandom("gaus", n_entries[process]);
+        }
+    }
+
+    results_map.results["SR_test1 ee"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test1 mm"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test1 SF"] = Result{test_hists, 0, 0, 0};
+
+    results_map.results["SR_test2 ee"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test2 mm"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test2 SF"] = Result{test_hists, 0, 0, 0};
+
+    results_map.results["SR_test3 ee"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test3 mm"] = Result{test_hists, 0, 0, 0};
+    results_map.results["SR_test3 SF"] = Result{test_hists, 0, 0, 0};
+
+    results_map.results["VR_test1 ee"] = Result{test_hists, 0, 0, 0};
+    results_map.results["VR_test1 mm"] = Result{test_hists, 0, 0, 0};
+    results_map.results["VR_test1 SF"] = Result{test_hists, 0, 0, 0};
+
+    //testTablePrintout(results_map);
+    //testMakePlot(results_map);
 }
 
 //---------------
@@ -576,13 +690,9 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     cout << endl;
 
     //--- parse arguments
-    vector<string> plot_features = splitStringBySpaces(plot_feature_list);
-    vector<string> regions = splitStringBySpaces(region_list);
-    vector<string> channels{"ee", "mm", "SF", "OF"};
-
-    //--- set global options
-    gStyle->SetOptStat(0);
-    ROOT::EnableImplicitMT();
+    vector<string> plot_features = splitStringBy(plot_feature_list, " ");
+    vector<string> regions = splitStringBy(region_list, " ");
+    vector<string> channels{"ee", "mm", "SF", "DF"};
 
     //--- get input data in the form of RDataFrames
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
@@ -593,18 +703,20 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     resultsMap results_map = fillHistograms(region_hists, plot_features, regions, channels, photon_data_or_mc);
 
     //--- print photon yield tables
-    printPhotonYieldTables(results_map, blind);
+    TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions");
+    printPhotonYieldTables(results_map, "Output/" + period + "_" + results_map.data_or_mc + "_yields.txt", blind);
 
-    //--- create histogram stacks and set their plotting options; draw and save plot
-    //if (!print_photon_yield_only) {
-        //bool DF = TString(channel).EqualTo("em");
-        //THStack *mcstack = createStacks(results_map, photon_data_or_mc, DF);
-        //TString plot_name = getPlotName(period, channel, plot_feature, photon_data_or_mc, region);
-        //makePlot(results_map, mcstack, plot_name, formatted_feature, period, channel, photon_data_or_mc, region);
-    //}
+    //--- draw and save plot
+    if (!print_photon_yield_only)
+        makePlot(results_map, period);
 }
 
 void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
-    test_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
-    //run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
+    //--- set global options
+    gStyle->SetOptStat(0);
+    ROOT::EnableImplicitMT();
+
+    //--- either perform unit tests or run code
+    //unit_tests();
+    run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
 }

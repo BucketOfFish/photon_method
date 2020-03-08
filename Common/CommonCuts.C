@@ -15,7 +15,7 @@ namespace cuts {
     TCut em("channel==2");
     TCut me("channel==3");
     TCut SF("channel==0 || channel==1");
-    TCut OF("channel==2 || channel==3");
+    TCut DF("channel==2 || channel==3");
 
     TCut bkg_weight("totalWeight");
     TCut photon_weight("totalWeight");
