@@ -533,15 +533,17 @@ void makePlot(resultsMap results_map, string period, bool blinded) {
                 mainpad->cd();
                 mainpad->SetLogy();
 
+                bool applicable_blinded = (blinded && (region.find("SR") != std::string::npos));
+
                 if (results_map.data_or_mc == "Data") {
                     reweight_g_stack->Draw("hist");
-                    if (!blinded)
+                    if (!applicable_blinded)
                         data_stack->Draw("sameE1");
                     reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
                     reweight_g_stack->GetYaxis()->SetTitle("entries / bin");
                 }
                 else {
-                    if (!blinded)
+                    if (!applicable_blinded)
                         data_stack->Draw("hist");
                     raw_g_stack->Draw("samehist");
                     reweight_g_stack->Draw("samehist");
@@ -574,16 +576,16 @@ void makePlot(resultsMap results_map, string period, bool blinded) {
                 ratio_pad->SetGridy();
 
                 auto [hratio, hratio_unreweighted] = getRatioPlots(hist_map, results_map.data_or_mc);
-                if (!blinded) {
-                    if (results_map.data_or_mc == "MC")
-                        hratio_unreweighted->Draw("E1");
-                    hratio->Draw("sameE1");
-                }
-                else {
+                if (applicable_blinded) {
                     TH1D *empty_hist = new TH1D("", "", 1, 0, 1);
                     empty_hist->Draw();
                     tex->SetTextSize(0.3);
                     tex->DrawLatex(0.42,0.42,"BLINDED");
+                }
+                else {
+                    if (results_map.data_or_mc == "MC")
+                        hratio_unreweighted->Draw("E1");
+                    hratio->Draw("sameE1");
                 }
 
                 //--- save plot

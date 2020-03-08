@@ -25,7 +25,8 @@ namespace cuts {
 
     unordered_map<string, TCut> plot_regions = {
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
-        {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
+        {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && nLep_signal==2 && mll<100"},
+        {"VR", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
         {"VRcom", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
