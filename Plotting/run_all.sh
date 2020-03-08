@@ -6,10 +6,9 @@
 
 PERIODS=("data15-16" "data17" "data18")
 TYPES=("MC" "Data")
-#REGIONS="SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ"
-REGIONS="SRTest SRLowZ"
-#FEATURES="METl METt met_Et"
-FEATURES="METl"
+REGIONS="SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ"
+#FEATURES="METl METt met_Et lepPt lep_eta lep_phi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jet_pT HT"
+FEATURES="METl METt met_Et dPhiMetJet1 dPhiMetJet2 Ptll mll HT"
 GETPHOTONYIELDONLY="false"
 BLIND="true"
 
