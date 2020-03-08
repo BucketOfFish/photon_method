@@ -299,7 +299,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
 // MAKE TABLES
 //-------------
 
-void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind) {
+void printPhotonYieldTables(resultsMap results_map, string save_name, bool blinded) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
@@ -327,7 +327,7 @@ void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind
         float data_ee = results_map.results[region + " ee"].data_yield;
         float data_mm = results_map.results[region + " mm"].data_yield;
         float data_SF = results_map.results[region + " SF"].data_yield;
-        if (blind && (region.find("SR") != std::string::npos))
+        if (blinded && (region.find("SR") != std::string::npos))
             out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
         else
             out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
@@ -504,7 +504,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(unordered_map<string, TH1D*> histograms, strin
     return make_tuple(hratio, hratio_unreweighted);
 }
 
-void makePlot(resultsMap results_map, string period) {
+void makePlot(resultsMap results_map, string period, bool blinded) {
     for (auto region : results_map.regions) {
         vector<string> channels = {"ee", "mm", "SF"};
         for (auto channel : channels) {
@@ -533,15 +533,16 @@ void makePlot(resultsMap results_map, string period) {
                 mainpad->cd();
                 mainpad->SetLogy();
 
-                data_stack->Draw();
                 if (results_map.data_or_mc == "Data") {
                     reweight_g_stack->Draw("hist");
-                    data_stack->Draw("sameE1");
+                    if (!blinded)
+                        data_stack->Draw("sameE1");
                     reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
                     reweight_g_stack->GetYaxis()->SetTitle("entries / bin");
                 }
                 else {
-                    data_stack->Draw("hist");
+                    if (!blinded)
+                        data_stack->Draw("hist");
                     raw_g_stack->Draw("samehist");
                     reweight_g_stack->Draw("samehist");
                     data_stack->GetXaxis()->SetTitle(formatted_feature);
@@ -573,9 +574,17 @@ void makePlot(resultsMap results_map, string period) {
                 ratio_pad->SetGridy();
 
                 auto [hratio, hratio_unreweighted] = getRatioPlots(hist_map, results_map.data_or_mc);
-                if (results_map.data_or_mc == "MC")
-                    hratio_unreweighted->Draw("E1");
-                hratio->Draw("sameE1");
+                if (!blinded) {
+                    if (results_map.data_or_mc == "MC")
+                        hratio_unreweighted->Draw("E1");
+                    hratio->Draw("sameE1");
+                }
+                else {
+                    TH1D *empty_hist = new TH1D("", "", 1, 0, 1);
+                    empty_hist->Draw();
+                    tex->SetTextSize(0.3);
+                    tex->DrawLatex(0.42,0.42,"BLINDED");
+                }
 
                 //--- save plot
                 TString plot_name = getPlotSaveName(period, channel, feature, results_map.data_or_mc, region);
@@ -594,15 +603,15 @@ void makePlot(resultsMap results_map, string period) {
 //----------------
 
 void testTablePrintout(resultsMap results_map) {
-    printPhotonYieldTables(results_map, "Output/test_table_blinded.txt", true);
-    printPhotonYieldTables(results_map, "Output/test_table_unblinded.txt", false);
+    printPhotonYieldTables(results_map, "Output/test_table_blindeded.txt", true);
+    printPhotonYieldTables(results_map, "Output/test_table_unblindeded.txt", false);
 }
 
 void testMakePlot(resultsMap results_map) {
     results_map.data_or_mc = "Data";
-    makePlot(results_map, "data18");
+    makePlot(results_map, "data18", true);
     results_map.data_or_mc = "MC";
-    makePlot(results_map, "data18");
+    makePlot(results_map, "data18", false);
 }
 
 void unit_tests() {
@@ -684,7 +693,7 @@ void unit_tests() {
 // MAIN FUNCTION
 //---------------
 
-void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
+void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only) {
     cout << "period               " << period << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
@@ -704,19 +713,19 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
 
     //--- print photon yield tables
     TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions");
-    printPhotonYieldTables(results_map, "Output/" + period + "_" + results_map.data_or_mc + "_yields.txt", blind);
+    printPhotonYieldTables(results_map, "Output/" + period + "_" + results_map.data_or_mc + "_yields.txt", blinded);
 
     //--- draw and save plot
     if (!print_photon_yield_only)
-        makePlot(results_map, period);
+        makePlot(results_map, period, blinded);
 }
 
-void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blind, bool print_photon_yield_only) {
+void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only) {
     //--- set global options
     gStyle->SetOptStat(0);
     ROOT::EnableImplicitMT();
 
     //--- either perform unit tests or run code
     //unit_tests();
-    run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blind, print_photon_yield_only);
+    run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blinded, print_photon_yield_only);
 }

@@ -24,8 +24,8 @@ namespace cuts {
     TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
 
     unordered_map<string, TCut> plot_regions = {
-        {"SR", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
-        {"VR", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
+        {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
+        {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
         {"VRcom", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
@@ -57,8 +57,8 @@ namespace cuts {
     TCut CR("met_Et<100.0");
 
     unordered_map<string, TCut> plot_region_met_portions = {
-        {"SR", "1"},
-        {"VR", "1"},
+        {"SRTest", "1"},
+        {"VRTest", "1"},
         {"VRcom", "(met_Et>100 && met_Et<200)"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
