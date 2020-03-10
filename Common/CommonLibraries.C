@@ -43,6 +43,7 @@
 #include "TStyle.h"
 #include "TLine.h"
 #include "TRandom.h"
-//#include "RDataFrame.h"
+#include <ROOT/RDataFrame.hxx>
+#include <ROOT/RDF/RInterface.hxx>
 
 #endif
