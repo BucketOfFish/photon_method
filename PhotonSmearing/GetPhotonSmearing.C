@@ -10,7 +10,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     //---------------------------------------------
 
     TString data_period = DataPeriod(period);
-    TString mc_period = MCPeriod(period);
+    TString mc_period = getMCPeriod(period);
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;

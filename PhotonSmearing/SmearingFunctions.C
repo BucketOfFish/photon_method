@@ -122,7 +122,7 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
             hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
         }
 
-        TString mc_period = MCPeriod(period);
+        TString mc_period = getMCPeriod(period);
         TString data_period = DataPeriod(period);
 
         cout << "Getting Z histograms binned by pT and METl." << endl;
