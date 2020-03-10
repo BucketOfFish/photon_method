@@ -276,7 +276,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
 
             float photon_yield = prh0["photon_reweighted"]->Integral(0, nbins+1);
             float zmc_yield = prh0["zmc"]->Integral(0, nbins+1);
-            float zdata_yield = (photon_data_or_mc == "MC") ? -999 : zdata_integral;
+            float zdata_yield = (photon_data_or_mc == "MC") ? -999 : prh0["data"]->Integral(0, nbins+1) - prh0["tt"]->Integral(0, nbins+1) - prh0["vv"]->Integral(0, nbins+1);
             cout << "\tPhoton yield of " << photon_yield << endl;
             cout << endl;
 
@@ -724,8 +724,8 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
 
 void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only) {
     //--- set global options
-    gStyle->SetOptStat(0);
     ROOT::EnableImplicitMT();
+    gStyle->SetOptStat(0);
 
     //--- either perform unit tests or run code
     //unit_tests();
