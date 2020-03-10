@@ -6,6 +6,7 @@ class TreeReducer {
 public:
     TFile *in_file, *out_file;    
     TTree *in_tree, *out_tree;    
+    string out_file_name;
     string out_tree_name;
     string cut;
     vector<string> branches_to_copy;
@@ -27,6 +28,7 @@ public:
     }
 
     void openWriteFileSetTree(string file_name, string tree_name) {
+        this->out_file_name = file_name;
         this->out_tree_name = tree_name;
 
         cout << "Opening write file     : " << file_name << endl;
@@ -34,7 +36,6 @@ public:
         cout << endl;
 
         this->out_file = TFile::Open(file_name.c_str(), "recreate");
-        this->out_tree = this->in_tree->CloneTree(0);
     }
 
     void setBranchesToCopy(vector<string> branches_to_copy) {
@@ -51,13 +52,18 @@ public:
 
     void setAllBranches() {
         this->in_tree->SetBranchStatus("*", 0);
+
         for (auto branch : this->branches_to_copy) {
             this->in_tree->SetBranchStatus(branch.c_str(), 1);
         }
+
         //for (auto branch : this->branches_to_rename) {
         //}
+
         for (auto branch : this->new_branches) {
         }
+
+        this->out_tree = this->in_tree->CloneTree(0);
     }
 
     void setCut(string cut) {
@@ -79,6 +85,7 @@ public:
             this->out_tree->Fill();
         }
         this->out_tree->Write();
+
         this->out_file->Write();
     }
 
@@ -93,25 +100,18 @@ public:
 //------------------
 
 struct Options {
-    string in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
-    string in_tree_name = "BaselineTree";
-    string out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg_compare.root";
-    string out_tree_name = "BaselineTree";
+    string in_file_name;
+    string in_tree_name;
+    string out_file_name;
+    string out_tree_name;
 
-    vector<string> branches_to_copy {
-        "channel",
-        "met_Et",
-    };
-    vector<pair<string, string>> branches_to_rename {
-        make_pair("lepPt", "lep_pT"),
-    };
-    vector<string> new_branches {
-        "empty_flag",
-    };
+    vector<string> branches_to_copy;
+    vector<pair<string, string>> branches_to_rename;
+    vector<string> new_branches;
 
-    string cut = "met_Et>300";
+    string cut;
 
-    bool unit_testing = true;
+    bool unit_testing;
 };
 
 Options setUnitTestOptions(Options options);
@@ -136,14 +136,21 @@ void makeReduceNtuples(Options options) {
     reducer->setCut(options.cut);
 
     reducer->write();
-    if (options.unit_testing)
+    if (options.unit_testing) {
         performUnitTests(reducer->out_tree);
+        remove(reducer->out_file_name.c_str());
+    }
     reducer->close();
 }
 
 //------------
 // UNIT TESTS
 //------------
+
+void throwError(string error) {
+    cout << "ERROR: " << error << endl;
+    exit(0);
+}
 
 Options setUnitTestOptions(Options options) {
     options.in_file_name = "/public/data/Photon/UnitTest/data15-16_bkg.root";
@@ -163,11 +170,6 @@ Options setUnitTestOptions(Options options) {
     return options;
 }
 
-void throwError(string error) {
-    cout << "ERROR: " << error << endl;
-    exit(0);
-}
-
 void performUnitTests(TTree* out_tree) {
     if (out_tree->GetEntries() == 394)
         cout << "Correct number of events after cut" << endl;
@@ -175,9 +177,14 @@ void performUnitTests(TTree* out_tree) {
         throwError("Wrong number of events after cut");
 
     if (out_tree->GetMinimum("met_Et") > 300)
-        cout << "Cut performed correcly" << endl;
+        cout << "Skimming performed correcly" << endl;
     else
-        throwError("Cut performed incorrectly");
+        throwError("Skimming performed incorrectly");
+
+    if (out_tree->GetNbranches() == 2)
+        cout << "Slimming performed correcly" << endl;
+    else
+        throwError("Slimming performed incorrectly");
 
     cout << "Passed all unit tests" << endl;
     cout << endl;
@@ -192,7 +199,7 @@ void ReduceNtuples() {
 
     options.in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
     options.in_tree_name = "BaselineTree";
-    options.out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg_compare.root";
+    options.out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg.root";
     options.out_tree_name = "BaselineTree";
 
     options.branches_to_copy = vector<string> {
