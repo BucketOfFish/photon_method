@@ -1,5 +1,4 @@
 #include "Common/Settings.C"
-#include <any>
 
 using namespace std;
 
@@ -12,7 +11,6 @@ public:
     string cut;
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;
-    unordered_map<string, std::any> new_branch_vars; 
 
     TreeReducer() {
     }
@@ -86,8 +84,6 @@ public:
 
         for (Long64_t i=0; i<event_list->GetN(); i++) {
             this->in_tree->GetEntry(event_list->GetEntry(i));
-            for (auto var : this->new_branch_vars)
-                var.second = -999;
             this->out_tree->Fill();
         }
         this->out_tree->Write();
