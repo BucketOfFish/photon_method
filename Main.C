@@ -15,6 +15,7 @@ void ReductionStep(bool unit_testing) {
     options.branches_to_copy = vector<string> {
         "lepIsoFCTight", "lepIsPR", "nLep_signal", "nLep_base",
         "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
+        "channel",
         "PhotonConversionType",
         "met_Phi", "met_Et",
         "mll",
@@ -36,6 +37,9 @@ void ReductionStep(bool unit_testing) {
     };
 
     options.cut = "met_Et>300";
+    //if (isPhoton) options.cut = cuts::photon_baseline_ntuples;
+    //else options.cut = cuts::bkg_baseline;
+    options.cut = cuts::bkg_baseline;
 
     options.unit_testing = unit_testing;
     ReduceNtuples(options);
