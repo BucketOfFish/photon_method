@@ -199,6 +199,5 @@ void performUnitTests(TTree* out_tree) {
 //---------------
 
 void ReduceNtuples(Options options) {
-    options.unit_testing = true; runReduction(options);
-    //options.unit_testing = false; runReduction(options);
+    runReduction(options);
 }
