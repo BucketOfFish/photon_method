@@ -1,9 +1,10 @@
 #include "Common/Settings.C"
 #include "ReduceNtuples.C"
+#include "AddNewBranches.C"
 
 using namespace std;
 
-void Main() {
+void ReductionStep(bool unit_testing) {
     Options options;
 
     options.in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
@@ -36,5 +37,24 @@ void Main() {
 
     options.cut = "met_Et>300";
 
+    options.unit_testing = unit_testing;
     ReduceNtuples(options);
+}
+
+void NewBranchesStep(bool unit_testing) {
+    Options options;
+
+    options.in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
+    options.in_tree_name = "BaselineTree";
+    options.out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg.root";
+    options.out_tree_name = "BaselineTree";
+
+    options.unit_testing = unit_testing;
+    AddNewBranches(options);
+}
+
+void Main() {
+    bool unit_testing = true;
+    ReductionStep(unit_testing);
+    NewBranchesStep(unit_testing);
 }

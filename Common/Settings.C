@@ -6,7 +6,9 @@
 #include "CommonBins.C"
 #include "CommonFunctions.C"
 
-std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+//std::string sample_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+//std::string sampling_method = "HistogramSampling";
+std::string sample_folder = "/public/data/Photon/";
 std::string sampling_method = "HistogramSampling";
 
 std::string ntuple_path =  sample_folder + "Ntuples/";
@@ -21,5 +23,21 @@ vector<string> histFitterBranches {"DatasetNumber/I", "Etall/F", "H2PP/D", "H5PP
     "dPhiMetISR/F", "dPhiMetJet1/F", "dPhiMetJet2/F", "dPhiMetJet12Min/F", "dPhiPjjMet/F", "dPhiPllMet/F",
     "dphiISRI/D", "dphiISRI_VR/D", "dphiVP/D", "dphiVP_VR/D", "lept1Pt_VR/D", "lept2Pt_VR/D", "mTl3/D",
     "met_Sign/F", "minDphi/D", "mll_RJ/D", "mll_RJ_VR/D", "mt2leplsp_0/F", "nJet20/I", "mjj/F"};
+
+using BranchRenameOptions = vector<tuple<string, string>>;
+
+struct Options {
+    string in_file_name;
+    string in_tree_name;
+    string out_file_name;
+    string out_tree_name;
+
+    vector<string> branches_to_copy;
+    BranchRenameOptions branches_to_rename;
+
+    string cut;
+
+    bool unit_testing;
+};
 
 #endif
