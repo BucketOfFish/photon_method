@@ -66,6 +66,7 @@ public:
         this->copyBranches();
         this->renameBranches();
         this->out_tree = this->in_tree->CloneTree(0);
+        this->out_tree->SetName(this->out_tree_name.c_str());
     }
 
     void setCut(string cut) {

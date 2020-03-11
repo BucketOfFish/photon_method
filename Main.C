@@ -1,6 +1,6 @@
 #include "Common/Settings.C"
 #include "ReduceNtuples.C"
-#include "AddNewBranches.C"
+//#include "AddNewBranches.C"
 
 using namespace std;
 
@@ -21,8 +21,8 @@ void ReductionStep(bool unit_testing) {
         "Ptll",
         "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
         "minDPhi2JetsMet",
-        "trigMatch_2LTrig", "trigMatch_2LTrigOR", "globalDiLepTrigSF",
-        "getWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight",
+        "trigMatch_2LTrig", "trigMatch_2LTrigOR", // do not exist for photons
+        "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
         "RunNumber", "RandomRunNumber",
     };
     options.branches_to_rename = BranchRenameOptions {
@@ -50,11 +50,11 @@ void NewBranchesStep(bool unit_testing) {
     options.out_tree_name = "BaselineTree";
 
     options.unit_testing = unit_testing;
-    AddNewBranches(options);
+    //AddNewBranches(options);
 }
 
 void Main() {
     bool unit_testing = true;
     ReductionStep(unit_testing);
-    NewBranchesStep(unit_testing);
+    //NewBranchesStep(unit_testing);
 }
