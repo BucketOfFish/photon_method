@@ -1,8 +1,7 @@
-#include "../Common/Settings.C"
+#include "Common/Settings.C"
 #include <any>
 
 using namespace std;
-using BranchRenameOptions = vector<tuple<string, string>>;
 
 class TreeReducer {
 public:
@@ -106,24 +105,10 @@ public:
 // HELPER FUNCTIONS
 //------------------
 
-struct Options {
-    string in_file_name;
-    string in_tree_name;
-    string out_file_name;
-    string out_tree_name;
-
-    vector<string> branches_to_copy;
-    BranchRenameOptions branches_to_rename;
-
-    string cut;
-
-    bool unit_testing;
-};
-
 Options setUnitTestOptions(Options options);
 void performUnitTests(TTree* out_tree);
 
-void makeReduceNtuples(Options options) {
+void runReduction(Options options) {
     TreeReducer *reducer = new TreeReducer();
 
     if (options.unit_testing) {
@@ -217,25 +202,7 @@ void performUnitTests(TTree* out_tree) {
 // MAIN FUNCTION
 //---------------
 
-void ReduceNtuples() {
-    Options options;
-
-    options.in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
-    options.in_tree_name = "BaselineTree";
-    options.out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg.root";
-    options.out_tree_name = "BaselineTree";
-
-    options.branches_to_copy = vector<string> {
-        "channel",
-        "met_Et",
-        "lep_phi",
-    };
-    options.branches_to_rename = BranchRenameOptions {
-        make_tuple("lepPt", "lep_pT"),
-    };
-
-    options.cut = "met_Et>300";
-
-    options.unit_testing = true; makeReduceNtuples(options);
-    options.unit_testing = false; makeReduceNtuples(options);
+void ReduceNtuples(Options options) {
+    options.unit_testing = true; runReduction(options);
+    //options.unit_testing = false; runReduction(options);
 }
