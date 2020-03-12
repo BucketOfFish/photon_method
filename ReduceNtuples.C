@@ -11,6 +11,7 @@ public:
     string cut;
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;
+    BranchAddOptions branches_to_add;
 
     TreeReducer() {
     }
@@ -45,6 +46,10 @@ public:
         this->branches_to_rename = branches_to_rename;
     }
 
+    void setBranchesToAdd(BranchAddOptions branches_to_add) {
+        this->branches_to_add = branches_to_add;
+    }
+
     void copyBranches() {
         for (auto branch : this->branches_to_copy) {
             this->in_tree->SetBranchStatus(branch.c_str(), 1);
@@ -61,10 +66,20 @@ public:
         }
     }
 
+    void addBranches() {
+        for (auto branch : this->branches_to_add) {
+            string branch_name = get<0>(branch);
+            string branch_expression = get<1>(branch);
+            this->in_tree->SetAlias(branch_name.c_str(), branch_expression.c_str());
+            this->in_tree->SetBranchStatus(branch_name.c_str(), 1);
+        }
+    }
+
     void initAllBranches() {
         this->in_tree->SetBranchStatus("*", 0);
         this->copyBranches();
         this->renameBranches();
+        this->addBranches();
         this->out_tree = this->in_tree->CloneTree(0);
         this->out_tree->SetName(this->out_tree_name.c_str());
     }
@@ -84,6 +99,7 @@ public:
         cout << endl;
 
         for (Long64_t i=0; i<event_list->GetN(); i++) {
+            if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
             this->in_tree->GetEntry(event_list->GetEntry(i));
             this->out_tree->Fill();
         }
@@ -119,6 +135,7 @@ void runReduction(Options options) {
 
     reducer->setBranchesToCopy(options.branches_to_copy);
     reducer->setBranchesToRename(options.branches_to_rename);
+    reducer->setBranchesToAdd(options.branches_to_add);
 
     reducer->setCut(options.cut);
 
@@ -153,6 +170,10 @@ Options setUnitTestOptions(Options options) {
     options.branches_to_rename = BranchRenameOptions {
         make_tuple("lepPt", "lep_pT"),
     };
+    options.branches_to_add = BranchAddOptions {
+        make_tuple("test1", "199"),
+        make_tuple("test2", "met_Et*2"),
+    };
 
     options.cut = "met_Et>300";
 
@@ -170,7 +191,7 @@ void performUnitTests(TTree* out_tree) {
     else
         throwError("Skimming performed incorrectly");
 
-    if (out_tree->GetNbranches() == 3+1)
+    if (out_tree->GetNbranches() == 3+1+2)
         cout << "Slimming performed correctly" << endl;
     else
         throwError("Slimming performed incorrectly");

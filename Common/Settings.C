@@ -25,6 +25,7 @@ vector<string> histFitterBranches {"DatasetNumber/I", "Etall/F", "H2PP/D", "H5PP
     "met_Sign/F", "minDphi/D", "mll_RJ/D", "mll_RJ_VR/D", "mt2leplsp_0/F", "nJet20/I", "mjj/F"};
 
 using BranchRenameOptions = vector<tuple<string, string>>;
+using BranchAddOptions = vector<tuple<string, string>>;
 
 struct Options {
     string in_file_name;
@@ -34,6 +35,7 @@ struct Options {
 
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;
+    BranchAddOptions branches_to_add;
 
     string cut;
 

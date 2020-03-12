@@ -35,8 +35,12 @@ void ReductionStep(bool unit_testing) {
         make_tuple("jetPhi", "jet_phi"),
         make_tuple("met_Sign", "MET_sig"),
     };
+    options.branches_to_add = BranchAddOptions {
+        make_tuple("test", "199"),
+    };
 
-    options.cut = "met_Et>300";
+	//cout << "Background baseline    : " << cuts::bkg_baseline << endl;
+	//cout << "Photon baseline        : " << cuts::photon_baseline_ntuples << endl;
     //if (isPhoton) options.cut = cuts::photon_baseline_ntuples;
     //else options.cut = cuts::bkg_baseline;
     options.cut = cuts::bkg_baseline;

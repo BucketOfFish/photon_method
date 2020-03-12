@@ -97,14 +97,7 @@ void AddNewBranches(string inFolder, string outFolder, string period, string sam
     // loop over events
     //-----------------------------
 
-    cout << "Applying baseline selections" << endl;
-	cout << "Background baseline    : " << cuts::bkg_baseline << endl;
-	cout << "Photon baseline        : " << cuts::photon_baseline_ntuples << endl;
-
     for (Long64_t i=0; i<eventList->GetN(); i+=everyNEntries) {
-        if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
-        inTree->GetEntry(eventList->GetEntry(i));
-
         if (!isPhoton) {
             //--- determine OS / SS
             is_OS = (lepCharge->at(0)!=lepCharge->at(1));
@@ -202,12 +195,4 @@ void AddNewBranches(string inFolder, string outFolder, string period, string sam
 
         outTree->Fill();     
     }
-    cout << endl;
-
-    cout << "Writing output..." << endl;
-    outTree->Write();
-
-    inFile->Close();
-    outFile->Close();
-    delete inFile;
 }
