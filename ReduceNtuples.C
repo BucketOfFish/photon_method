@@ -1,4 +1,5 @@
 #include "Common/Settings.C"
+#include "TInterpreter.h"
 
 using namespace std;
 
@@ -63,21 +64,13 @@ public:
         }
 
         //--- add branches
-        //string myFunc =
-            //"int myFunc(const ROOT::VecOps::RVec<int> &lepFlavor) {"
-                //"if (lepFlavor[0] == 1 and lepFlavor[1] == 1) return  0;"
-                //"else if (lepFlavor[0] == 2 and lepFlavor[1] == 2) return 1;"
-                //"else if (lepFlavor[0] == 1 and lepFlavor[1] == 2) return 2;"
-                //"else if (lepFlavor[0] == 2 and lepFlavor[1] == 1) return 3;"
-                //"return -1;"
-            //"}";
-        //gInterpreter->Declare(myFunc.c_str());
-        //reduced_dataframe = reduced_dataframe.Define("channel2", "myFunc(lepFlavor)");
         for (auto branch : this->branches_to_add) {
-            string new_name = get<0>(branch);
+            string branch_name = get<0>(branch);
             string expression = get<1>(branch);
-            reduced_dataframe = reduced_dataframe.Define(new_name.c_str(), expression.c_str());
-            all_out_branches.push_back(new_name);
+            string call = get<2>(branch);
+            gInterpreter->Declare(expression.c_str());
+            reduced_dataframe = reduced_dataframe.Define(branch_name.c_str(), call.c_str());
+            all_out_branches.push_back(branch_name);
         }
 
         reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
@@ -137,14 +130,26 @@ Options setUnitTestOptions(Options options) {
     options.branches_to_copy = vector<string> {
         "channel",
         "met_Et",
-        "lep_phi",
+        "lepFlavor",
     };
     options.branches_to_rename = BranchRenameOptions {
         make_tuple("lepPt", "lep_pT"),
     };
+    string getChannel =
+        "int getChannel(const ROOT::VecOps::RVec<int> &lepFlavor) {"
+            "if (lepFlavor[0] == 2 and lepFlavor[1] == 2) return 0;"
+            "else if (lepFlavor[0] == 1 and lepFlavor[1] == 1) return  1;"
+            "else if (lepFlavor[0] == 1 and lepFlavor[1] == 2) return 2;"
+            "else if (lepFlavor[0] == 2 and lepFlavor[1] == 1) return 3;"
+            "return -1;"
+        "}";
+    string countTo3 =
+        "vector<int> countTo3() {"
+            "return vector<int>{1, 2, 3};"
+        "}";
     options.branches_to_add = BranchAddOptions {
-        make_tuple("test1", "199"),
-        make_tuple("test2", "met_Et*2"),
+        make_tuple("test1", getChannel, "getChannel(lepFlavor)"),
+        make_tuple("test2", countTo3, "countTo3()"),
     };
 
     options.cut = "met_Et>300";
