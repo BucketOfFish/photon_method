@@ -4,8 +4,7 @@ using namespace std;
 
 class TreeReducer {
 public:
-    TFile *in_file, *out_file;    
-    TTree *in_tree, *out_tree;    
+    ROOT::RDataFrame *dataframe;
     string out_file_name;
     string out_tree_name;
     string cut;
@@ -16,26 +15,11 @@ public:
     TreeReducer() {
     }
 
-    void openReadFileGetTree(string file_name, string tree_name) {
+    void read(string file_name, string tree_name) {
         cout << "Opening read file      : " << file_name << endl;
         cout << "Tree name              : " << tree_name << endl;
 
-        this->in_file = TFile::Open(file_name.c_str());
-        this->in_tree = (TTree*)this->in_file->Get(tree_name.c_str());
-
-        cout << "Events in tree         : " << this->in_tree->GetEntries() << endl;
-        cout << endl;
-    }
-
-    void openWriteFileSetTree(string file_name, string tree_name) {
-        this->out_file_name = file_name;
-        this->out_tree_name = tree_name;
-
-        cout << "Opening write file     : " << file_name << endl;
-        cout << "Tree name              : " << tree_name << endl;
-        cout << endl;
-
-        this->out_file = TFile::Open(file_name.c_str(), "recreate");
+        this->dataframe = new ROOT::RDataFrame(tree_name, file_name);
     }
 
     void setBranchesToCopy(vector<string> branches_to_copy) {
@@ -50,67 +34,54 @@ public:
         this->branches_to_add = branches_to_add;
     }
 
-    void copyBranches() {
-        for (auto branch : this->branches_to_copy) {
-            this->in_tree->SetBranchStatus(branch.c_str(), 1);
-        }
-    }
-
-    void renameBranches() {
-        for (auto branch : this->branches_to_rename) {
-            string old_name = get<0>(branch);
-            string new_name = get<1>(branch);
-            this->in_tree->SetBranchStatus(old_name.c_str(), 1);
-            this->in_tree->GetBranch(old_name.c_str())->SetTitle(new_name.c_str());
-            this->in_tree->GetBranch(old_name.c_str())->SetName(new_name.c_str());
-        }
-    }
-
-    void addBranches() {
-        for (auto branch : this->branches_to_add) {
-            string branch_name = get<0>(branch);
-            string branch_expression = get<1>(branch);
-            this->in_tree->SetAlias(branch_name.c_str(), branch_expression.c_str());
-            this->in_tree->SetBranchStatus(branch_name.c_str(), 1);
-        }
-    }
-
-    void initAllBranches() {
-        this->in_tree->SetBranchStatus("*", 0);
-        this->copyBranches();
-        this->renameBranches();
-        this->addBranches();
-        this->out_tree = this->in_tree->CloneTree(0);
-        this->out_tree->SetName(this->out_tree_name.c_str());
-    }
-
     void setCut(string cut) {
         this->cut = cut;
     }
 
-    void write() {
-        cout << "Processing" << endl;
+    void write(string file_name, string tree_name) {
+        this->out_file_name = file_name;
+        this->out_tree_name = tree_name;
 
-        this->initAllBranches();
-
-        this->in_tree->Draw(">>event_list", this->cut.c_str(), "goff");
-        TEventList *event_list = (TEventList*)gDirectory->Get("event_list");
-        cout << "N events selected      : " << event_list->GetN() << endl;
+        cout << "Opening write file     : " << file_name << endl;
+        cout << "Tree name              : " << tree_name << endl;
         cout << endl;
 
-        for (Long64_t i=0; i<event_list->GetN(); i++) {
-            if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
-            this->in_tree->GetEntry(event_list->GetEntry(i));
-            this->out_tree->Fill();
+        cout << "Processing" << endl;
+
+        //--- apply cut
+        auto reduced_dataframe = this->dataframe->Filter(this->cut.c_str());
+
+        //--- get all branches to save
+        vector<string> all_out_branches = this->branches_to_copy;
+
+        //--- rename branches
+        for (auto branch : this->branches_to_rename) {
+            string old_name = get<0>(branch);
+            string new_name = get<1>(branch);
+            reduced_dataframe = reduced_dataframe.Define(new_name.c_str(), old_name.c_str());
+            all_out_branches.push_back(new_name);
         }
-        this->out_tree->Write();
 
-        this->out_file->Write();
-    }
+        //--- add branches
+        //string myFunc =
+            //"int myFunc(const ROOT::VecOps::RVec<int> &lepFlavor) {"
+                //"if (lepFlavor[0] == 1 and lepFlavor[1] == 1) return  0;"
+                //"else if (lepFlavor[0] == 2 and lepFlavor[1] == 2) return 1;"
+                //"else if (lepFlavor[0] == 1 and lepFlavor[1] == 2) return 2;"
+                //"else if (lepFlavor[0] == 2 and lepFlavor[1] == 1) return 3;"
+                //"return -1;"
+            //"}";
+        //gInterpreter->Declare(myFunc.c_str());
+        //reduced_dataframe = reduced_dataframe.Define("channel2", "myFunc(lepFlavor)");
+        for (auto branch : this->branches_to_add) {
+            string new_name = get<0>(branch);
+            string expression = get<1>(branch);
+            reduced_dataframe = reduced_dataframe.Define(new_name.c_str(), expression.c_str());
+            all_out_branches.push_back(new_name);
+        }
 
-    void close() {
-        in_file->Close();
-        out_file->Close();
+        reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
+        cout << endl;
     }
 };
 
@@ -130,8 +101,7 @@ void runReduction(Options options) {
         options = setUnitTestOptions(options);
     }
 
-    reducer->openReadFileGetTree(options.in_file_name, options.in_tree_name);
-    reducer->openWriteFileSetTree(options.out_file_name, options.out_tree_name);
+    reducer->read(options.in_file_name, options.in_tree_name);
 
     reducer->setBranchesToCopy(options.branches_to_copy);
     reducer->setBranchesToRename(options.branches_to_rename);
@@ -139,12 +109,14 @@ void runReduction(Options options) {
 
     reducer->setCut(options.cut);
 
-    reducer->write();
+    reducer->write(options.out_file_name, options.out_tree_name);
+
     if (options.unit_testing) {
-        performUnitTests(reducer->out_tree);
-        remove(reducer->out_file_name.c_str());
+        TFile *out_file = TFile::Open(options.out_file_name.c_str());
+        TTree *out_tree = (TTree*)out_file->Get(options.out_tree_name.c_str());
+        performUnitTests(out_tree);
+        remove(options.out_file_name.c_str());
     }
-    reducer->close();
 }
 
 //------------
@@ -211,6 +183,8 @@ void performUnitTests(TTree* out_tree) {
         cout << "Branch renaming performed correctly" << endl;
     else
         throwError("Branch renaming performed incorrectly");
+
+    // need to add unit tests for new branches
 
     cout << "Passed all unit tests" << endl;
     cout << endl;
