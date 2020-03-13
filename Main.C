@@ -1,5 +1,6 @@
 #include "Common/Settings.C"
 #include "ReduceNtuples.C"
+//#include "GetPhotonSmearing.C"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -208,6 +209,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         make_tuple("dPhiMetJet", "getDPhiMetJet(jetPt, jetEta, jetPhi, nJet30, met_Et, met_Phi)"),
         make_tuple("dPhiMetJet2", "dPhiMetJet[1]"),
         make_tuple("dPhiMetJet12Min", "std::min(dPhiMetJet[0], dPhiMetJet[1])"),
+        make_tuple("lumi", to_string(GetLumi(settings.period))), //if (TString(settings.sampleID).Contains("Vg")) lumi *= -1;
     };
     
     //--- photon/bkg specific branches
@@ -236,10 +238,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
                 "trigPrescale_HLT_g60_loose, trigMatch_HLT_g70_loose, trigPrescale_HLT_g70_loose, trigMatch_HLT_g80_loose, trigPrescale_HLT_g80_loose,"
                 "trigMatch_HLT_g100_loose, trigPrescale_HLT_g100_loose, trigMatch_HLT_g140_loose, trigPrescale_HLT_g140_loose, PhotonPt)"));
         else {
-            float lumi = GetLumi(settings.period);
-            //if (TString(settings.sampleID).Contains("Vg"))
-                //lumi *= -1;
-            additional_add.push_back(make_tuple("totalWeight", "getPhotonMCWeight(" + to_string(lumi) + ", genWeight, eventWeight, jvtWeight, bTagWeight, pileupWeight)"));
+            additional_add.push_back(make_tuple("totalWeight", "getPhotonMCWeight(lumi, genWeight, eventWeight, jvtWeight, bTagWeight, pileupWeight)"));
         }
     }
     else {
@@ -314,13 +313,16 @@ void Main() {
     initFillingFunctions();
 
     //--- reduce ntuples
-    vector<bool> is_datas{true, false};
-    vector<string> periods{"data15-16", "data17", "data18"};
+    //vector<bool> is_datas{true, false};
+    //vector<string> periods{"data15-16", "data17", "data18"};
+    vector<bool> is_datas{false};
+    vector<string> periods{"data18"};
     for (auto is_data : is_datas) {
         for (auto period : periods) {
             vector<string> sampleIDs{"data", "photon"};
-            if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Zjets", "ttbar", "diboson", "higgs", "lowMassDY",
-                "singleTop", "topOther", "triboson", "Vgamma", "Wjets"};
+            //if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Zjets", "ttbar", "diboson", "higgs", "lowMassDY",
+                //"singleTop", "topOther", "triboson", "Wjets"};
+            if (!is_data) sampleIDs = vector<string>{"Wjets"};
 
             for (auto sampleID : sampleIDs) {
                 if (sampleID == "photon") {
@@ -345,5 +347,7 @@ void Main() {
         }
     }
 
+    //--- smear photons
     //TH1::SetDefaultSumw2();
+    //GetPhotonSmearing(string period, string channel, string data_or_mc, bool turn_off_shifting_and_smearing=false);
 }
