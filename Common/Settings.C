@@ -33,7 +33,10 @@ struct Options {
     string out_file_name;
     string out_tree_name;
 
-    bool is_photon;
+    bool is_photon; // vs. bkg
+    bool is_data; // vs. MC
+    string period;
+    string sampleID;
 
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;

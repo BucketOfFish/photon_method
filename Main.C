@@ -2,16 +2,179 @@
 #include "ReduceNtuples.C"
 
 using namespace std;
+using rvecf = ROOT::VecOps::RVec<float>;
+
+//------------------
+// NTUPLE REDUCTION
+//------------------
+
+unordered_map<string, string> getFillingFunctions(bool is_data) {
+    unordered_map<string, string> filling_functions;
+
+    filling_functions["getDPhiMetJet"] =
+        "vector<float> getDPhiMetJet(rvecf jet_pT, rvecf jet_eta, rvecf jet_phi, int jet_n, double MET, double MET_phi) {"
+            "TLorentzVector jet_4vec, met_4vec;"
+            "met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);"
+            ""
+            "vector<float> dPhiMetJet;"
+            "for (int i=0; i<jet_n; i++) {"
+            "   jet_4vec.SetPtEtaPhiM(jet_pT[i],jet_eta[i],jet_phi[i],0);"
+            "   dPhiMetJet.push_back(fabs(met_4vec.DeltaPhi(jet_4vec)));"
+            "}"
+            "return dPhiMetJet;"
+        "}";
+    if (is_data) {
+        filling_functions["getPhotonWeight"] =
+            "float getPhotonWeight(float trigMatch_HLT_g15_loose_L1EM7, float trigPrescale_HLT_g15_loose_L1EM7,"
+            "float trigMatch_HLT_g25_loose_L1EM15, float trigPrescale_HLT_g25_loose_L1EM15,"
+            "float trigMatch_HLT_g35_loose_L1EM15, float trigPrescale_HLT_g35_loose_L1EM15,"
+            "float trigMatch_HLT_g40_loose_L1EM15, float trigPrescale_HLT_g40_loose_L1EM15,"
+            "float trigMatch_HLT_g45_loose_L1EM15, float trigPrescale_HLT_g45_loose_L1EM15,"
+            "float trigMatch_HLT_g50_loose_L1EM15, float trigPrescale_HLT_g50_loose_L1EM15,"
+            "float trigMatch_HLT_g60_loose, float trigPrescale_HLT_g60_loose,"
+            "float trigMatch_HLT_g70_loose, float trigPrescale_HLT_g70_loose,"
+            "float trigMatch_HLT_g80_loose, float trigPrescale_HLT_g80_loose,"
+            "float trigMatch_HLT_g100_loose, float trigPrescale_HLT_g100_loose,"
+            "float trigMatch_HLT_g140_loose, float trigPrescale_HLT_g140_loose, float gamma_pt) {"
+                "float totalWeight = 0;"
+                ""
+                "if (trigMatch_HLT_g15_loose_L1EM7==1 && gamma_pt>(15) && gamma_pt<(25+5)) totalWeight = trigPrescale_HLT_g15_loose_L1EM7;"
+                "if (trigMatch_HLT_g25_loose_L1EM15==1 && gamma_pt>(25+5) && gamma_pt<(35+5)) totalWeight = trigPrescale_HLT_g25_loose_L1EM15;"
+                "if (trigMatch_HLT_g35_loose_L1EM15==1 && gamma_pt>(35+5) && gamma_pt<(40+5)) totalWeight = trigPrescale_HLT_g35_loose_L1EM15;"
+                "if (trigMatch_HLT_g40_loose_L1EM15==1 && gamma_pt>(40+5) && gamma_pt<(45+5)) totalWeight = trigPrescale_HLT_g40_loose_L1EM15;"
+                "if (trigMatch_HLT_g45_loose_L1EM15==1 && gamma_pt>(45+5) && gamma_pt<(50+5)) totalWeight = trigPrescale_HLT_g45_loose_L1EM15;"
+                "if (trigMatch_HLT_g50_loose_L1EM15==1 && gamma_pt>(50+5) && gamma_pt<(60+5)) totalWeight = trigPrescale_HLT_g50_loose_L1EM15;"
+                "if (trigMatch_HLT_g60_loose==1 && gamma_pt>(60+5) && gamma_pt<(70+5)) totalWeight = trigPrescale_HLT_g60_loose;"
+                "if (trigMatch_HLT_g70_loose==1 && gamma_pt>(70+5) && gamma_pt<(80+5)) totalWeight = trigPrescale_HLT_g70_loose;"
+                "if (trigMatch_HLT_g80_loose==1 && gamma_pt>(80+5) && gamma_pt<(100+5)) totalWeight = trigPrescale_HLT_g80_loose;"
+                "if (trigMatch_HLT_g100_loose==1 && gamma_pt>(100+5) && gamma_pt<(140+5)) totalWeight = trigPrescale_HLT_g100_loose;"
+                "if (trigMatch_HLT_g140_loose==1 && gamma_pt>(140+5)) totalWeight = trigPrescale_HLT_g140_loose;"
+                ""
+                "if (totalWeight > 100000000000) totalWeight=0;" //--- fix for large photon sample spikes
+                ""
+                "return totalWeight;"
+            "}";
+    }
+    else {
+        filling_functions["getPhotonWeight"] =
+            "float getPhotonWeight(float lumi, float genWeight, float eventWeight, float jvtWeight, float bTagWeight, float pileupWeight) {"
+                "float totalWeight = lumi*genWeight*eventWeight*jvtWeight*bTagWeight*pileupWeight;"
+                ""
+                "if (totalWeight > 100000000000) totalWeight=0;" //--- fix for large photon sample spikes
+                ""
+                "return totalWeight;"
+            "}";
+    }
+    filling_functions["getZEta"] =
+        "float getZEta(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi) {"
+            "TLorentzVector l0_4vec, l1_4vec;"
+            "l0_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            "l1_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "float Z_eta = (l0_4vec+l1_4vec).Eta();"
+            "return Z_eta;"
+        "}";
+    filling_functions["getZPhi"] =
+        "float getZPhi(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi) {"
+            "TLorentzVector l0_4vec, l1_4vec;"
+            "l0_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            "l1_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "float Z_phi = (l0_4vec+l1_4vec).Phi();"
+            "return Z_phi;"
+        "}";
+    filling_functions["getZCMLepTheta"] =
+        "vector<float> getZCMLepTheta(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi, float Z_pt, float Z_eta, float Z_phi) {"
+            "TLorentzVector l0_cm_4vec, l1_cm_4vec;"
+            "l0_cm_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            "l1_cm_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "TLorentzVector z_4vec;"
+            "float Z_m = 91.1876"
+            "z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,Z_m);"
+            "TVector3 boost_vec(0, 0, -z_4vec.BoostVector().Mag());"
+            ""
+            "l0_cm_4vec.RotateZ(-z_4vec.Phi());"
+            "l0_cm_4vec.RotateY(-z_4vec.Theta());"
+            "l0_cm_4vec.Boost(boost_vec);"
+            "l1_cm_4vec.RotateZ(-z_4vec.Phi());"
+            "l1_cm_4vec.RotateY(-z_4vec.Theta());"
+            "l1_cm_4vec.Boost(boost_vec);"
+            ""
+            "vector<float> Z_cm_lep_theta;"
+            "Z_cm_lep_theta->push_back(l0_cm_4vec.Theta());"
+            "Z_cm_lep_theta->push_back(l1_cm_4vec.Theta());"
+            "return Z_cm_lep_theta;"
+        "}";
+    filling_functions["getDR2Lep"] =
+        "vector<float> getDR2Lep(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi) {"
+            "TLorentzVector l0_4vec, l1_4vec;"
+            "l0_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            "l1_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "return lep0_4vec.DeltaR(lep1_4vec);"
+        "}";
+    filling_functions["getDPhi2Lep"] =
+        "vector<float> getDPhi2Lep(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi) {"
+            "TLorentzVector l0_4vec, l1_4vec;"
+            "l0_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            "l1_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "return fabs(lep0_4vec.DeltaPhi(lep1_4vec));"
+        "}";
+    filling_functions["getDPhiMETZPhoton"] =
+        "vector<float> getDPhiMETZPhoton(float Z_pt, float Z_eta, float Z_phi, float MET, float MET_phi) {"
+            "TLorentzVector z_4vec;"
+            "float Z_m = 91.1876"
+            "z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,Z_m);"
+            ""
+            "TLorentzVector met_4vec;"
+            "met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);"
+            ""
+            "return fabs(met_4vec.DeltaPhi(z_4vec));"
+        "}";
+    filling_functions["getDPhiMETLepLeading"] =
+        "vector<float> getDPhiMETLepLeading(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi, float MET, float MET_phi) {"
+            "TLorentzVector l0_4vec;"
+            "l0_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            ""
+            "TLorentzVector met_4vec;"
+            "met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);"
+            ""
+            "return fabs(met_4vec.DeltaPhi(lep0_4vec));"
+        "}";
+    filling_functions["getDPhiMETLepSecond"] =
+        "vector<float> getDPhiMETLepSecond(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi, float MET, float MET_phi) {"
+            "TLorentzVector l1_4vec;"
+            "l1_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            ""
+            "TLorentzVector met_4vec;"
+            "met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);"
+            ""
+            "return fabs(met_4vec.DeltaPhi(lep1_4vec));"
+        "}";
+
+    return filling_functions;
+}
 
 void ReductionStep(bool unit_testing) {
     Options options;
 
     //--- input/output
-    options.in_file_name = "/public/data/Photon/Ntuples/bkg_data/data15-16_bkg.root";
-    options.in_tree_name = "BaselineTree";
-    options.out_file_name = "/public/data/Photon/SkimmedSamples/data15-16_bkg.root";
+    options.sampleID = "photon";
+    options.is_photon = (photonOrBackground == "photon");
+    options.is_data = (sampleID == "data");
+    options.period = "data15-16";
+    if (!options.is_data) {
+        if (options.period == "data15-16") options.period = "mc16a";
+        else if (options.period == "data17") options.period = "mc16cd";
+        else if (options.period == "data18") options.period = "mc16e";
+    }
+
+    options.in_file_name = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/JETM4/JETM4_Data/data15-16_merged_processed.root";
+    options.in_tree_name = "data15-16";
+    options.out_file_name = "test.root";
     options.out_tree_name = "BaselineTree";
-    options.is_photon = false;
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
@@ -20,10 +183,8 @@ void ReductionStep(bool unit_testing) {
         "channel",
         "PhotonConversionType",
         "met_Phi",
-        "mll",
-        "Ptll",
         "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
-        "minDPhi2JetsMet",
+        "dPhiMetJet1", "minDPhi2JetsMet", // dPhiMetJet1 is not in abs value, but that should be ok
         "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
         "RunNumber", "RandomRunNumber",
     };
@@ -36,69 +197,20 @@ void ReductionStep(bool unit_testing) {
         make_tuple("met_Sign", "MET_sig"),
     };
 
-    //--- new branches to add, with functions for calculating them
-    string getDPhiMetJet =
-        "vector<double> myFunc(vector<double> jet_pT, vector<double> jet_eta, vector<double> jet_phi, int jet_n, double MET, double MET_phi) {"
-            "TLorentzVector jet_4vec, met_4vec;"
-            "met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);"
-            ""
-            "vector<double> dPhiMetJet;"
-            "for (int i=0; i<jet_n; i++) {"
-            "   jet_4vec.SetPtEtaPhiM(jet_pT->at(i),jet_eta->at(i),jet_phi->at(i),0);"
-            "   dPhiMetJet.push_back(fabs(met_4vec.DeltaPhi(jet_4vec)));"
-            "}"
-            "return dPhiMetJet;"
-        "}";
+    //--- functions used for adding new branches
+    auto ff = getFillingFunctions(options.is_data);
 
+    //--- new branches to add
     options.branches_to_add = BranchAddOptions {
-        make_tuple("dPhiMetJet", getDPhiMetJet, "getDPhiMetJet(jet_pT, jet_eta, jet_phi, jet_n, met_Et, MET_phi)"),
-        make_tuple("dPhiMetJet1", "", "dPhiMetJet[0]"),
+        make_tuple("dPhiMetJet", ff["getDPhiMetJet"], "getDPhiMetJet(jetPt, jetEta, jetPhi, nJet30, met_Et, met_Phi)"),
         make_tuple("dPhiMetJet2", "", "dPhiMetJet[1]"),
-        make_tuple("dPhiMetJet12Min", "", "min(dPhiMetJet1, dPhiMetJet2)"),
-        //make_tuple("Z_cm_lep_theta", ""),
+        make_tuple("dPhiMetJet12Min", "", "std::min(dPhiMetJet[0], dPhiMetJet[1])"),
     };
-
-    //--- set selection cut
-    if (!options.is_photon)
-        options.cut = cuts::bkg_baseline;
-    if (options.is_photon)
-        options.cut = cuts::photon_baseline_ntuples;
     
     //--- photon/bkg specific branches
     vector<string> additional_copy;
     BranchRenameOptions additional_rename;
     BranchAddOptions additional_add;
-
-    string getPhotonWeight =
-        "double getWeight(double t) {"
-            "totalWeight = 0;"
-            "if (trigMatch_HLT_g15_loose_L1EM7 ==1 && gamma_pt>(15) && gamma_pt<(25+5)) totalWeight = trigPrescale_HLT_g15_loose_L1EM7;"
-            "if (trigMatch_HLT_g25_loose_L1EM15==1 && gamma_pt>(25+5) && gamma_pt<(35+5)) totalWeight = trigPrescale_HLT_g25_loose_L1EM15;"
-            "if (trigMatch_HLT_g35_loose_L1EM15==1 && gamma_pt>(35+5) && gamma_pt<(40+5)) totalWeight = trigPrescale_HLT_g35_loose_L1EM15;"
-            "if (trigMatch_HLT_g40_loose_L1EM15==1 && gamma_pt>(40+5) && gamma_pt<(45+5)) totalWeight = trigPrescale_HLT_g40_loose_L1EM15;"
-            "if (trigMatch_HLT_g45_loose_L1EM15==1 && gamma_pt>(45+5) && gamma_pt<(50+5)) totalWeight = trigPrescale_HLT_g45_loose_L1EM15;"
-            "if (trigMatch_HLT_g50_loose_L1EM15==1 && gamma_pt>(50+5) && gamma_pt<(60+5)) totalWeight = trigPrescale_HLT_g50_loose_L1EM15;"
-            "if (trigMatch_HLT_g60_loose==1 && gamma_pt>(60+5) && gamma_pt<(70+5)) totalWeight = trigPrescale_HLT_g60_loose;"
-            "if (trigMatch_HLT_g70_loose==1 && gamma_pt>(70+5) && gamma_pt<(80+5)) totalWeight = trigPrescale_HLT_g70_loose;"
-            "if (trigMatch_HLT_g80_loose==1 && gamma_pt>(80+5) && gamma_pt<(100+5)) totalWeight = trigPrescale_HLT_g80_loose;"
-            "if (trigMatch_HLT_g100_loose==1 && gamma_pt>(100+5) && gamma_pt<(140+5)) totalWeight = trigPrescale_HLT_g100_loose;"
-            "if (trigMatch_HLT_g140_loose==1 && gamma_pt>(140+5)) totalWeight = trigPrescale_HLT_g140_loose;"
-            "if (totalWeight==0) continue;"
-            ""
-            "if (!isData) {
-                "totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight * pileupWeight;"
-                "//totalWeight = lumi * genWeight * eventWeight * jvtWeight * bTagWeight;"
-                "if( TString(sampleID).Contains("Vg") ) totalWeight = -1.0 * totalWeight;"
-            "}
-            ""
-            "//--- fix for large photon sample spikes
-            "if (totalWeight > 100000000000) continue;"
-        "}";
-
-    string getBkgWeight =
-        "totalWeight = 1;";
-        //if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * FFWeight;
-        ////if (!isData) totalWeight = lumi * genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * FFWeight;
 
     if (options.is_photon) {
         additional_rename = BranchRenameOptions {
@@ -110,94 +222,74 @@ void ReductionStep(bool unit_testing) {
         additional_add = BranchAddOptions {
             make_tuple("METt_unsmeared", "", "met_Et*sin(met_Phi-PhotonPt)"),
             make_tuple("METl_unsmeared", "", "met_Et*cos(met_Phi-PhotonPhi)"),
-            //make_tuple("totalWeight", getPhotonWeight, ""),
+            make_tuple("trigMatch_2LTrig", "", "1"),
+            make_tuple("trigMatch_2LTrigOR", "", "1"),
         };
+        if (options.is_data)
+            additional_add.push_back(make_tuple("totalWeight", ff["getPhotonWeight"], "getPhotonWeight(trigMatch_HLT_g15_loose_L1EM7,"
+                "trigPrescale_HLT_g15_loose_L1EM7, trigMatch_HLT_g25_loose_L1EM15, trigPrescale_HLT_g25_loose_L1EM15, trigMatch_HLT_g35_loose_L1EM15,"
+                "trigPrescale_HLT_g35_loose_L1EM15, trigMatch_HLT_g40_loose_L1EM15, trigPrescale_HLT_g40_loose_L1EM15, trigMatch_HLT_g45_loose_L1EM15,"
+                "trigPrescale_HLT_g45_loose_L1EM15, trigMatch_HLT_g50_loose_L1EM15, trigPrescale_HLT_g50_loose_L1EM15, trigMatch_HLT_g60_loose,"
+                "trigPrescale_HLT_g60_loose, trigMatch_HLT_g70_loose, trigPrescale_HLT_g70_loose, trigMatch_HLT_g80_loose, trigPrescale_HLT_g80_loose,"
+                "trigMatch_HLT_g100_loose, trigPrescale_HLT_g100_loose, trigMatch_HLT_g140_loose, trigPrescale_HLT_g140_loose, PhotonPt)"));
+        else if (!options.is_data) {
+            float lumi = GetLumi(options.period);
+            if (TString(options.sampleID).Contains("Vg"))
+                lumi *= -1;
+            additional_add.push_back(make_tuple("totalWeight", ff["getPhotonWeight"], "getPhotonWeight(lumi, genWeight, eventWeight, jvtWeight, bTagWeight, pileupWeight"));
+        }
     }
     if (!options.is_photon) {
         additional_copy = vector<string> {
             "trigMatch_2LTrig", "trigMatch_2LTrigOR",
             "met_Et",
+            "mll", "Ptll",
         };
         additional_add = BranchAddOptions {
             make_tuple("is_OS", "", "lepCharge[0]!=lepCharge[1]"),
-            //make_tuple("totalWeight", getBkgWeight, ""),
+            make_tuple("Z_eta", ff["getZEta"], "getZEta(lepPt, lepEta, lepPhi)"),
+            make_tuple("Z_phi", ff["getZPhi"], "getZPhi(lepPt, lepEta, lepPhi)"),
+            make_tuple("METt", "", "met_Et*sin(met_Phi-Z_phi)"),
+            make_tuple("METl", "", "met_Et*cos(met_Phi-Z_phi)"),
+            make_tuple("Z_cm_lep_theta", ff["getZCMLepTheta"], "getZCMLepTheta(lepPt, lepEta, lepPhi, Ptll, Z_eta, Z_phi)"),
+            make_tuple("DR_2Lep", ff["getDR2Lep"], "getZCMLepTheta(lepPt, lepEta, lepPhi)"),
+            make_tuple("DPhi_2Lep", ff["getDPhi2Lep"], "getZCMLepTheta(lepPt, lepEta, lepPhi)"),
+            make_tuple("DPhi_METZPhoton", ff["getDPhiMETZPhoton"], "getZCMLepTheta(Ptll, Z_eta, Z_phi, met_Et, met_Phi)"),
+            make_tuple("DPhi_METLepLeading", ff["getDPhiMETLepLeading"], "getZCMLepTheta(lepPt, lepEta, lepPhi, met_Et, met_Phi)"),
+            make_tuple("DPhi_METLepSecond", ff["getDPhiMETLepSecond"], "getZCMLepTheta(lepPt, lepEta, lepPhi, met_Et, met_Phi)"),
+            make_tuple("DPhi_METLepMin", "", "std::min(DPhi_METLepLeading, DPhi_METLepSecond)"),
         };
-            ////--- compute 4-vectors of objects
-            //TLorentzVector lep0_4vec, lep1_4vec;
-            //lep0_4vec.SetPtEtaPhiM(lep_pT->at(0),lep_eta->at(0),lep_phi->at(0),0);
-            //lep1_4vec.SetPtEtaPhiM(lep_pT->at(1),lep_eta->at(1),lep_phi->at(1),0);
-
-            //TLorentzVector z_4vec;
-            //Z_eta = (lep0_4vec+lep1_4vec).Eta();
-            //Z_phi = (lep0_4vec+lep1_4vec).Phi();
-            //z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,91.1876);
-
-            //TLorentzVector met_4vec;
-            //met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
-
-            ////--- compute DR and DPhi between objects
-            //DR_2Lep = lep0_4vec.DeltaR(lep1_4vec);
-            //DPhi_METPhoton = fabs(met_4vec.DeltaPhi(z_4vec));
-            //DPhi_2Lep = fabs(lep0_4vec.DeltaPhi(lep1_4vec));
-            //DPhi_METLepLeading = fabs(met_4vec.DeltaPhi(lep0_4vec));
-            //DPhi_METLepSecond = fabs(met_4vec.DeltaPhi(lep1_4vec));
-            //DPhi_METLepMin = min(DPhi_METLepLeading,DPhi_METLepSecond);
-
-            ////--- compute MET parallel and perpendicular components
-            //METt = MET*TMath::Sin(MET_phi-Z_phi);
-            //METl = MET*TMath::Cos(MET_phi-Z_phi);
-
-            ////--- lepton angles in Z rest frame
-            //TLorentzVector l0_cm_4vec, l1_cm_4vec;
-            //l0_cm_4vec = lep0_4vec;
-            //l1_cm_4vec = lep1_4vec;
-            //TVector3 boost_vec(0, 0, -z_4vec.BoostVector().Mag());
-            //l0_cm_4vec.RotateZ(-z_4vec.Phi());
-            //l0_cm_4vec.RotateY(-z_4vec.Theta());
-            //l0_cm_4vec.Boost(boost_vec);
-            //l1_cm_4vec.RotateZ(-z_4vec.Phi());
-            //l1_cm_4vec.RotateY(-z_4vec.Theta());
-            //l1_cm_4vec.Boost(boost_vec);
-            ////cout << lep0_4vec.Theta() << ", " << lep1_4vec.Theta() << ", (" << l0_cm_4vec.Theta() << ", " << l0_cm_4vec.Phi() << "), (" << l1_cm_4vec.Theta() << ", " << l1_cm_4vec.Phi() << ")" << endl;
-            //Z_cm_lep_theta->clear();
-            //Z_cm_lep_theta->push_back(l0_cm_4vec.Theta());
-            //Z_cm_lep_theta->push_back(l1_cm_4vec.Theta());
-        //outTree->Branch("Z_eta",&Z_eta,"Z_eta/F");
-        //outTree->Branch("Z_phi",&Z_phi,"Z_phi/F");
-        //outTree->Branch("DR_2Lep",&DR_2Lep,"DR_2Lep/F");
-        //outTree->Branch("DPhi_METPhoton",&DPhi_METPhoton,"DPhi_METPhoton/F");
-        //outTree->Branch("DPhi_2Lep",&DPhi_2Lep,"DPhi_2Lep/F");
-        //outTree->Branch("DPhi_METLepLeading",&DPhi_METLepLeading,"DPhi_METLepLeading/F");
-        //outTree->Branch("DPhi_METLepSecond",&DPhi_METLepSecond,"DPhi_METLepSecond/F");
-        //outTree->Branch("DPhi_METLepMin",&DPhi_METLepMin,"DPhi_METLepMin/F");
+        if (options.is_data)
+            additional_add.push_back(make_tuple("totalWeight", "", "1"));
+        else if (!options.is_data)
+            additional_add.push_back(make_tuple("totalWeight", "", "lumi*genWeight*eventWeight*leptonWeight*jvtWeight*bTagWeight*pileupWeight*FFWeight"));
     }
 
     options.branches_to_copy.insert(options.branches_to_copy.end(), additional_copy.begin(), additional_copy.end());
     options.branches_to_rename.insert(options.branches_to_rename.end(), additional_rename.begin(), additional_rename.end());
     options.branches_to_add.insert(options.branches_to_add.end(), additional_add.begin(), additional_add.end());
 
+    //--- set selection cut
+    if (!options.is_photon)
+        options.cut = cuts::bkg_baseline;
+    if (options.is_photon)
+        options.cut = cuts::photon_baseline_ntuples;
+
     //--- make reduced ntuples
     options.unit_testing = unit_testing;
     ReduceNtuples(options);
 }
 
-void Main() {
-    bool unit_testing = true;
-    ReductionStep(unit_testing);
-}
+//---------------
+// MAIN FUNCTION
+//---------------
 
-//void blah_main() {
+void Main() {
+    ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
+
+    bool unit_testing = false;
+    ReductionStep(unit_testing);
     //TH1::SetDefaultSumw2();
-    //bool isData = (sampleID == "data");
-    //bool is_photon = (photonOrBackground == "photon");
-    //if (!isData) {
-        //if (period == "data15-16") period = "mc16a";
-        //else if (period == "data17") period = "mc16cd";
-        //else if (period == "data18") period = "mc16e";
-    //}
-    //float lumi = GetLumi(period);
-	//cout << "Using luminosity       : " << lumi          << endl;
-    //cout << endl;
 
     ////--- open input and output files and make TTrees
     //auto [inTree, outTree, inFile, outFile] = openTTrees(inFolder, outFolder, period, sampleID, isData, is_photon);
@@ -235,3 +327,4 @@ void Main() {
 
     //return make_tuple(inTree, outTree, inFile, outFile);
 //}
+}

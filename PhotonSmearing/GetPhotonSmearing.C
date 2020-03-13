@@ -71,7 +71,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     float MET_smeared; BaselineTree->Branch("met_Et", &MET_smeared, "met_Et/F");
     float DPhi_METLepLeading_smeared; BaselineTree->Branch("DPhi_METLepLeading", &DPhi_METLepLeading_smeared, "DPhi_METLepLeading/F");
     float DPhi_METLepSecond_smeared; BaselineTree->Branch("DPhi_METLepSecond", &DPhi_METLepSecond_smeared, "DPhi_METLepSecond/F");
-    float DPhi_METPhoton_smear; BaselineTree->Branch("DPhi_METPhoton", &DPhi_METPhoton_smear, "DPhi_METPhoton/F");
+    float DPhi_METZPhoton_smear; BaselineTree->Branch("DPhi_METZPhoton", &DPhi_METZPhoton_smear, "DPhi_METZPhoton/F");
     float MT2; BaselineTree->Branch("mt2leplsp_0", &MT2, "mt2leplsp_0/F");
     float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
     int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
@@ -178,7 +178,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
 
         TLorentzVector MET_smeared_4vec;
         MET_smeared_4vec.SetPtEtaPhiM(MET_smeared,0,MET_phi,0);
-        DPhi_METPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
+        DPhi_METZPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
 
         int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared);
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
