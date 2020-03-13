@@ -66,9 +66,9 @@ public:
         //--- add branches
         for (auto branch : this->branches_to_add) {
             string branch_name = get<0>(branch);
-            string expression = get<1>(branch);
-            string call = get<2>(branch);
-            gInterpreter->Declare(expression.c_str());
+            //string expression = get<1>(branch);
+            string call = get<1>(branch);
+            //gInterpreter->Declare(expression.c_str());
             reduced_dataframe = reduced_dataframe.Define(branch_name.c_str(), call.c_str());
             all_out_branches.push_back(branch_name);
         }
@@ -82,10 +82,10 @@ public:
 // HELPER FUNCTIONS
 //------------------
 
-Options setUnitTestOptions(Options options);
+ReductionOptions setUnitTestOptions(ReductionOptions options);
 void performUnitTests(TTree* out_tree);
 
-void runReduction(Options options) {
+void runReduction(ReductionOptions options) {
     TreeReducer *reducer = new TreeReducer();
 
     if (options.unit_testing) {
@@ -121,7 +121,7 @@ void throwError(string error) {
     exit(0);
 }
 
-Options setUnitTestOptions(Options options) {
+ReductionOptions setUnitTestOptions(ReductionOptions options) {
     options.in_file_name = "/public/data/Photon/UnitTest/data15-16_bkg.root";
     options.out_file_name = "unit_test.root";
     options.in_tree_name = "BaselineTree";
@@ -147,9 +147,11 @@ Options setUnitTestOptions(Options options) {
         "vector<int> countTo3() {"
             "return vector<int>{1, 2, 3};"
         "}";
+    gInterpreter->Declare(getChannel.c_str());
+    gInterpreter->Declare(countTo3.c_str());
     options.branches_to_add = BranchAddOptions {
-        make_tuple("test1", getChannel, "getChannel(lepFlavor)"),
-        make_tuple("test2", countTo3, "countTo3()"),
+        make_tuple("test1", "getChannel(lepFlavor)"),
+        make_tuple("test2", "countTo3()"),
     };
 
     options.cut = "met_Et>300";
@@ -199,6 +201,6 @@ void performUnitTests(TTree* out_tree) {
 // MAIN FUNCTION
 //---------------
 
-void ReduceNtuples(Options options) {
+void ReduceNtuples(ReductionOptions options) {
     runReduction(options);
 }
