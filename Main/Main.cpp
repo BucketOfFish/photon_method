@@ -1,6 +1,6 @@
-#include "Common/Settings.C"
-#include "ReduceNtuples.C"
-//#include "GetPhotonSmearing.C"
+#include "Settings.cpp"
+#include "ReduceNtuples.cpp"
+#include "GetPhotonSmearing.cpp"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -181,7 +181,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     }
     else options.out_file_name = settings.reduction_folder + "/" + settings.period.c_str() + "_" + settings.sampleID.c_str() + ".root";
 
-    options.out_tree_name = settings.out_tree_name;
+    options.out_tree_name = settings.save_tree_name;
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
@@ -262,7 +262,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
             make_tuple("DPhi_METLepMin", "std::min(DPhi_METLepLeading, DPhi_METLepSecond)"),
         };
         if (settings.is_data)
-            additional_add.push_back(make_tuple("totalWeight", "1"));
+            additional_add.push_back(make_tuple("totalWeight", "1.0"));
         else
             additional_add.push_back(make_tuple("totalWeight", "lumi*genWeight*eventWeight*leptonWeight*jvtWeight*bTagWeight*pileupWeight*FFWeight"));
     }
@@ -282,6 +282,23 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     ReduceNtuples(options);
 }
 
+//-----------------
+// PHOTON SMEARING
+//-----------------
+
+void SmearingStep(GlobalOptions settings, bool unit_testing) {
+    SmearingOptions options;
+
+    options.in_file_path = settings.reduction_folder;
+    options.in_tree_name = settings.save_tree_name;
+    options.out_file_path = settings.smearing_folder;
+    options.out_tree_name = settings.save_tree_name;
+
+    //--- smear photons
+    options.unit_testing = unit_testing;
+    GetPhotonSmearing(options, settings.period, "ee", "Data", false);
+}
+
 //---------------
 // MAIN FUNCTION
 //---------------
@@ -298,56 +315,69 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
+    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
-    settings.out_tree_name = "BaselineTree";
+    settings.save_tree_name = "BaselineTree";
 
     bool unit_testing = false;
+    bool do_reduction = false;
+    bool do_smearing = true;
 
-    //--- functions used for adding new branches
-    initFillingFunctions();
+    //--- unit testing
+    if (unit_testing) {
+        ReductionStep(settings, unit_testing);
+        return;
+    }
 
     //--- reduce ntuples
-    //vector<bool> is_datas{true, false};
-    //vector<string> periods{"data15-16", "data17", "data18"};
-    vector<bool> is_datas{false};
-    vector<string> periods{"data18"};
-    for (auto is_data : is_datas) {
-        for (auto period : periods) {
-            vector<string> sampleIDs{"data", "photon"};
-            //if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Zjets", "ttbar", "diboson", "higgs", "lowMassDY",
-                //"singleTop", "topOther", "triboson", "Wjets"};
-            if (!is_data) sampleIDs = vector<string>{"Wjets"};
+    if (do_reduction) {
+        initFillingFunctions(); // functions used for adding new branches
 
-            for (auto sampleID : sampleIDs) {
-                if (sampleID == "photon") {
-                    settings.sampleID = "data";
-                    settings.is_photon = true;
-                }
-                else {
-                    settings.sampleID = sampleID;
-                    if (sampleID == "SinglePhoton222") settings.is_photon = true;
-                    else settings.is_photon = false;
-                }
-                settings.is_data = is_data;
-                settings.period = period;
-                if (!settings.is_data) {
-                    if (settings.period == "data15-16") settings.period = "mc16a";
-                    else if (settings.period == "data17") settings.period = "mc16cd";
-                    else if (settings.period == "data18") settings.period = "mc16e";
-                }
+        vector<bool> is_datas{true, false};
+        vector<string> periods{"data15-16", "data17", "data18"};
+        for (auto is_data : is_datas) {
+            for (auto period : periods) {
+                vector<string> sampleIDs{"data", "photon"};
+                if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Zjets", "ttbar", "diboson", "higgs", "lowMassDY",
+                    "singleTop", "topOther", "triboson", "Wjets"};
 
-                ReductionStep(settings, unit_testing);
+                for (auto sampleID : sampleIDs) {
+                    if (sampleID == "photon") {
+                        settings.sampleID = "data";
+                        settings.is_photon = true;
+                    }
+                    else {
+                        settings.sampleID = sampleID;
+                        if (sampleID == "SinglePhoton222") settings.is_photon = true;
+                        else settings.is_photon = false;
+                    }
+                    settings.is_data = is_data;
+                    settings.period = period;
+                    if (!settings.is_data) {
+                        if (settings.period == "data15-16") settings.period = "mc16a";
+                        else if (settings.period == "data17") settings.period = "mc16cd";
+                        else if (settings.period == "data18") settings.period = "mc16e";
+                    }
+
+                    ReductionStep(settings, unit_testing);
+                }
             }
         }
     }
 
     //--- smear photons
-    //TH1::SetDefaultSumw2();
-    //GetPhotonSmearing(string period, string channel, string data_or_mc, bool turn_off_shifting_and_smearing=false);
+    if (do_smearing) {
+        vector<string> periods{"data15-16", "data17", "data18"};
+        for (auto period : periods) {
+            settings.period = period;
+
+            //TH1::SetDefaultSumw2();
+            SmearingStep(settings, unit_testing); 
+        }
+    }
 }

@@ -1,5 +1,4 @@
-#include "Common/Settings.C"
-#include "TInterpreter.h"
+#include "Settings.cpp"
 
 using namespace std;
 

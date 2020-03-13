@@ -1,21 +1,21 @@
-#include "Common/Settings.C"
-#include "MT2.h"
+#include "Settings.cpp"
+#include "MT2.cpp"
 
 using namespace std;
 
-TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
+TH1F* GetLepThetaHistogram(SmearingOptions options, string period, string channel, string data_or_mc) {
 
     cout << "Getting Z lepton CM theta distribution histogram." << endl;
     gStyle->SetOptStat(0);
 
     //--- open files and create TChains
-    string data_filename = ntuple_path + "bkg_data/" + period + "_bkg.root";
+    string data_filename = options.in_file_path + "bkg_data/" + period + "_data_bkg.root";
     if (period == "data15-16") period = "mc16a";
     else if (period == "data17") period = "mc16cd";
     else if (period == "data18") period = "mc16e";
-    string tt_filename = ntuple_path + "bkg_mc/" + period + "_ttbar.root";
-    string vv_filename = ntuple_path + "bkg_mc/" + period + "_diboson.root";
-    string zjets_filename = ntuple_path + "bkg_mc/" + period + "_Zjets.root";
+    string tt_filename = options.in_file_path + "bkg_mc/" + period + "_ttbar.root";
+    string vv_filename = options.in_file_path + "bkg_mc/" + period + "_diboson.root";
+    string zjets_filename = options.in_file_path + "bkg_mc/" + period + "_Zjets.root";
 
     TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
 
@@ -90,7 +90,7 @@ TH1F* GetLepThetaHistogram(string period, string channel, string data_or_mc) {
 vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
 
 //vector<TH1D> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
-map<int, pair<float, float>> GetSmearingDistribution(string channel, TString period, string data_or_mc, bool diagnostics) {
+map<int, pair<float, float>> GetSmearingDistribution(SmearingOptions options, string channel, TString period, string data_or_mc, bool diagnostics) {
 
     /**
      * Returns map with key = photon pt bin, value = (mean, std).
@@ -104,7 +104,7 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
     TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
     TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
 
-    auto FillHistograms = [&hist_z_metl_bin_pt, &hist_g_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
+    auto FillHistograms = [&options, &hist_z_metl_bin_pt, &hist_g_metl_bin_pt] (string target_channel, TString period, string data_or_mc) {
 
         /**
          * Fills histogram arrays hist_z_metl_bin_pt, hist_g_metl_bin_pt, and hist_z_mll_bin_pt_metl (2D)
@@ -124,15 +124,15 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
             hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
         }
 
-        TString mc_period = getMCPeriod(period);
-        TString data_period = DataPeriod(period);
+        string mc_period = getMCPeriod(period);
+        string data_period = DataPeriod(period);
 
         cout << "Getting Z histograms binned by pT and METl." << endl;
 
-        TFile* data_file = new TFile(ntuple_path + "/bkg_data/" + data_period + "_bkg.root");
-        TFile* ttbar_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_ttbar.root");
-        TFile* diboson_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_diboson.root");
-        TFile* Z_mc_file = new TFile(ntuple_path + "/bkg_mc/" + mc_period + "_Zjets.root");
+        TFile* data_file = new TFile((options.in_file_path + data_period + "_data_bkg.root").c_str());
+        TFile* ttbar_mc_file = new TFile((options.in_file_path + mc_period + "_ttbar.root").c_str());
+        TFile* diboson_mc_file = new TFile((options.in_file_path + mc_period + "_diboson.root").c_str());
+        TFile* Z_mc_file = new TFile((options.in_file_path + mc_period + "_Zjets.root").c_str());
 
         vector<TFile*> contributing_files;
         vector<int> file_weights;
@@ -189,9 +189,9 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
 
         TFile* photon_file;
         if (data_or_mc == "MC")
-            photon_file = new TFile(ntuple_path + "/g_mc/" + mc_period + "_SinglePhoton222.root");
+            photon_file = new TFile((options.in_file_path + mc_period + "_SinglePhoton222.root").c_str());
         else if (data_or_mc == "Data")
-            photon_file = new TFile(ntuple_path + "/g_data/" + data_period + "_photon.root");
+            photon_file = new TFile((options.in_file_path + data_period + "_data_photon.root").c_str());
 
         TTree* tree = (TTree*)photon_file->Get("BaselineTree");
         tree->SetBranchStatus("*", 0);
@@ -364,28 +364,28 @@ map<int, pair<float, float>> GetSmearingDistribution(string channel, TString per
     //return metl_deconv_hists;
 }
 
-void GetPhotonSmearing(string period, string channel, string data_or_mc, bool turn_off_shifting_and_smearing=false) {
+void GetPhotonSmearing(SmearingOptions options, string period, string channel, string data_or_mc, bool turn_off_shifting_and_smearing=false) {
 
     //---------------------------------------------
     // get unsmeared input file and create smeared output file
     //---------------------------------------------
 
-    TString data_period = DataPeriod(period);
-    TString mc_period = getMCPeriod(period);
+    string data_period = DataPeriod(period);
+    string mc_period = getMCPeriod(period);
 
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
     cout << "isData?         " << data_or_mc          << endl;
-    cout << "smearing path   " << smearing_path   << endl;
+    cout << "smearing path   " << options.out_file_path   << endl;
 
     TH1::SetDefaultSumw2();
 
-    TString infilename;
-    if (data_or_mc == "MC") infilename = ntuple_path + "g_mc/" + mc_period + "_SinglePhoton222.root";
-    else if (data_or_mc == "Data") infilename = ntuple_path + "g_data/" + data_period + "_photon.root";
+    string infilename;
+    if (data_or_mc == "MC") infilename = options.in_file_path + mc_period + "_SinglePhoton222.root";
+    else if (data_or_mc == "Data") infilename = options.in_file_path + data_period + "_data_photon.root";
 
     TChain* inputTree = new TChain("BaselineTree");
-    inputTree->Add(infilename);
+    inputTree->Add(infilename.c_str());
 
     cout << endl;
     cout << "Opening file           : " << infilename        << endl;
@@ -393,11 +393,11 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
 
     TH1::SetDefaultSumw2();
 
-    TString outfilename;
-    if (data_or_mc == "Data") outfilename = smearing_path+"g_data/"+data_period+"_photon_"+channel+".root"; 
-    if (data_or_mc == "MC") outfilename = smearing_path+"g_mc/"+mc_period+"_SinglePhoton222_"+channel+".root";
+    string outfilename;
+    if (data_or_mc == "Data") outfilename = options.out_file_path+data_period+"_data_photon_"+channel+".root"; 
+    if (data_or_mc == "MC") outfilename = options.out_file_path+mc_period+"_SinglePhoton222_"+channel+".root";
 
-    TFile* outputFile = new TFile(outfilename, "recreate");          
+    TFile* outputFile = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
     BaselineTree->SetDirectory(outputFile);
 
@@ -410,7 +410,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
 
     float gamma_phi; inputTree->SetBranchAddress("gamma_phi", &gamma_phi);
 
-    double totalWeight; CopyBranch(inputTree, BaselineTree, "totalWeight", "totalWeight", &totalWeight, "D");
+    float totalWeight; CopyBranch(inputTree, BaselineTree, "totalWeight", "totalWeight", &totalWeight, "F");
     int bjet_n; CopyBranch(inputTree, BaselineTree, "bjet_n", "bjet_n", &bjet_n, "I");
     float gamma_pt; CopyBranch(inputTree, BaselineTree, "gamma_pt", "gamma_pt",  &gamma_pt, "F");
     float gamma_eta; CopyBranch(inputTree, BaselineTree, "gamma_eta", "Z_eta",  &gamma_eta, "F");
@@ -451,7 +451,7 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     vector<int>* lep_charge = new vector<int>(10); BaselineTree->Branch("lepCharge", "vector<int>", &lep_charge);
     Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
     int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
-    bool trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "O");
+    int trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "I");
     float MET_sig; CopyBranch(inputTree, BaselineTree, "MET_sig", "MET_sig", &MET_sig, "F");
 
     //---------------------------------------------
@@ -483,14 +483,14 @@ void GetPhotonSmearing(string period, string channel, string data_or_mc, bool tu
     //-----------------------------
 
     bins::init_binning_histograms();
-    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(channel, period, data_or_mc, diagnostics);
-    //vector<TH1D> smearing_hists = GetSmearingDistribution(channel, period, data_or_mc, diagnostics);
+    map<int, pair<float, float>> smearing_gaussians = GetSmearingDistribution(options, channel, period, data_or_mc, diagnostics);
+    //vector<TH1D> smearing_hists = GetSmearingDistribution(options, channel, period, data_or_mc, diagnostics);
 
     //-----------------------------
     // get Z lepton CM theta distribution
     //-----------------------------
 
-    TH1F* h_lep_theta = GetLepThetaHistogram(period, channel, data_or_mc);
+    TH1F* h_lep_theta = GetLepThetaHistogram(options, period, channel, data_or_mc);
 
     std::vector<int> lep_theta_count;
     std::vector<float> cm_theta_bin_boundaries;
