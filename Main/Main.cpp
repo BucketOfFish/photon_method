@@ -1,6 +1,6 @@
 #include "Settings.cpp"
 #include "ReduceNtuples.cpp"
-#include "GetPhotonSmearing.cpp"
+//#include "GetPhotonSmearing.cpp"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -301,10 +301,6 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     else
         options.in_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222.root";
     options.in_tree_name = settings.save_tree_name;
-    if (settings.is_data)
-        options.out_file_name = settings.smearing_folder + settings.period + "_data_photon_" + channel + ".root"; 
-    else
-        options.out_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222_" + channel + ".root";
     options.out_tree_name = settings.save_tree_name;
 
     //--- branches to copy from old tree to new tree
@@ -343,8 +339,12 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     vector<string> channels{"ee", "mm"};
     vector<string> types{"Data", "MC"};
     for (auto channel : channels) {
+        if (settings.is_data)
+            options.out_file_name = settings.smearing_folder + settings.period + "_data_photon_" + channel + ".root"; 
+        else
+            options.out_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222_" + channel + ".root";
         for (auto type : types) {
-            GetPhotonSmearing(options, settings.period, channel, type, false);
+            //GetPhotonSmearing(options, settings.period, channel, type, false);
         }
     }
 }
@@ -374,7 +374,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = true;
 
