@@ -79,29 +79,29 @@ namespace cuts {
         {"VRcom", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
-        {"SRZ2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && (mll>81 && mll<101) && dPhiMetJet12Min>0.4 && HT>600"},
+        {"SRZ2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && (mll>81 && mll<101) && dPhiMetJet12Min>0.4 && Ht30>600"},
         {"SRlow2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4"},
-        {"SRmed2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && HT>400"},
-        {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && HT>700"},
+        {"SRmed2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && Ht30>400"},
+        {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && Ht30>700"},
 
         // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
         {"SRC", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && mt2leplsp_0>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && mll<50"},
         {"SRCZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && mt2leplsp_0>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && (mll>81 && mll<101)"},
-        {"SRLow4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll<150 && !(mll>81 && mll<101))"},
-        {"SRLowZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
-        {"SRMed4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
-        {"SRMedZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
-        {"SRHigh4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>800 && mt2leplsp_0>75 && Ptll>40 && (mll>150 && mll<950)"},
-        {"SRHighZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>800 && mt2leplsp_0>75 && Ptll>40 && (mll>81 && mll<101)"},
+        {"SRLow4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll<150 && !(mll>81 && mll<101))"},
+        {"SRLowZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
+        {"SRMed4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
+        {"SRMedZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
+        {"SRHigh4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>800 && mt2leplsp_0>75 && Ptll>40 && (mll>150 && mll<950)"},
+        {"SRHighZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && Ptll>40 && (mll>81 && mll<101)"},
 
         {"VRC", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && mt2leplsp_0>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && mll<50"},
         {"VRCZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && mt2leplsp_0>90 && (Ptll>40 && Ptll<100) && MET_sig>10 && (mll>81 && mll<101)"},
-        {"VRLow4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll<150 && !(mll>81 && mll<101))"},
-        {"VRLowZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
-        {"VRMed4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
-        {"VRMedZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
-        {"VRHigh4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && HT>800 && mt2leplsp_0>75 && Ptll>40 && (mll>150 && mll<950)"},
-        {"VRHighZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && HT>800 && mt2leplsp_0>75 && Ptll>40 && (mll>81 && mll<101)"},
+        {"VRLow4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll<150 && !(mll>81 && mll<101))"},
+        {"VRLowZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && (Ptll>40 && Ptll<500) && (mll>81 && mll<101)"},
+        {"VRMed4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>100 && mll<550)"},
+        {"VRMedZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && (Ptll>40 && Ptll<800) && (mll>81 && mll<101)"},
+        {"VRHigh4", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=4 && Ht30>800 && mt2leplsp_0>75 && Ptll>40 && (mll>150 && mll<950)"},
+        {"VRHighZ", "nLep_signal==2 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && Ptll>40 && (mll>81 && mll<101)"},
     };
 
     TCut CR("met_Et<100.0");
@@ -277,6 +277,93 @@ template <typename T> constexpr string_view type_name() {
     return name;
 }
 
+void throwError(string error) {
+    cout << "ERROR: " << error << endl;
+    exit(0);
+}
+
+//-------------------------
+// TREE MANIPULATION CLASS
+//-------------------------
+
+using BranchRenameOptions = vector<tuple<string, string>>;
+using BranchAddOptions = vector<tuple<string, string>>;
+
+class TreeCreator {
+public:
+    ROOT::RDataFrame *dataframe;
+    string out_file_name;
+    string out_tree_name;
+    string cut;
+    vector<string> branches_to_copy;
+    BranchRenameOptions branches_to_rename;
+    BranchAddOptions branches_to_add;
+
+    TreeCreator() {
+    }
+
+    void read(string file_name, string tree_name) {
+        cout << "Opening read file      : " << file_name << endl;
+        cout << "Tree name              : " << tree_name << endl;
+
+        this->dataframe = new ROOT::RDataFrame(tree_name, file_name);
+    }
+
+    void setBranchesToCopy(vector<string> branches_to_copy) {
+        this->branches_to_copy = branches_to_copy;
+    }
+
+    void setBranchesToRename(BranchRenameOptions branches_to_rename) {
+        this->branches_to_rename = branches_to_rename;
+    }
+
+    void setBranchesToAdd(BranchAddOptions branches_to_add) {
+        this->branches_to_add = branches_to_add;
+    }
+
+    void setCut(string cut) {
+        this->cut = cut;
+    }
+
+    void write(string file_name, string tree_name) {
+        this->out_file_name = file_name;
+        this->out_tree_name = tree_name;
+
+        cout << "Opening write file     : " << file_name << endl;
+        cout << "Tree name              : " << tree_name << endl;
+        cout << endl;
+
+        cout << "Processing" << endl;
+
+        //--- apply cut
+        auto reduced_dataframe = this->dataframe->Filter(this->cut.c_str());
+
+        //--- get all branches to save
+        vector<string> all_out_branches = this->branches_to_copy;
+
+        //--- rename branches
+        for (auto branch : this->branches_to_rename) {
+            string old_name = get<0>(branch);
+            string new_name = get<1>(branch);
+            reduced_dataframe = reduced_dataframe.Define(new_name.c_str(), old_name.c_str());
+            all_out_branches.push_back(new_name);
+        }
+
+        //--- add branches
+        for (auto branch : this->branches_to_add) {
+            string branch_name = get<0>(branch);
+            //string expression = get<1>(branch);
+            string call = get<1>(branch);
+            //gInterpreter->Declare(expression.c_str());
+            reduced_dataframe = reduced_dataframe.Define(branch_name.c_str(), call.c_str());
+            all_out_branches.push_back(branch_name);
+        }
+
+        reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
+        cout << endl;
+    }
+};
+
 //---------
 // OPTIONS
 //---------
@@ -306,9 +393,6 @@ struct GlobalOptions {
 // REDUCTION
 //-----------
 
-using BranchRenameOptions = vector<tuple<string, string>>;
-using BranchAddOptions = vector<tuple<string, string>>;
-
 struct ReductionOptions {
     string in_file_name;
     string in_tree_name;
@@ -329,10 +413,12 @@ struct ReductionOptions {
 //----------
 
 struct SmearingOptions {
-    string in_file_path;
+    string in_file_name;
     string in_tree_name;
-    string out_file_path;
+    string out_file_name;
     string out_tree_name;
+
+    vector<string> branches_to_copy;
 
     bool unit_testing;
 };

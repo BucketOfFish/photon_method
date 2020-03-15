@@ -191,9 +191,15 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         "PhotonConversionType",
         "met_Phi",
         "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
-        "dPhiMetJet1", "minDPhi2JetsMet", // dPhiMetJet1 is not in abs value, but that should be ok
+        "minDPhi2JetsMet",
         "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
         "RunNumber", "RandomRunNumber",
+        "DatasetNumber", "Etall", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
+        "MJ", "MJ_VR", "MZ", "MZ_VR", "NjISR", "NjS", "PTCM", "PTCM_VR",
+        "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
+        "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
+        "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
+        "mll_RJ", "mll_RJ_VR", "mt2leplsp_0", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
     };
 
     //--- branches to rename and copy
@@ -207,6 +213,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     //--- new branches to add
     options.branches_to_add = BranchAddOptions {
         make_tuple("dPhiMetJet", "getDPhiMetJet(jetPt, jetEta, jetPhi, nJet30, met_Et, met_Phi)"),
+        make_tuple("dPhiMetJet1", "dPhiMetJet[0]"),
         make_tuple("dPhiMetJet2", "dPhiMetJet[1]"),
         make_tuple("dPhiMetJet12Min", "std::min(dPhiMetJet[0], dPhiMetJet[1])"),
         make_tuple("lumi", to_string(GetLumi(settings.period))), //if (TString(settings.sampleID).Contains("Vg")) lumi *= -1;
@@ -289,14 +296,57 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
 void SmearingStep(GlobalOptions settings, bool unit_testing) {
     SmearingOptions options;
 
-    options.in_file_path = settings.reduction_folder;
+    if (settings.is_data)
+        options.in_file_name = settings.smearing_folder + settings.period + "_data_photon.root";
+    else
+        options.in_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222.root";
     options.in_tree_name = settings.save_tree_name;
-    options.out_file_path = settings.smearing_folder;
+    if (settings.is_data)
+        options.out_file_name = settings.smearing_folder + settings.period + "_data_photon_" + channel + ".root"; 
+    else
+        options.out_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222_" + channel + ".root";
     options.out_tree_name = settings.save_tree_name;
+
+    //--- branches to copy from old tree to new tree
+    options.branches_to_copy = vector<string> {
+        "lepIsoFCTight", "lepIsPR", "nLep_signal", "nLep_base",
+        "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
+        "channel",
+        "PhotonConversionType",
+        "met_Phi",
+        "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
+        "minDPhi2JetsMet",
+        "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
+        "RunNumber", "RandomRunNumber",
+        "dPhiMetJet", "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
+        "METt_unsmeared", "METl_unsmeared", "trigMatch_2LTrig", "trigMatch_2LTrigOR", "met_Et_unsmeared",
+        "gamma_pt", "gamma_eta", "gamma_phi", "totalWeight",
+        "DatasetNumber", "Etall", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
+        "MJ", "MJ_VR", "MZ", "MZ_VR", "NjISR", "NjS", "PTCM", "PTCM_VR",
+        "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
+        "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
+        "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
+        "mll_RJ", "mll_RJ_VR", "mt2leplsp_0", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
+        "bjet_n", "jet_eta", "jet_phi", "MET_sig",
+        "dPhiMetJet1", "dPhiMetJet2", "dPhiMetJet12Min", "lumi", "trigMatch_2LTrig", "trigMatch_2LTrigOR",
+        "totalWeight",
+    };
+
+    //options.branches_to_add = vector<string> {
+        //"met_Et", "mll", "Ptll", "is_OS", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
+        //"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
+        //"nLep_signal", "nLep_base", "lepPt", "lepEta", "lepPhi", "lepFlavor", "lepCharge", "channel",
+    //}
 
     //--- smear photons
     options.unit_testing = unit_testing;
-    GetPhotonSmearing(options, settings.period, "ee", "Data", false);
+    vector<string> channels{"ee", "mm"};
+    vector<string> types{"Data", "MC"};
+    for (auto channel : channels) {
+        for (auto type : types) {
+            GetPhotonSmearing(options, settings.period, channel, type, false);
+        }
+    }
 }
 
 //---------------
@@ -375,6 +425,11 @@ void Main() {
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
             settings.period = period;
+            if (!settings.is_data) {
+                if (settings.period == "data15-16") settings.period = "mc16a";
+                else if (settings.period == "data17") settings.period = "mc16cd";
+                else if (settings.period == "data18") settings.period = "mc16e";
+            }
 
             //TH1::SetDefaultSumw2();
             SmearingStep(settings, unit_testing); 

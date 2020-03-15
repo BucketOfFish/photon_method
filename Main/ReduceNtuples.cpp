@@ -2,81 +2,6 @@
 
 using namespace std;
 
-class TreeReducer {
-public:
-    ROOT::RDataFrame *dataframe;
-    string out_file_name;
-    string out_tree_name;
-    string cut;
-    vector<string> branches_to_copy;
-    BranchRenameOptions branches_to_rename;
-    BranchAddOptions branches_to_add;
-
-    TreeReducer() {
-    }
-
-    void read(string file_name, string tree_name) {
-        cout << "Opening read file      : " << file_name << endl;
-        cout << "Tree name              : " << tree_name << endl;
-
-        this->dataframe = new ROOT::RDataFrame(tree_name, file_name);
-    }
-
-    void setBranchesToCopy(vector<string> branches_to_copy) {
-        this->branches_to_copy = branches_to_copy;
-    }
-
-    void setBranchesToRename(BranchRenameOptions branches_to_rename) {
-        this->branches_to_rename = branches_to_rename;
-    }
-
-    void setBranchesToAdd(BranchAddOptions branches_to_add) {
-        this->branches_to_add = branches_to_add;
-    }
-
-    void setCut(string cut) {
-        this->cut = cut;
-    }
-
-    void write(string file_name, string tree_name) {
-        this->out_file_name = file_name;
-        this->out_tree_name = tree_name;
-
-        cout << "Opening write file     : " << file_name << endl;
-        cout << "Tree name              : " << tree_name << endl;
-        cout << endl;
-
-        cout << "Processing" << endl;
-
-        //--- apply cut
-        auto reduced_dataframe = this->dataframe->Filter(this->cut.c_str());
-
-        //--- get all branches to save
-        vector<string> all_out_branches = this->branches_to_copy;
-
-        //--- rename branches
-        for (auto branch : this->branches_to_rename) {
-            string old_name = get<0>(branch);
-            string new_name = get<1>(branch);
-            reduced_dataframe = reduced_dataframe.Define(new_name.c_str(), old_name.c_str());
-            all_out_branches.push_back(new_name);
-        }
-
-        //--- add branches
-        for (auto branch : this->branches_to_add) {
-            string branch_name = get<0>(branch);
-            //string expression = get<1>(branch);
-            string call = get<1>(branch);
-            //gInterpreter->Declare(expression.c_str());
-            reduced_dataframe = reduced_dataframe.Define(branch_name.c_str(), call.c_str());
-            all_out_branches.push_back(branch_name);
-        }
-
-        reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
-        cout << endl;
-    }
-};
-
 //------------------
 // HELPER FUNCTIONS
 //------------------
@@ -85,7 +10,7 @@ ReductionOptions setUnitTestOptions(ReductionOptions options);
 void performUnitTests(TTree* out_tree);
 
 void runReduction(ReductionOptions options) {
-    TreeReducer *reducer = new TreeReducer();
+    TreeCreator *reducer = new TreeCreator();
 
     if (options.unit_testing) {
         cout << "Performing unit testing" << endl;
@@ -114,11 +39,6 @@ void runReduction(ReductionOptions options) {
 //------------
 // UNIT TESTS
 //------------
-
-void throwError(string error) {
-    cout << "ERROR: " << error << endl;
-    exit(0);
-}
 
 ReductionOptions setUnitTestOptions(ReductionOptions options) {
     options.in_file_name = "/public/data/Photon/UnitTest/data15-16_bkg.root";

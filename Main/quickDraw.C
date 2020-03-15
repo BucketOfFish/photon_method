@@ -77,7 +77,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["nJet30"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
     plot_settings["jet_n"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
     plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
-    plot_settings["HT"] = ROOT::RDF::TH1DModel("", "H_{T}", 20, 0, 1000);
+    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 20, 0, 1000);
     plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
     plot_settings["MT2"] = ROOT::RDF::TH1DModel("", "m_{T2} [GeV]", 20, 0, 200);
     plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);
@@ -102,18 +102,33 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
 unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string photon_data_or_mc) {
     //--- load files
     string mc_period = getMCPeriod(period);
-    string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
-    string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
-    string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
-    string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
+    //string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
+    //string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
+    //string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
+    //string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
+    //string photon_ee_filename, photon_mm_filename;
+    //if (photon_data_or_mc == "MC") {
+        //photon_ee_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_ee.root";
+        //photon_mm_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_mm.root";
+    //}
+    //else {
+        //photon_ee_filename = reweighting_path + "g_data/" + period + "_photon_ee.root";
+        //photon_mm_filename = reweighting_path + "g_data/" + period + "_photon_mm.root";
+    //}
+
+    ntuple_path = "/public/data/Photon/SkimmedSamples/";
+    string data_filename= ntuple_path + period + "_bkg.root";
+    string tt_filename = ntuple_path + mc_period + "_ttbar.root";
+    string vv_filename = ntuple_path + mc_period + "_diboson.root";
+    string zmc_filename = ntuple_path + mc_period + "_Zjets.root";
     string photon_ee_filename, photon_mm_filename;
     if (photon_data_or_mc == "MC") {
-        photon_ee_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_ee.root";
-        photon_mm_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_mm.root";
+        photon_ee_filename = ntuple_path + mc_period + "_SinglePhoton222_ee.root";
+        photon_mm_filename = ntuple_path + mc_period + "_SinglePhoton222_mm.root";
     }
     else {
-        photon_ee_filename = reweighting_path + "g_data/" + period + "_photon_ee.root";
-        photon_mm_filename = reweighting_path + "g_data/" + period + "_photon_mm.root";
+        photon_ee_filename = ntuple_path + period + "_photon_ee.root";
+        photon_mm_filename = ntuple_path + period + "_photon_mm.root";
     }
 
     cout << "data filename        " << data_filename << endl;
@@ -506,7 +521,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(unordered_map<string, TH1D*> histograms, strin
 
 void makePlot(resultsMap results_map, string period, bool blinded) {
     for (auto region : results_map.regions) {
-        vector<string> channels = {"ee", "mm", "SF"};
+        vector<string> channels = {"SF"};
         for (auto channel : channels) {
             string region_name = region + " " + channel;
             for (auto feature : results_map.features) {
@@ -703,7 +718,8 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     //--- parse arguments
     vector<string> plot_features = splitStringBy(plot_feature_list, " ");
     vector<string> regions = splitStringBy(region_list, " ");
-    vector<string> channels{"ee", "mm", "SF", "DF"};
+    //vector<string> channels{"ee", "mm", "SF"};
+    vector<string> channels{"SF"};
 
     //--- get input data in the form of RDataFrames
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);

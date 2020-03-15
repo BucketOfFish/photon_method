@@ -151,7 +151,7 @@ map<int, pair<float, float>> GetSmearingDistribution(SmearingOptions options, st
             int fileWeight = file_weights[i];
 
             tree->SetBranchStatus("*", 0);
-            double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+            float totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
             int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
             int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
             float ptll; SetInputBranch(tree, "Ptll", &ptll);
@@ -195,7 +195,7 @@ map<int, pair<float, float>> GetSmearingDistribution(SmearingOptions options, st
 
         TTree* tree = (TTree*)photon_file->Get("BaselineTree");
         tree->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+        float totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
         int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
         int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
         float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
@@ -418,7 +418,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
     float METt; CopyBranch(inputTree, BaselineTree, "METt_raw", "METt_raw", &METt, "F");
     float METl_smeared; BaselineTree->Branch("METl", &METl_smeared, "METl/F");
     float METt_smeared; BaselineTree->Branch("METt", &METt_smeared, "METt/F");
-    float HT; CopyBranch(inputTree, BaselineTree, "HT", "HT", &HT, "F");
+    float HT; CopyBranch(inputTree, BaselineTree, "Ht30", "Ht30", &HT, "F");
     float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
     float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "met_Phi", &MET_phi, "F");
 
@@ -515,7 +515,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
     Long64_t nentries = inputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
 
-        if (fmod(i,1e5)==0) cout << i << " events processed." << endl;
+        if (fmod(i,1e5)==0) cout << i << " events processed.\r";
         inputTree->GetEntry(i);
 
         //--- get random smearing values, then apply smearing (note signs)
@@ -628,6 +628,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
 
         BaselineTree->Fill();
     }
+    cout << endl;
 
     //-----------------------------
     // Draw final METl distribution
