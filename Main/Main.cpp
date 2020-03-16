@@ -343,7 +343,6 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     options.data_period = DataPeriod(options.period);
     options.mc_period = getMCPeriod(options.period);
     options.channel = settings.channel;
-    options.type = settings.type;
     options.is_data = settings.is_data;
     options.in_file_path = settings.reduction_folder;
 
@@ -402,7 +401,7 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     };
 
     //--- smear photons
-    GetPhotonSmearing(options, settings.period, settings.channel, settings.type, false);
+    GetPhotonSmearing(options, settings.period, settings.channel, settings.is_data, false);
     //SmearPhotons(options);
 }
 
@@ -492,7 +491,8 @@ void Main() {
         for (auto period : periods) {
             settings.period = period;
 
-            vector<bool> is_datas{true, false};
+            //vector<bool> is_datas{true, false};
+            vector<bool> is_datas{true};
             vector<string> channels{"ee", "mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
