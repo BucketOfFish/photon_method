@@ -26,7 +26,7 @@ void initFillingFunctions() {
             "return dPhiMetJet;"
         "}";
     filling_functions["getPhotonDataWeight"] =
-        "float getPhotonDataWeight(float trigMatch_HLT_g15_loose_L1EM7, float trigPrescale_HLT_g15_loose_L1EM7,"
+        "double getPhotonDataWeight(float trigMatch_HLT_g15_loose_L1EM7, float trigPrescale_HLT_g15_loose_L1EM7,"
         "float trigMatch_HLT_g25_loose_L1EM15, float trigPrescale_HLT_g25_loose_L1EM15,"
         "float trigMatch_HLT_g35_loose_L1EM15, float trigPrescale_HLT_g35_loose_L1EM15,"
         "float trigMatch_HLT_g40_loose_L1EM15, float trigPrescale_HLT_g40_loose_L1EM15,"
@@ -37,7 +37,7 @@ void initFillingFunctions() {
         "float trigMatch_HLT_g80_loose, float trigPrescale_HLT_g80_loose,"
         "float trigMatch_HLT_g100_loose, float trigPrescale_HLT_g100_loose,"
         "float trigMatch_HLT_g140_loose, float trigPrescale_HLT_g140_loose, float gamma_pt) {"
-            "float totalWeight = 0;"
+            "double totalWeight = 0;"
             ""
             "if (trigMatch_HLT_g15_loose_L1EM7==1 && gamma_pt>(15) && gamma_pt<(25+5)) totalWeight = trigPrescale_HLT_g15_loose_L1EM7;"
             "if (trigMatch_HLT_g25_loose_L1EM15==1 && gamma_pt>(25+5) && gamma_pt<(35+5)) totalWeight = trigPrescale_HLT_g25_loose_L1EM15;"
@@ -56,8 +56,8 @@ void initFillingFunctions() {
             "return totalWeight;"
         "}";
     filling_functions["getPhotonMCWeight"] =
-        "float getPhotonMCWeight(float lumi, float genWeight, float eventWeight, float jvtWeight, float bTagWeight, float pileupWeight) {"
-            "float totalWeight = lumi*genWeight*eventWeight*jvtWeight*bTagWeight*pileupWeight;"
+        "double getPhotonMCWeight(float lumi, float genWeight, float eventWeight, float jvtWeight, float bTagWeight, float pileupWeight) {"
+            "double totalWeight = lumi*genWeight*eventWeight*jvtWeight*bTagWeight*pileupWeight;"
             ""
             "if (totalWeight > 100000000000) totalWeight=0;" //--- fix for large photon sample spikes
             ""
@@ -197,7 +197,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
         "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
         "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        "mll_RJ", "mll_RJ_VR", "mt2leplsp_0", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
+        "mll_RJ", "mll_RJ_VR", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
     };
 
     //--- branches to rename and copy
@@ -251,7 +251,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
             "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
             "channel",
             "trigMatch_2LTrig", "trigMatch_2LTrigOR", "nLep_signal", "nLep_base",
-            "met_Et",
+            "met_Et", "mt2leplsp_0",
             "mll", "Ptll",
         };
         additional_add = BranchAddOptions {
@@ -297,8 +297,8 @@ void initSmearingFunctions() {
     unordered_map<string, string> smearing_functions;
 
     smearing_functions["getLepFlavors"] =
-        "vector<int> getLepFlavors(int channel) {"
-            "vector<int> lepFlavors{channel, channel};"
+        "vector<int> getLepFlavors(int flavor) {"
+            "vector<int> lepFlavors{flavor, flavor};"
             "return lepFlavors;"
         "}";
     smearing_functions["getLepCharges"] =
@@ -347,22 +347,19 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     options.is_data = settings.is_data;
     options.in_file_path = settings.reduction_folder;
 
-    if (settings.is_data)
+    if (settings.is_data) {
         options.in_file_name = settings.reduction_folder + options.data_period + "_data_photon.root";
-    else
-        options.in_file_name = settings.reduction_folder + options.mc_period + "_SinglePhoton222.root";
-    options.in_tree_name = settings.save_tree_name;
-    if (settings.is_data)
         options.out_file_name = settings.smearing_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
-    else
+    }
+    else {
+        options.in_file_name = settings.reduction_folder + options.mc_period + "_SinglePhoton222.root";
         options.out_file_name = settings.smearing_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
+    }
+    options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
-        "lepIsoFCTight", "lepIsPR",
-        "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
-        "channel",
         "PhotonConversionType",
         "met_Phi",
         "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
@@ -377,26 +374,36 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
         "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
         "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
         "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        "mll_RJ", "mll_RJ_VR", "mt2leplsp_0", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
+        "mll_RJ", "mll_RJ_VR",
         "bjet_n", "jet_eta", "jet_phi", "MET_sig",
-        "dPhiMetJet1", "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
+        "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
     };
 
+    int flavor, channel;
+    if (settings.channel == "ee") {
+        flavor = 1;
+        channel = 1;
+    }
+    else if (settings.channel == "mm") {
+        flavor = 2;
+        channel = 0;
+    }
     options.branches_to_add = BranchAddOptions {
         //"met_Et", "mll", "Ptll", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
         //"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
-        //"lepPt", "lepEta", "lepPhi",
+        //"lepPt", "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge",
+        //"lepIsoFCTight", "lepIsPR",
         make_tuple("is_OS", "1"),
         make_tuple("nLep_base", "2"),
         make_tuple("nLep_signal", "2"),
-        make_tuple("lepFlavor", "getLepFlavors("+options.channel+")"),
+        make_tuple("lepFlavor", "getLepFlavors(" + to_string(flavor) + ")"),
         make_tuple("lepCharge", "getLepCharges()"),
-        make_tuple("channel", string(options.channel)),
+        make_tuple("channel", to_string(channel)),
     };
 
     //--- smear photons
-    //GetPhotonSmearing(options, settings.period, settings.channel, settings.type, false);
-    SmearPhotons(options);
+    GetPhotonSmearing(options, settings.period, settings.channel, settings.type, false);
+    //SmearPhotons(options);
 }
 
 //---------------
@@ -415,8 +422,8 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    //settings.my_samples_folder = "/public/data/Photon/NewSamples/";
-    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
+    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
+    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
@@ -426,9 +433,9 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = true;
+    bool unit_testing = false;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
 
     //--- unit testing
     if (unit_testing) {
@@ -484,10 +491,12 @@ void Main() {
         for (auto period : periods) {
             settings.period = period;
 
-            vector<string> channels{"ee", "mm"};
-            vector<string> types{"Data", "MC"};
-            for (auto channel : channels) {
-                for (auto type : types) {
+            //vector<string> types{"Data", "MC"};
+            //vector<string> channels{"ee", "mm"};
+            vector<string> types{"Data"};
+            vector<string> channels{"ee"};
+            for (auto type : types) {
+                for (auto channel : channels) {
                     settings.channel = channel;
                     settings.type = type;
                     SmearingStep(settings, unit_testing); 
