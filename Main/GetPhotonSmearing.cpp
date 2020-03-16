@@ -443,10 +443,12 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
         "RPT_HT5PP/D", "RPT_HT5PP_VR/D", "R_minH2P_minH3P/D", "R_minH2P_minH3P_VR/D", "Rjj/F", "Rll/F",
         "dPhiMetISR/F", "dPhiMetJet1/F", "dPhiMetJet2/F", "dPhiMetJet12Min/F", "dPhiPjjMet/F", "dPhiPllMet/F",
         "dphiISRI/D", "dphiISRI_VR/D", "dphiVP/D", "dphiVP_VR/D", "lept1Pt_VR/D", "lept2Pt_VR/D", "mTl3/D",
-        "MET_sig/F", "minDphi/D", "minDPhi2JetsMet/D", "mll_RJ/D", "mll_RJ_VR/D", "nJet30/I", "nJet20/I", "jetM/F", "mjj/F",
-        "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I", "genWeight/D", "eventWeight/D", "leptonWeight/D", "jvtWeight/D", "bTagWeight/D", "pileupWeight/D", "globalDiLepTrigSF/D", "RunNumber/I", "RandomRunNumber/I", "dPhiMetJet/F", "trigMatch_2LTrig/I", "lumi/F"};
+        "MET_sig/F", "minDphi/D", "minDPhi2JetsMet/F", "mll_RJ/D", "mll_RJ_VR/D", "nJet30/I", "nJet20/I", "mjj/F",
+        "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I", "genWeight/D", "eventWeight/D", "leptonWeight/D", "jvtWeight/D", "bTagWeight/D", "pileupWeight/D", "globalDiLepTrigSF/D", "RunNumber/I", "RandomRunNumber/I", "trigMatch_2LTrig/I", "lumi/D"};
     CopyAllBranches(inputTree, BaselineTree, histFitterBranches);
 
+    vector<float>* dPhiMetJet = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "dPhiMetJet", "dPhiMetJet", &dPhiMetJet, "vector<float>");
+    vector<float>* jetM = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jetM, "vector<float>");
     float mll; BaselineTree->Branch("mll", &mll, "mll/F");
     int is_OS = 1; BaselineTree->Branch("is_OS", &is_OS, "is_OS/I");
     vector<float>* lep_pT = new vector<float>(10); BaselineTree->Branch("lepPt", "vector<float>", &lep_pT);
