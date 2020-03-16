@@ -338,6 +338,11 @@ void initSmearingFunctions() {
 void SmearingStep(GlobalOptions settings, bool unit_testing) {
     SmearingOptions options;
 
+    if (unit_testing) {
+        settings.channel = "ee";
+        settings.period = "data17";
+    }
+
     options.unit_testing = unit_testing;
     options.period = settings.period;
     options.data_period = DataPeriod(options.period);
@@ -401,7 +406,8 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     };
 
     //--- smear photons
-    GetPhotonSmearing(options, settings.period, settings.channel, settings.is_data, false);
+    options.unit_testing = unit_testing;
+    GetPhotonSmearing(options);
     //SmearPhotons(options);
 }
 
@@ -432,7 +438,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = true;
     bool do_reweighting = false;
@@ -440,6 +446,7 @@ void Main() {
     //--- unit testing
     if (unit_testing) {
         ReductionStep(settings, unit_testing);
+        SmearingStep(settings, unit_testing); 
         return;
     }
 
@@ -492,7 +499,7 @@ void Main() {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            vector<bool> is_datas{true};
+            vector<bool> is_datas{false};
             vector<string> channels{"ee", "mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
