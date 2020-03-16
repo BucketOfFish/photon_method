@@ -151,7 +151,7 @@ map<int, pair<float, float>> GetSmearingDistribution(SmearingOptions options, st
             int fileWeight = file_weights[i];
 
             tree->SetBranchStatus("*", 0);
-            float totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+            double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
             int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
             int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
             float ptll; SetInputBranch(tree, "Ptll", &ptll);
@@ -195,12 +195,12 @@ map<int, pair<float, float>> GetSmearingDistribution(SmearingOptions options, st
 
         TTree* tree = (TTree*)photon_file->Get("BaselineTree");
         tree->SetBranchStatus("*", 0);
-        float totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
         int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
         int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
         float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
         int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
-        float METl; SetInputBranch(tree, "METl_raw", &METl);
+        float METl; SetInputBranch(tree, "METl_unsmeared", &METl);
 
         //tree->Draw(">>event_list", cuts::reweight_region);
         tree->Draw(">>event_list", "nJet30>=2");
@@ -408,19 +408,19 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
 
     float gamma_phi; inputTree->SetBranchAddress("gamma_phi", &gamma_phi);
 
-    float totalWeight; CopyBranch(inputTree, BaselineTree, "totalWeight", "totalWeight", &totalWeight, "F");
+    double totalWeight; CopyBranch(inputTree, BaselineTree, "totalWeight", "totalWeight", &totalWeight, "D");
     int bjet_n; CopyBranch(inputTree, BaselineTree, "bjet_n", "bjet_n", &bjet_n, "I");
     float gamma_pt; CopyBranch(inputTree, BaselineTree, "gamma_pt", "gamma_pt",  &gamma_pt, "F");
     float gamma_eta; CopyBranch(inputTree, BaselineTree, "gamma_eta", "Z_eta",  &gamma_eta, "F");
-    float METl; CopyBranch(inputTree, BaselineTree, "METl_raw", "METl_raw", &METl, "F");
-    float METt; CopyBranch(inputTree, BaselineTree, "METt_raw", "METt_raw", &METt, "F");
+    float METl; CopyBranch(inputTree, BaselineTree, "METl_unsmeared", "METl_unsmeared", &METl, "F");
+    float METt; CopyBranch(inputTree, BaselineTree, "METt_unsmeared", "METt_unsmeared", &METt, "F");
     float METl_smeared; BaselineTree->Branch("METl", &METl_smeared, "METl/F");
     float METt_smeared; BaselineTree->Branch("METt", &METt_smeared, "METt/F");
     float HT; CopyBranch(inputTree, BaselineTree, "Ht30", "Ht30", &HT, "F");
-    float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_raw", "met_Et_raw", &MET_raw, "F");
+    float MET_raw; CopyBranch(inputTree, BaselineTree, "met_Et_unsmeared", "met_Et_unsmeared", &MET_raw, "F");
     float MET_phi; CopyBranch(inputTree, BaselineTree, "met_Phi", "met_Phi", &MET_phi, "F");
 
-    vector<float>* jet_pT = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_pT", "jet_pT", &jet_pT, "vector<float>");
+    vector<float>* jet_pT = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetPt", "jetPt", &jet_pT, "vector<float>");
     vector<float>* jet_eta = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_eta", "jet_eta", &jet_eta, "vector<float>");
     vector<float>* jet_phi = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jet_phi", "jet_phi", &jet_phi, "vector<float>");
 
@@ -434,25 +434,29 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
     float MT2; BaselineTree->Branch("mt2leplsp_0", &MT2, "mt2leplsp_0/F");
     float DR_2Lep; BaselineTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
     int photon_conversion_type; CopyBranch(inputTree, BaselineTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
-    float lep_theta_cm; BaselineTree->Branch("lep_theta_cm", &lep_theta_cm, "lep_theta_cm/F");
+    float lep_theta_cm; BaselineTree->Branch("Z_cm_lep_theta", &lep_theta_cm, "Z_cm_lep_theta/F");
 
     //--- HistFitter branches
-    vector<string> histFitterBranches {"DatasetNumber/I", "Etall/F", "H2PP/D", "H5PP/D", "H5PP_VR/D",
+    vector<string> histFitterBranches {"DatasetNumber/I", "H2PP/D", "H5PP/D", "H5PP_VR/D",
         "METOverPtISR/F", "METOverPtW/F", "METOverPtZ/F", "MJ/D", "MJ_VR/D", "MZ/D", "MZ_VR/D", "NjISR/D",
         "NjS/D", "PTCM/D", "PTCM_VR/D", "PTI/D", "PTISR/D", "PTISR_VR/D", "PTI_VR/D", "RISR/D", "RISR_VR/D",
         "RPT_HT5PP/D", "RPT_HT5PP_VR/D", "R_minH2P_minH3P/D", "R_minH2P_minH3P_VR/D", "Rjj/F", "Rll/F",
         "dPhiMetISR/F", "dPhiMetJet1/F", "dPhiMetJet2/F", "dPhiMetJet12Min/F", "dPhiPjjMet/F", "dPhiPllMet/F",
         "dphiISRI/D", "dphiISRI_VR/D", "dphiVP/D", "dphiVP_VR/D", "lept1Pt_VR/D", "lept2Pt_VR/D", "mTl3/D",
-        "MET_sig/F", "minDphi/D", "mll_RJ/D", "mll_RJ_VR/D", "mt2leplsp_0/F", "nJet20/I", "mjj/F",
-        "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I"};
+        "MET_sig/F", "minDphi/D", "minDPhi2JetsMet/D", "mll_RJ/D", "mll_RJ_VR/D", "nJet30/I", "nJet20/I", "jetM/F", "mjj/F",
+        "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I", "genWeight/D", "eventWeight/D", "leptonWeight/D", "jvtWeight/D", "bTagWeight/D", "pileupWeight/D", "globalDiLepTrigSF/D", "RunNumber/I", "RandomRunNumber/I", "dPhiMetJet/F", "trigMatch_2LTrig/I", "lumi/F"};
     CopyAllBranches(inputTree, BaselineTree, histFitterBranches);
 
     float mll; BaselineTree->Branch("mll", &mll, "mll/F");
+    int is_OS = 1; BaselineTree->Branch("is_OS", &is_OS, "is_OS/I");
     vector<float>* lep_pT = new vector<float>(10); BaselineTree->Branch("lepPt", "vector<float>", &lep_pT);
-    vector<float>* lep_eta = new vector<float>(10); BaselineTree->Branch("lep_eta", "vector<float>", &lep_eta);
-    vector<float>* lep_phi = new vector<float>(10); BaselineTree->Branch("lep_phi", "vector<float>", &lep_phi);
+    vector<float>* lep_eta = new vector<float>(10); BaselineTree->Branch("lepEta", "vector<float>", &lep_eta);
+    vector<float>* lep_phi = new vector<float>(10); BaselineTree->Branch("lepPhi", "vector<float>", &lep_phi);
     vector<int>* lep_flavor = new vector<int>(10); BaselineTree->Branch("lepFlavor", "vector<int>", &lep_flavor);
     vector<int>* lep_charge = new vector<int>(10); BaselineTree->Branch("lepCharge", "vector<int>", &lep_charge);
+    vector<float>* lep_m = new vector<float>(10); BaselineTree->Branch("lepM", "vector<float>", &lep_m);
+    vector<int>* lepIsoFCTight = new vector<int>{1,1}; BaselineTree->Branch("lepIsoFCTight", "vector<int>", &lepIsoFCTight);
+    vector<int>* lepIsPR = new vector<int>{1,1}; BaselineTree->Branch("lepIsPR", "vector<int>", &lepIsPR);
     Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
 
     //---------------------------------------------
@@ -616,6 +620,15 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
             lep_charge->clear();
             lep_charge->push_back(charge);
             lep_charge->push_back(-charge);
+            lep_m->clear();
+            if (lepChannel == 0) {
+                lep_m->push_back(0.1056583);
+                lep_m->push_back(0.1056583);
+            }
+            else if (lepChannel == 1) {
+                lep_m->push_back(0.0005109);
+                lep_m->push_back(0.0005109);
+            }
 
             // Stop loop if we're ready
             if (lep_pT->at(0)>cuts::leading_lep_pt_cut && lep_pT->at(1)>cuts::second_lep_pt_cut) break;
