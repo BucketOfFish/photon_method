@@ -1,6 +1,7 @@
 #include "Settings.cpp"
 #include "ReduceNtuples.cpp"
-//#include "GetPhotonSmearing.cpp"
+#include "GetPhotonSmearing.cpp"
+#include "InProgress/SmearPhotons.cpp"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -185,9 +186,6 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
-        "lepIsoFCTight", "lepIsPR", "nLep_signal", "nLep_base",
-        "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
-        "channel",
         "PhotonConversionType",
         "met_Phi",
         "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
@@ -250,7 +248,10 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     }
     else {
         additional_copy = vector<string> {
-            "trigMatch_2LTrig", "trigMatch_2LTrigOR",
+            "lepIsoFCTight", "lepIsPR",
+            "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
+            "channel",
+            "trigMatch_2LTrig", "trigMatch_2LTrigOR", "nLep_signal", "nLep_base",
             "met_Et",
             "mll", "Ptll",
         };
@@ -293,19 +294,74 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
 // PHOTON SMEARING
 //-----------------
 
+void initSmearingFunctions() {
+    unordered_map<string, string> smearing_functions;
+
+    smearing_functions["getLepFlavors"] =
+        "vector<int> getLepFlavors(int channel) {"
+            "vector<int> lepFlavors{channel, channel};"
+            "return lepFlavors;"
+        "}";
+    smearing_functions["getLepCharges"] =
+        "vector<int> getLepCharges() {"
+            "int charge = (std::rand()%2)*2-1;"
+            "vector<int> lepCharges{charge, -charge};"
+            "return lepCharges;"
+        "}";
+    //smearing_functions["getZCMLepTheta"] =
+        //"vector<float> getZCMLepTheta(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi, float Z_pt, float Z_eta, float Z_phi) {"
+            //"TLorentzVector l0_cm_4vec, l1_cm_4vec;"
+            //"l0_cm_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
+            //"l1_cm_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
+            //""
+            //"TLorentzVector z_4vec;"
+            //"float Z_m = 91.1876;"
+            //"z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,Z_m);"
+            //"TVector3 boost_vec(0, 0, -z_4vec.BoostVector().Mag());"
+            //""
+            //"l0_cm_4vec.RotateZ(-z_4vec.Phi());"
+            //"l0_cm_4vec.RotateY(-z_4vec.Theta());"
+            //"l0_cm_4vec.Boost(boost_vec);"
+            //"l1_cm_4vec.RotateZ(-z_4vec.Phi());"
+            //"l1_cm_4vec.RotateY(-z_4vec.Theta());"
+            //"l1_cm_4vec.Boost(boost_vec);"
+            //""
+            //"vector<float> Z_cm_lep_theta;"
+            //"Z_cm_lep_theta.push_back(l0_cm_4vec.Theta());"
+            //"Z_cm_lep_theta.push_back(l1_cm_4vec.Theta());"
+            //"return Z_cm_lep_theta;"
+        //"}";
+
+    for (auto const& [key, val] : smearing_functions)
+        gInterpreter->Declare(val.c_str());
+}
+
 void SmearingStep(GlobalOptions settings, bool unit_testing) {
     SmearingOptions options;
 
+    options.unit_testing = unit_testing;
+    options.period = settings.period;
+    options.data_period = DataPeriod(options.period);
+    options.mc_period = getMCPeriod(options.period);
+    options.channel = settings.channel;
+    options.type = settings.type;
+    options.is_data = settings.is_data;
+    options.in_file_path = settings.reduction_folder;
+
     if (settings.is_data)
-        options.in_file_name = settings.smearing_folder + settings.period + "_data_photon.root";
+        options.in_file_name = settings.reduction_folder + options.data_period + "_data_photon.root";
     else
-        options.in_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222.root";
+        options.in_file_name = settings.reduction_folder + options.mc_period + "_SinglePhoton222.root";
     options.in_tree_name = settings.save_tree_name;
+    if (settings.is_data)
+        options.out_file_name = settings.smearing_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
+    else
+        options.out_file_name = settings.smearing_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
     options.out_tree_name = settings.save_tree_name;
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
-        "lepIsoFCTight", "lepIsPR", "nLep_signal", "nLep_base",
+        "lepIsoFCTight", "lepIsPR",
         "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge", "lepPt",
         "channel",
         "PhotonConversionType",
@@ -314,7 +370,7 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
         "minDPhi2JetsMet",
         "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
         "RunNumber", "RandomRunNumber",
-        "dPhiMetJet", "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
+        "dPhiMetJet",
         "METt_unsmeared", "METl_unsmeared", "trigMatch_2LTrig", "trigMatch_2LTrigOR", "met_Et_unsmeared",
         "gamma_pt", "gamma_eta", "gamma_phi", "totalWeight",
         "DatasetNumber", "Etall", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
@@ -324,29 +380,24 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
         "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
         "mll_RJ", "mll_RJ_VR", "mt2leplsp_0", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
         "bjet_n", "jet_eta", "jet_phi", "MET_sig",
-        "dPhiMetJet1", "dPhiMetJet2", "dPhiMetJet12Min", "lumi", "trigMatch_2LTrig", "trigMatch_2LTrigOR",
-        "totalWeight",
+        "dPhiMetJet1", "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
     };
 
-    //options.branches_to_add = vector<string> {
-        //"met_Et", "mll", "Ptll", "is_OS", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
+    options.branches_to_add = BranchAddOptions {
+        //"met_Et", "mll", "Ptll", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
         //"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
-        //"nLep_signal", "nLep_base", "lepPt", "lepEta", "lepPhi", "lepFlavor", "lepCharge", "channel",
-    //}
+        //"lepPt", "lepEta", "lepPhi",
+        make_tuple("is_OS", "1"),
+        make_tuple("nLep_base", "2"),
+        make_tuple("nLep_signal", "2"),
+        make_tuple("lepFlavor", "getLepFlavors("+options.channel+")"),
+        make_tuple("lepCharge", "getLepCharges()"),
+        make_tuple("channel", string(options.channel)),
+    };
 
     //--- smear photons
-    options.unit_testing = unit_testing;
-    vector<string> channels{"ee", "mm"};
-    vector<string> types{"Data", "MC"};
-    for (auto channel : channels) {
-        if (settings.is_data)
-            options.out_file_name = settings.smearing_folder + settings.period + "_data_photon_" + channel + ".root"; 
-        else
-            options.out_file_name = settings.smearing_folder + settings.period + "_SinglePhoton222_" + channel + ".root";
-        for (auto type : types) {
-            //GetPhotonSmearing(options, settings.period, channel, type, false);
-        }
-    }
+    //GetPhotonSmearing(options, settings.period, settings.channel, settings.type, false);
+    SmearPhotons(options);
 }
 
 //---------------
@@ -369,6 +420,7 @@ void Main() {
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
+    //settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuplesTest/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
@@ -376,7 +428,7 @@ void Main() {
 
     bool unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = true;
+    bool do_smearing = false;
 
     //--- unit testing
     if (unit_testing) {
@@ -421,18 +473,24 @@ void Main() {
     }
 
     //--- smear photons
+    TH1::SetDefaultSumw2();
     if (do_smearing) {
-        vector<string> periods{"data15-16", "data17", "data18"};
+        initSmearingFunctions();
+
+        //vector<string> periods{"data15-16", "data17", "data18"};
+        vector<string> periods{"data15-16"};
         for (auto period : periods) {
             settings.period = period;
-            if (!settings.is_data) {
-                if (settings.period == "data15-16") settings.period = "mc16a";
-                else if (settings.period == "data17") settings.period = "mc16cd";
-                else if (settings.period == "data18") settings.period = "mc16e";
-            }
 
-            //TH1::SetDefaultSumw2();
-            SmearingStep(settings, unit_testing); 
+            vector<string> channels{"ee", "mm"};
+            vector<string> types{"Data", "MC"};
+            for (auto channel : channels) {
+                for (auto type : types) {
+                    settings.channel = channel;
+                    settings.type = type;
+                    SmearingStep(settings, unit_testing); 
+                }
+            }
         }
     }
 }

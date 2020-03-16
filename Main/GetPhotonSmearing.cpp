@@ -9,13 +9,13 @@ TH1F* GetLepThetaHistogram(SmearingOptions options, string period, string channe
     gStyle->SetOptStat(0);
 
     //--- open files and create TChains
-    string data_filename = options.in_file_path + "bkg_data/" + period + "_data_bkg.root";
+    string data_filename = options.in_file_path + period + "_data_bkg.root";
     if (period == "data15-16") period = "mc16a";
     else if (period == "data17") period = "mc16cd";
     else if (period == "data18") period = "mc16e";
-    string tt_filename = options.in_file_path + "bkg_mc/" + period + "_ttbar.root";
-    string vv_filename = options.in_file_path + "bkg_mc/" + period + "_diboson.root";
-    string zjets_filename = options.in_file_path + "bkg_mc/" + period + "_Zjets.root";
+    string tt_filename = options.in_file_path + period + "_ttbar.root";
+    string vv_filename = options.in_file_path + period + "_diboson.root";
+    string zjets_filename = options.in_file_path + period + "_Zjets.root";
 
     TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
 
@@ -376,7 +376,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
     cout << "channel         " << channel         << endl;
     cout << "period          " << period          << endl;
     cout << "isData?         " << data_or_mc          << endl;
-    cout << "smearing path   " << options.out_file_path   << endl;
+    cout << "smearing output " << options.out_file_name   << endl;
 
     TH1::SetDefaultSumw2();
 
@@ -393,9 +393,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
 
     TH1::SetDefaultSumw2();
 
-    string outfilename;
-    if (data_or_mc == "Data") outfilename = options.out_file_path+data_period+"_data_photon_"+channel+".root"; 
-    if (data_or_mc == "MC") outfilename = options.out_file_path+mc_period+"_SinglePhoton222_"+channel+".root";
+    string outfilename = options.out_file_name;
 
     TFile* outputFile = new TFile(outfilename.c_str(), "recreate");          
     TTree* BaselineTree = new TTree("BaselineTree", "baseline tree");
@@ -439,20 +437,23 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
     float lep_theta_cm; BaselineTree->Branch("lep_theta_cm", &lep_theta_cm, "lep_theta_cm/F");
 
     //--- HistFitter branches
+    vector<string> histFitterBranches {"DatasetNumber/I", "Etall/F", "H2PP/D", "H5PP/D", "H5PP_VR/D",
+        "METOverPtISR/F", "METOverPtW/F", "METOverPtZ/F", "MJ/D", "MJ_VR/D", "MZ/D", "MZ_VR/D", "NjISR/D",
+        "NjS/D", "PTCM/D", "PTCM_VR/D", "PTI/D", "PTISR/D", "PTISR_VR/D", "PTI_VR/D", "RISR/D", "RISR_VR/D",
+        "RPT_HT5PP/D", "RPT_HT5PP_VR/D", "R_minH2P_minH3P/D", "R_minH2P_minH3P_VR/D", "Rjj/F", "Rll/F",
+        "dPhiMetISR/F", "dPhiMetJet1/F", "dPhiMetJet2/F", "dPhiMetJet12Min/F", "dPhiPjjMet/F", "dPhiPllMet/F",
+        "dphiISRI/D", "dphiISRI_VR/D", "dphiVP/D", "dphiVP_VR/D", "lept1Pt_VR/D", "lept2Pt_VR/D", "mTl3/D",
+        "MET_sig/F", "minDphi/D", "mll_RJ/D", "mll_RJ_VR/D", "mt2leplsp_0/F", "nJet20/I", "mjj/F",
+        "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I"};
     CopyAllBranches(inputTree, BaselineTree, histFitterBranches);
 
-    float mll; CopyBranch(inputTree, BaselineTree, "mll", "mll", &mll, "F");
-    vector<float>* jet_m = new vector<float>(10); CopyBranch(inputTree, BaselineTree, "jetM", "jetM", &jet_m, "vector<float>");
-    Int_t jet_n; CopyBranch(inputTree, BaselineTree, "nJet30", "nJet30", &jet_n, "I");
+    float mll; BaselineTree->Branch("mll", &mll, "mll/F");
     vector<float>* lep_pT = new vector<float>(10); BaselineTree->Branch("lepPt", "vector<float>", &lep_pT);
     vector<float>* lep_eta = new vector<float>(10); BaselineTree->Branch("lep_eta", "vector<float>", &lep_eta);
     vector<float>* lep_phi = new vector<float>(10); BaselineTree->Branch("lep_phi", "vector<float>", &lep_phi);
     vector<int>* lep_flavor = new vector<int>(10); BaselineTree->Branch("lepFlavor", "vector<int>", &lep_flavor);
     vector<int>* lep_charge = new vector<int>(10); BaselineTree->Branch("lepCharge", "vector<int>", &lep_charge);
     Int_t lepChannel; BaselineTree->Branch("channel", &lepChannel, "channel/I");
-    int nBJet20_MV2c10_FixedCutBEff_77; CopyBranch(inputTree, BaselineTree, "nBJet20_MV2c10_FixedCutBEff_77", "nBJet20_MV2c10_FixedCutBEff_77", &nBJet20_MV2c10_FixedCutBEff_77, "I");
-    int trigMatch_2LTrigOR; CopyBranch(inputTree, BaselineTree, "trigMatch_2LTrigOR", "trigMatch_2LTrigOR", &trigMatch_2LTrigOR, "I");
-    float MET_sig; CopyBranch(inputTree, BaselineTree, "MET_sig", "MET_sig", &MET_sig, "F");
 
     //---------------------------------------------
     // set diagnostics printing
@@ -513,6 +514,7 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
         hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
 
     Long64_t nentries = inputTree->GetEntries();
+    nentries = 100;
     for (Long64_t i=0; i<nentries; i++) {
 
         if (fmod(i,1e5)==0) cout << i << " events processed.\r";
