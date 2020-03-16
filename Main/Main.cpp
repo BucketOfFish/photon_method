@@ -422,8 +422,8 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    //settings.my_samples_folder = "/public/data/Photon/NewSamples/";
-    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
+    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
+    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
@@ -436,6 +436,7 @@ void Main() {
     bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = true;
+    bool do_reweighting = false;
 
     //--- unit testing
     if (unit_testing) {
@@ -491,16 +492,34 @@ void Main() {
         for (auto period : periods) {
             settings.period = period;
 
-            //vector<string> types{"Data", "MC"};
-            vector<string> types{"Data"};
+            vector<bool> is_datas{true, false};
             vector<string> channels{"ee", "mm"};
-            for (auto type : types) {
+            for (auto is_data : is_datas) {
                 for (auto channel : channels) {
                     settings.channel = channel;
-                    settings.type = type;
+                    settings.is_data = is_data;
                     SmearingStep(settings, unit_testing); 
                 }
             }
         }
+    }
+
+    //--- reweight photons
+    if (do_reweighting) {
+        //vector<string> periods{"data15-16", "data17", "data18"};
+        //for (auto period : periods) {
+            //settings.period = period;
+
+            ////vector<string> types{"Data", "MC"};
+            //vector<string> types{"Data"};
+            //vector<string> channels{"ee", "mm"};
+            //for (auto type : types) {
+                //for (auto channel : channels) {
+                    //settings.channel = channel;
+                    //settings.type = type;
+                    //SmearingStep(settings, unit_testing); 
+                //}
+            //}
+        //}
     }
 }

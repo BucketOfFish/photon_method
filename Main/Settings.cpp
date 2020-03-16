@@ -427,7 +427,6 @@ struct SmearingOptions {
     string mc_period;
     bool is_data;
     string channel;
-    string type;
 
     vector<string> branches_to_copy;
     BranchAddOptions branches_to_add;

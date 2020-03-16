@@ -520,7 +520,6 @@ void GetPhotonSmearing(SmearingOptions options, string period, string channel, s
         hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
 
     Long64_t nentries = inputTree->GetEntries();
-    nentries = 100;
     for (Long64_t i=0; i<nentries; i++) {
 
         if (fmod(i,1e5)==0) cout << i << " events processed.\r";
