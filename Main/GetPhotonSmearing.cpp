@@ -17,6 +17,10 @@ TH1F* GetLepThetaHistogram_UnitTest(SmearingOptions options) {
 }
 
 void FillHistograms_UnitTest(SmearingOptions options, TH1D **hist_z_metl_bin_pt, TH1D **hist_g_metl_bin_pt) {
+    string unit_test_file_name = "/public/data/Photon/UnitTest/data15-16_bkg.root";
+    TFile *unit_test_file = new TFile(unit_test_file_name.c_str());
+    TTree *unit_test_tree = (TTree*)unit_test_file->Get("BaselineTree");
+
     cout << "Filling smearing histograms" << endl;
     for (int bin=0; bin<bins::n_pt_bins+2; bin++) {
         hist_z_metl_bin_pt[bin] = new TH1D("", "histo from a gaussian", 100, -3, 3);
@@ -25,8 +29,10 @@ void FillHistograms_UnitTest(SmearingOptions options, TH1D **hist_z_metl_bin_pt,
         hist_g_metl_bin_pt[bin]->FillRandom("gaus", 1000000);
         vector<TH1D*> hist_z_mll_bin_pt_metl_pt_bin;
         for (int bin1=0; bin1<bins::n_METl_bins+2; bin1++) {
-            hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D("", "histo from a gaussian", 100, -3, 3));
-            hist_z_mll_bin_pt_metl_pt_bin[bin1]->FillRandom("gaus", 1000000);
+            TString hist_name = (to_string(bin)+"_"+to_string(bin1)).c_str();
+            hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D(hist_name, "histo from a gaussian", 100, -3, 3));
+            //hist_z_mll_bin_pt_metl_pt_bin[bin1]->FillRandom("gaus", 1000000);
+            unit_test_tree->Draw("mll>>"+hist_name, "met_Et>100");
         }
         hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
     }
