@@ -1,8 +1,7 @@
-#include "../Common/Settings.C"
-#include <unordered_map>
-#include <boost/algorithm/string.hpp>
+#include "Settings.cpp"
 
 using namespace std;
+
 using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
 struct Selection {
     string region;
@@ -116,8 +115,8 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
         //photon_mm_filename = reweighting_path + "g_data/" + period + "_photon_mm.root";
     //}
 
-    ntuple_path = "/public/data/Photon/SkimmedSamples/";
-    string data_filename= ntuple_path + period + "_bkg.root";
+    string ntuple_path = "/public/data/Photon/NewSamples/ReducedNtuples/";
+    string data_filename= ntuple_path + period + "_data_bkg.root";
     string tt_filename = ntuple_path + mc_period + "_ttbar.root";
     string vv_filename = ntuple_path + mc_period + "_diboson.root";
     string zmc_filename = ntuple_path + mc_period + "_Zjets.root";
@@ -406,7 +405,7 @@ tuple<THStack*, THStack*, THStack*> createStacks(unordered_map<string, TH1D*> hi
     return make_tuple(data_stack, raw_g_stack, reweight_g_stack);
 }
 
-TString getPlotSaveName(string period, string channel, string plot_feature, string photon_data_or_mc, string region) {
+TString getPlotSaveName(string period, string channel, string plot_feature, string photon_data_or_mc, string region, string plots_path) {
     TString plot_name;
     if (photon_data_or_mc == "Data")
         plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
@@ -519,7 +518,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(unordered_map<string, TH1D*> histograms, strin
     return make_tuple(hratio, hratio_unreweighted);
 }
 
-void makePlot(resultsMap results_map, string period, bool blinded) {
+void makePlot(resultsMap results_map, string period, bool blinded, string plot_folder) {
     for (auto region : results_map.regions) {
         vector<string> channels = {"SF"};
         for (auto channel : channels) {
@@ -533,7 +532,7 @@ void makePlot(resultsMap results_map, string period, bool blinded) {
                 namepad->cd();
                 ROOT::RDF::TH1DModel plot_info = getHistogramInfo(feature);
                 TString formatted_feature = plot_info.fTitle;
-                TString plot_title = formatted_feature + " in " + region;
+                TString plot_title = formatted_feature + " in " + region.c_str();
                 //TH1D *h_name = new TH1D("h_name", plot_title, nbins, xmin, xmax);
                 TH1D *h_name = new TH1D("h_name", plot_title, 1, 0, 1);
                 h_name->Draw();
@@ -604,7 +603,7 @@ void makePlot(resultsMap results_map, string period, bool blinded) {
                 }
 
                 //--- save plot
-                TString plot_name = getPlotSaveName(period, channel, feature, results_map.data_or_mc, region);
+                TString plot_name = getPlotSaveName(period, channel, feature, results_map.data_or_mc, region, plot_folder);
                 can->Print(plot_name);
 
                 //--- clean up
@@ -624,11 +623,11 @@ void testTablePrintout(resultsMap results_map) {
     printPhotonYieldTables(results_map, "Output/test_table_unblindeded.txt", false);
 }
 
-void testMakePlot(resultsMap results_map) {
+void testMakePlot(resultsMap results_map, string plot_folder) {
     results_map.data_or_mc = "Data";
-    makePlot(results_map, "data18", true);
+    makePlot(results_map, "data18", true, plot_folder);
     results_map.data_or_mc = "MC";
-    makePlot(results_map, "data18", false);
+    makePlot(results_map, "data18", false, plot_folder);
 }
 
 void unit_tests() {
@@ -671,7 +670,8 @@ void unit_tests() {
     results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2};
 
     testTablePrintout(results_map);
-    testMakePlot(results_map);
+    string plot_folder = "DiagnosticPlots/Plots/";
+    testMakePlot(results_map, plot_folder);
 
     n_entries["data"] = 0;
     n_entries["tt"] = 0;
@@ -710,7 +710,7 @@ void unit_tests() {
 // MAIN FUNCTION
 //---------------
 
-void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only) {
+void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only, string plot_folder) {
     cout << "period               " << period << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
@@ -730,20 +730,21 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     resultsMap results_map = fillHistograms(region_hists, plot_features, regions, channels, photon_data_or_mc);
 
     //--- print photon yield tables
-    TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions");
+    TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", plot_folder);
     printPhotonYieldTables(results_map, "Output/" + period + "_" + results_map.data_or_mc + "_yields.txt", blinded);
 
     //--- draw and save plot
     if (!print_photon_yield_only)
-        makePlot(results_map, period, blinded);
+        makePlot(results_map, period, blinded, plot_folder);
 }
 
-void quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only) {
+void MakePlots(PlottingOptions options) {
     //--- set global options
     ROOT::EnableImplicitMT();
     gStyle->SetOptStat(0);
 
     //--- either perform unit tests or run code
     //unit_tests();
-    run_quickDraw(period, photon_data_or_mc, plot_feature_list, region_list, blinded, print_photon_yield_only);
+    string photon_data_or_mc = options.is_data ? "Data" : "MC";
+    run_quickDraw(options.period, photon_data_or_mc, options.plot_feature_list, options.region_list, options.blinded, options.print_photon_yield_only, options.plots_folder);
 }

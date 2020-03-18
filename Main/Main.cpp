@@ -1,7 +1,9 @@
 #include "Settings.cpp"
 #include "ReduceNtuples.cpp"
-#include "GetPhotonSmearing.cpp"
+#include "SmearPhotons.cpp"
 //#include "InProgress/SmearPhotons.cpp"
+#include "ReweightPhotons.cpp"
+#include "MakePlots.cpp"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -406,6 +408,78 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     SmearPhotons(options);
 }
 
+//--------------------
+// PHOTON REWEIGHTING
+//--------------------
+
+void ReweightingStep(GlobalOptions settings, bool unit_testing) {
+    ReweightingOptions options;
+
+    options.unit_testing = unit_testing;
+    options.period = settings.period;
+    options.data_period = DataPeriod(options.period);
+    options.mc_period = getMCPeriod(options.period);
+    options.channel = settings.channel;
+    options.is_data = settings.is_data;
+    options.in_file_path = settings.reweighting_folder;
+    options.reduction_folder = settings.reduction_folder;
+    options.reweight_var = "Ptll";
+
+    if (settings.is_data) {
+        options.in_file_name = options.in_file_path + options.data_period + "_data_photon_" + settings.channel + ".root";
+        options.out_file_name = settings.reweighting_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
+    }
+    else {
+        options.in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
+        options.out_file_name = settings.reweighting_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
+    }
+    options.in_tree_name = settings.save_tree_name;
+    options.out_tree_name = settings.save_tree_name;
+
+    //--- reweight photons
+    options.unit_testing = unit_testing;
+    ReweightPhotons(options);
+}
+
+//----------
+// PLOTTING
+//----------
+
+void PlottingStep(GlobalOptions settings, bool unit_testing) {
+    PlottingOptions options;
+
+    options.unit_testing = unit_testing;
+    options.period = settings.period;
+    options.data_period = DataPeriod(options.period);
+    options.mc_period = getMCPeriod(options.period);
+    options.channel = settings.channel;
+    options.is_data = settings.is_data;
+    options.in_file_path = settings.reweighting_folder;
+    options.reduction_folder = settings.reduction_folder;
+    options.plots_folder = settings.plots_folder;
+    options.reweight_var = "Ptll";
+
+    options.region_list = "SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ";
+    options.plot_feature_list = "METl METt met_Et lepPt lep_eta lep_phi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jet_pT HT";
+    options.blinded = true;
+    options.print_photon_yield_only = false;
+
+    if (settings.is_data) {
+        options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
+        options.out_file_name = settings.reweighting_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
+    }
+    else {
+        options.in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
+        options.out_file_name = settings.reweighting_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
+    }
+    options.in_tree_name = settings.save_tree_name;
+    options.out_tree_name = settings.save_tree_name;
+
+    //--- make plots
+    options.unit_testing = unit_testing;
+    MakePlots(options);
+}
+
 //---------------
 // MAIN FUNCTION
 //---------------
@@ -414,6 +488,7 @@ void Main() {
     ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
     gErrorIgnoreLevel = kWarning; // turn off info dumps
     bins::init_binning_histograms(); // prepare histograms
+    TH1::SetDefaultSumw2(); // histogram summing option
 
     GlobalOptions settings;
 
@@ -427,18 +502,19 @@ void Main() {
     settings.my_samples_folder = "/public/data/Photon/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
-    //settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
-    settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
+    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    //settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = true;
+    bool unit_testing = false;
     bool do_reduction = false;
-    bool do_smearing = true;
-    bool do_reweighting = false;
+    bool do_smearing = false;
+    bool do_reweighting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (unit_testing) {
@@ -484,19 +560,18 @@ void Main() {
     }
 
     //--- smear photons
-    TH1::SetDefaultSumw2();
     if (do_smearing) {
         initSmearingFunctions();
 
         //vector<string> periods{"data15-16", "data17", "data18"};
-        vector<string> periods{"data15-16"};
+        vector<string> periods{"data18"};
         for (auto period : periods) {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            //vector<string> channels{"ee", "mm"};
+            vector<string> channels{"ee", "mm"};
             vector<bool> is_datas{true};
-            vector<string> channels{"mm"};
+            //vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
                     settings.channel = channel;
@@ -509,20 +584,38 @@ void Main() {
 
     //--- reweight photons
     if (do_reweighting) {
-        //vector<string> periods{"data15-16", "data17", "data18"};
-        //for (auto period : periods) {
-            //settings.period = period;
+        vector<string> periods{"data15-16", "data17", "data18"};
+        for (auto period : periods) {
+            settings.period = period;
 
-            ////vector<string> types{"Data", "MC"};
-            //vector<string> types{"Data"};
-            //vector<string> channels{"ee", "mm"};
-            //for (auto type : types) {
-                //for (auto channel : channels) {
-                    //settings.channel = channel;
-                    //settings.type = type;
-                    //SmearingStep(settings, unit_testing); 
-                //}
-            //}
-        //}
+            //vector<bool> is_datas{true, false};
+            vector<bool> is_datas{true};
+            vector<string> channels{"ee", "mm"};
+            for (auto is_data : is_datas) {
+                for (auto channel : channels) {
+                    settings.channel = channel;
+                    settings.is_data = is_data;
+                    ReweightingStep(settings, unit_testing); 
+                }
+            }
+        }
+    }
+
+    //--- make plots
+    if (do_plotting) {
+        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<bool> is_datas{true, false};
+        vector<bool> is_datas{true};
+        vector<string> channels{"ee", "mm"};
+        for (auto period : periods) {
+            settings.period = period;
+            for (auto is_data : is_datas) {
+                settings.is_data = is_data;
+                for (auto channel : channels) {
+                    settings.channel = channel;
+                    PlottingStep(settings, unit_testing); 
+                }
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@
 #include <sstream>
 #include <fstream>
 #include <map>
+//#include <unordered_map>
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <iomanip> 
 #include <algorithm>
@@ -426,10 +428,6 @@ struct GlobalOptions {
     string save_tree_name;
 };
 
-//-----------
-// REDUCTION
-//-----------
-
 struct ReductionOptions {
     string in_file_name;
     string in_tree_name;
@@ -446,10 +444,6 @@ struct ReductionOptions {
     bool unit_testing;
 };
 
-//----------
-// SMEARING
-//----------
-
 struct SmearingOptions {
     string in_file_name;
     string in_file_path;
@@ -462,6 +456,60 @@ struct SmearingOptions {
     string mc_period;
     bool is_data;
     string channel;
+
+    vector<string> branches_to_copy;
+    BranchAddOptions branches_to_add;
+
+    bool unit_testing;
+    bool turn_off_shifting_and_smearing;
+    bool diagnostic_plots;
+};
+
+struct ReweightingOptions {
+    string in_file_name;
+    string in_file_path;
+    string in_tree_name;
+    string out_file_name;
+    string out_tree_name;
+
+    string period;
+    string data_period;
+    string mc_period;
+    bool is_data;
+    string channel;
+    string reweight_var;
+
+    string reduction_folder;
+
+    vector<string> branches_to_copy;
+    BranchAddOptions branches_to_add;
+
+    bool unit_testing;
+    bool turn_off_shifting_and_smearing;
+    bool diagnostic_plots;
+};
+
+struct PlottingOptions {
+    string in_file_name;
+    string in_file_path;
+    string in_tree_name;
+    string out_file_name;
+    string out_tree_name;
+
+    string period;
+    string data_period;
+    string mc_period;
+    bool is_data;
+    string channel;
+    string reweight_var;
+
+    string region_list;
+    string plot_feature_list;
+    bool blinded;
+    bool print_photon_yield_only;
+
+    string reduction_folder;
+    string plots_folder;
 
     vector<string> branches_to_copy;
     BranchAddOptions branches_to_add;
