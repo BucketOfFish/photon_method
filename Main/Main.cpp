@@ -1,7 +1,7 @@
 #include "Settings.cpp"
 #include "ReduceNtuples.cpp"
 #include "GetPhotonSmearing.cpp"
-#include "InProgress/SmearPhotons.cpp"
+//#include "InProgress/SmearPhotons.cpp"
 
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
@@ -362,53 +362,52 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
 
-    //--- branches to copy from old tree to new tree
-    options.branches_to_copy = vector<string> {
-        "PhotonConversionType",
-        "met_Phi",
-        "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
-        "dPhiMetJet1", "minDPhi2JetsMet", // dPhiMetJet1 is not abs()
-        "genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
-        "RunNumber", "RandomRunNumber",
-        "dPhiMetJet",
-        "METt_unsmeared", "METl_unsmeared", "trigMatch_2LTrig", "trigMatch_2LTrigOR", "met_Et_unsmeared",
-        "gamma_pt", "gamma_eta", "gamma_phi", "totalWeight",
-        "DatasetNumber", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
-        "MJ", "MJ_VR", "MZ", "MZ_VR", "NjISR", "NjS", "PTCM", "PTCM_VR",
-        "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
-        "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
-        "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        "mll_RJ", "mll_RJ_VR",
-        "bjet_n", "jet_eta", "jet_phi", "MET_sig",
-        "dPhiMetJet2", "dPhiMetJet12Min", "lumi",
-    };
+    ////--- branches to copy from old tree to new tree
+    //options.branches_to_copy = vector<string> {
+        //"PhotonConversionType",
+        //"met_Phi",
+        //"nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
+        //"dPhiMetJet1", "minDPhi2JetsMet", // dPhiMetJet1 is not abs()
+        //"genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
+        //"RunNumber", "RandomRunNumber",
+        //"dPhiMetJet",
+        //"METt_unsmeared", "METl_unsmeared", "trigMatch_2LTrig", "trigMatch_2LTrigOR", "met_Et_unsmeared",
+        //"gamma_pt", "gamma_eta", "gamma_phi", "totalWeight",
+        //"DatasetNumber", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
+        //"MJ", "MJ_VR", "MZ", "MZ_VR", "NjISR", "NjS", "PTCM", "PTCM_VR",
+        //"PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
+        //"R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
+        //"dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
+        //"mll_RJ", "mll_RJ_VR",
+        //"bjet_n", "jet_eta", "jet_phi", "MET_sig",
+        //"dPhiMetJet2", "dPhiMetJet12Min", "lumi",
+    //};
 
-    int flavor, channel;
-    if (settings.channel == "ee") {
-        flavor = 1;
-        channel = 1;
-    }
-    else if (settings.channel == "mm") {
-        flavor = 2;
-        channel = 0;
-    }
-    options.branches_to_add = BranchAddOptions {
-        //"met_Et", "mll", "Ptll", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
-        //"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
-        //"lepPt", "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge",
-        //"lepIsoFCTight", "lepIsPR",
-        make_tuple("is_OS", "1"),
-        make_tuple("nLep_base", "2"),
-        make_tuple("nLep_signal", "2"),
-        make_tuple("lepFlavor", "getLepFlavors(" + to_string(flavor) + ")"),
-        make_tuple("lepCharge", "getLepCharges()"),
-        make_tuple("channel", to_string(channel)),
-    };
+    //int flavor, channel;
+    //if (settings.channel == "ee") {
+        //flavor = 1;
+        //channel = 1;
+    //}
+    //else if (settings.channel == "mm") {
+        //flavor = 2;
+        //channel = 0;
+    //}
+    //options.branches_to_add = BranchAddOptions {
+        ////"met_Et", "mll", "Ptll", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
+        ////"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
+        ////"lepPt", "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge",
+        ////"lepIsoFCTight", "lepIsPR",
+        //make_tuple("is_OS", "1"),
+        //make_tuple("nLep_base", "2"),
+        //make_tuple("nLep_signal", "2"),
+        //make_tuple("lepFlavor", "getLepFlavors(" + to_string(flavor) + ")"),
+        //make_tuple("lepCharge", "getLepCharges()"),
+        //make_tuple("channel", to_string(channel)),
+    //};
 
     //--- smear photons
     options.unit_testing = unit_testing;
-    GetPhotonSmearing(options);
-    //SmearPhotons(options);
+    SmearPhotons(options);
 }
 
 //---------------
@@ -417,6 +416,7 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
 
 void Main() {
     ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
+    gErrorIgnoreLevel = kWarning; // turn off info dumps
 
     GlobalOptions settings;
 
@@ -430,9 +430,9 @@ void Main() {
     settings.my_samples_folder = "/public/data/Photon/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
-    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    //settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
-    //settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuplesTest/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
@@ -499,8 +499,9 @@ void Main() {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            vector<bool> is_datas{false};
-            vector<string> channels{"ee", "mm"};
+            //vector<string> channels{"ee", "mm"};
+            vector<bool> is_datas{true};
+            vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
                     settings.channel = channel;

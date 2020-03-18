@@ -47,6 +47,27 @@
 //#include <ROOT/RDF/RInterface.hxx>
 #include "TInterpreter.h"
 
+//--- printing colors
+#define RST  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
+#define PRED(x) KRED x RST
+#define PGRN(x) KGRN x RST
+#define PYEL(x) KYEL x RST
+#define PBLU(x) KBLU x RST
+#define PMAG(x) KMAG x RST
+#define PCYN(x) KCYN x RST
+#define PWHT(x) KWHT x RST
+
+#define BOLD(x) "\x1B[1m" x RST
+#define UNDL(x) "\x1B[4m" x RST
+
 namespace cuts {
 
     double leading_lep_pt_cut = 25.; // also used for smearing
@@ -140,20 +161,20 @@ namespace cuts {
 
 namespace bins {
 
-    int n_smearing_bins = 1000;
+    const int n_smearing_bins = 1000;
     double smearing_low = -2000;
     double smearing_high = 2000;
 
-    int n_pt_bins = 23;
+    const int n_pt_bins = 23;
     //double pt_bins[] = {50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10};
     double pt_bins[] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1000,1e10};
     double MET_bins[] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
     double dphi_bin[] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
 
-    int n_METl_bins = 25;
+    const int n_METl_bins = 25;
     double METl_bins[] = {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10};
 
-    int n_mll_bins = 43;
+    const int n_mll_bins = 43;
     double mll_bin[] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
 
     TH1D *hist_METl_bins, *hist_pt_bins, *hist_MET_bins;
@@ -277,8 +298,12 @@ template <typename T> constexpr string_view type_name() {
     return name;
 }
 
-void throwError(string error) {
-    cout << "ERROR: " << error << endl;
+void passTest(string msg) {
+    cout << BOLD(PGRN("PASSED TEST: ")) << msg << endl;
+}
+
+void failTest(string msg) {
+    cout << BOLD(PRED("ERROR: ")) << msg << endl;
     exit(0);
 }
 
@@ -432,6 +457,8 @@ struct SmearingOptions {
     BranchAddOptions branches_to_add;
 
     bool unit_testing;
+    bool turn_off_shifting_and_smearing;
+    bool diagnostic_plots;
 };
 
 #endif

@@ -21,7 +21,7 @@ vector<string> filenames{
     "mc16a_Zjets.root",
 };
 
-void skim() {
+void skim_ntuples() {
     for (string filename : filenames) {
         TFile *oldfile = TFile::Open((oldpath+filename).c_str());
         TTree *oldtree = (TTree*)oldfile->Get("BaselineTree");    
@@ -32,7 +32,7 @@ void skim() {
         //newtree->SetMakeClass(1);
         //oldtree->CopyAddresses(newtree);
 
-        for (Long64_t iEntry=0; iEntry<20000; iEntry++)
+        for (Long64_t iEntry=0; iEntry<1000000; iEntry++)
         { // Main loop
             oldtree->GetEntry(iEntry); // get ith entry
             newtree->Fill();

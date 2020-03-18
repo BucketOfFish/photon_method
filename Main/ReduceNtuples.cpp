@@ -2,40 +2,6 @@
 
 using namespace std;
 
-//------------------
-// HELPER FUNCTIONS
-//------------------
-
-ReductionOptions setUnitTestOptions(ReductionOptions options);
-void performUnitTests(TTree* out_tree);
-
-void runReduction(ReductionOptions options) {
-    TreeCreator *reducer = new TreeCreator();
-
-    if (options.unit_testing) {
-        cout << "Performing unit testing" << endl;
-        cout << endl;
-        options = setUnitTestOptions(options);
-    }
-
-    reducer->read(options.in_file_name, options.in_tree_name);
-
-    reducer->setBranchesToCopy(options.branches_to_copy);
-    reducer->setBranchesToRename(options.branches_to_rename);
-    reducer->setBranchesToAdd(options.branches_to_add);
-
-    reducer->setCut(options.cut);
-
-    reducer->write(options.out_file_name, options.out_tree_name);
-
-    if (options.unit_testing) {
-        TFile *out_file = TFile::Open(options.out_file_name.c_str());
-        TTree *out_tree = (TTree*)out_file->Get(options.out_tree_name.c_str());
-        performUnitTests(out_tree);
-        remove(options.out_file_name.c_str());
-    }
-}
-
 //------------
 // UNIT TESTS
 //------------
@@ -80,19 +46,19 @@ ReductionOptions setUnitTestOptions(ReductionOptions options) {
 
 void performUnitTests(TTree* out_tree) {
     if (out_tree->GetEntries() == 394)
-        cout << "Correct number of events after cut" << endl;
+        passTest("Correct number of events after cut");
     else
-        throwError("Wrong number of events after cut");
+        failTest("Wrong number of events after cut");
 
     if (out_tree->GetMinimum("met_Et") > 300)
-        cout << "Skimming performed correctly" << endl;
+        passTest("Skimming performed correctly");
     else
-        throwError("Skimming performed incorrectly");
+        failTest("Skimming performed incorrectly");
 
     if (out_tree->GetNbranches() == 3+1+2)
-        cout << "Slimming performed correctly" << endl;
+        passTest("Slimming performed correctly");
     else
-        throwError("Slimming performed incorrectly");
+        failTest("Slimming performed incorrectly");
 
     bool rename_pass = false;
     for (auto branch : *out_tree->GetListOfBranches()) {
@@ -106,13 +72,13 @@ void performUnitTests(TTree* out_tree) {
         }
     }
     if (rename_pass)
-        cout << "Branch renaming performed correctly" << endl;
+        passTest("Branch renaming performed correctly");
     else
-        throwError("Branch renaming performed incorrectly");
+        failTest("Branch renaming performed incorrectly");
 
     // need to add unit tests for new branches
 
-    cout << "Passed all unit tests" << endl;
+    passTest("Passed all unit tests");
     cout << endl;
 }
 
@@ -121,5 +87,28 @@ void performUnitTests(TTree* out_tree) {
 //---------------
 
 void ReduceNtuples(ReductionOptions options) {
-    runReduction(options);
+    TreeCreator *reducer = new TreeCreator();
+
+    if (options.unit_testing) {
+        cout << BOLD(PBLU("Performing unit testing on reduction step")) << endl;
+        cout << endl;
+        options = setUnitTestOptions(options);
+    }
+
+    reducer->read(options.in_file_name, options.in_tree_name);
+
+    reducer->setBranchesToCopy(options.branches_to_copy);
+    reducer->setBranchesToRename(options.branches_to_rename);
+    reducer->setBranchesToAdd(options.branches_to_add);
+
+    reducer->setCut(options.cut);
+
+    reducer->write(options.out_file_name, options.out_tree_name);
+
+    if (options.unit_testing) {
+        TFile *out_file = TFile::Open(options.out_file_name.c_str());
+        TTree *out_tree = (TTree*)out_file->Get(options.out_tree_name.c_str());
+        performUnitTests(out_tree);
+        remove(options.out_file_name.c_str());
+    }
 }
