@@ -29,7 +29,6 @@ public:
 
     PhotonToZConverter(SmearingOptions options) {
         this->options = options;
-        bins::init_binning_histograms();
 
         //--- open files
         cout << "channel                : " << options.channel         << endl;
@@ -175,8 +174,9 @@ public:
         cout << endl;
 
         //--- modify event selections and weights
-        if (TString(options.channel).EqualTo("ee")) cuts::bkg_baseline += cuts::ee;
-        else if (TString(options.channel).EqualTo("mm")) cuts::bkg_baseline += cuts::mm;
+        TCut bkg_baseline_with_channel;
+        if (TString(options.channel).EqualTo("ee")) bkg_baseline_with_channel = cuts::bkg_baseline + cuts::ee;
+        else if (TString(options.channel).EqualTo("mm")) bkg_baseline_with_channel = cuts::bkg_baseline + cuts::mm;
         else {
             cout << "Unrecognized channel! quitting   " << options.channel << endl;
             exit(0);
@@ -185,10 +185,10 @@ public:
         if (TString(options.data_period).EqualTo("data17")){
             TCut RunRange = TCut("RunNumber < 348000");  
             cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-            cuts::bkg_baseline *= RunRange;
+            bkg_baseline_with_channel *= RunRange;
         }
 
-        cout << "bkg selection          : " << cuts::bkg_baseline.GetTitle() << endl;
+        cout << "bkg selection          : " << bkg_baseline_with_channel.GetTitle() << endl;
         cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
 
         //--- fill lep theta histograms
@@ -199,16 +199,16 @@ public:
         TH1F* histoG = new TH1F("histoG", "", 100, 0, 3);
 
         if (options.is_data) {
-            tch_data->Draw("Z_cm_lep_theta>>hdata", cuts::bkg_baseline, "goff");
-            tch_tt->Draw("Z_cm_lep_theta>>htt", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-            tch_vv->Draw("Z_cm_lep_theta>>hvv", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+            tch_data->Draw("Z_cm_lep_theta>>hdata", bkg_baseline_with_channel, "goff");
+            tch_tt->Draw("Z_cm_lep_theta>>htt", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
+            tch_vv->Draw("Z_cm_lep_theta>>hvv", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
 
             cout << "data integral          : " << hdata->Integral() << endl;
             cout << "ttbar integral         : " << htt->Integral() << endl;
             cout << "diboson integral       : " << hvv->Integral() << endl;
         }
         else {
-            tch_zjets->Draw("Z_cm_lep_theta>>hz", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+            tch_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
 
             cout << "Z+jets integral        : " << hz->Integral() << endl;
         }
@@ -227,28 +227,46 @@ public:
             h_lep_cm_theta->Draw();
             can->Print("DiagnosticPlots/h_lep_cm_theta.eps");
 
-            //--- get lep eta in lab frame as well if doing unit testing
-            if (options.unit_testing) {
-                TH1F* hdata_lab = new TH1F("hdata_lab", "", 100, -3, 3);
-                TH1F* hz_lab = new TH1F("hz_lab", "", 100, -3, 3);
-                TH1F* htt_lab = new TH1F("htt_lab", "", 100, -3, 3);
-                TH1F* hvv_lab = new TH1F("hvv_lab", "", 100, -3, 3);
-                if (options.is_data) {
-                    tch_data->Draw("lepEta>>hdata_lab", cuts::bkg_baseline, "goff");
-                    tch_tt->Draw("lepEta>>htt_lab", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-                    tch_vv->Draw("lepEta>>hvv_lab", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+            //--- get other features in lab frame as well if doing unit testing
+            TString zeroed_cut;
+            zeroed_cut.Form("min(%s, 0)", (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle());
+            //TString zeroed_cut = (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle();
+            //cout << zeroed_cut << endl;
 
-                    hdata_lab->Add(htt_lab, -1.0);
-                    hdata_lab->Add(hvv_lab, -1.0);
-                    hdata_lab->Draw();
+            if (options.unit_testing) {
+                vector<string> features{"lepEta", "METl", "mll"};
+                unordered_map<string, unordered_map<string, TH1F*>> lab_hists;
+                unordered_map<string, TChain*> tch_lab;
+                vector<string> processes;
+                if (options.is_data) {
+                    processes = vector<string>{"data", "tt", "vv"};
+                    tch_lab["data"] = tch_data; tch_lab["tt"] = tch_tt; tch_lab["vv"] = tch_vv;
                 }
                 else {
-                    TCut zeroed_cut = "min(" + (cuts::bkg_baseline*cuts::bkg_weight) + ", 0)";
-                    cout << zeroed_cut << endl; // CHECKPOINT
-                    tch_zjets->Draw("lepEta>>hz_lab", zeroed_cut, "goff");
-                    hz_lab->Draw();
+                    processes = vector<string>{"z"};
+                    tch_lab["z"] = tch_zjets;
                 }
-                can->Print("DiagnosticPlots/h_lep_lab_eta.eps");
+                for (auto feature : features) {
+                    for (auto process : processes) {
+                        string hist_name = "h" + process + "_" + feature + "_lab";
+                        TH1F* h_temp;
+                        if (feature == "lepEta") h_temp = new TH1F(hist_name.c_str(), "", 100, -3, 3);
+                        else if (feature == "METl") h_temp = new TH1F(hist_name.c_str(), "", 100, -100, 100);
+                        else if (feature == "mll") h_temp = new TH1F(hist_name.c_str(), "", 100, 0, 150);
+                        lab_hists[feature][process] = h_temp;
+
+                        tch_lab[process]->Draw((feature+">>"+hist_name).c_str(), zeroed_cut, "goff");
+                    }
+                    if (options.is_data) {
+                        lab_hists[feature]["data"]->Add(lab_hists[feature]["tt"], -1.0);
+                        lab_hists[feature]["data"]->Add(lab_hists[feature]["vv"], -1.0);
+                        lab_hists[feature]["data"]->Draw();
+                    }
+                    else {
+                        lab_hists[feature]["z"]->Draw();
+                    }
+                    can->Print(("DiagnosticPlots/h_" + feature + ".eps").c_str());
+                }
             }
 
             delete can;
@@ -654,7 +672,9 @@ public:
 
             METt_smeared = METt;
             try {
-                auto [METl_smeared, mll] = this->smearMETlAndMll(METl, gamma_pt);
+                auto [METl_smeared_return, mll_return] = this->smearMETlAndMll(METl, gamma_pt);
+                METl_smeared = METl_smeared_return;
+                mll = mll_return;
             }
             catch(...) {
                 cout << PRED("Problem in event ") << i << endl;
@@ -705,7 +725,8 @@ public:
         this->outputFile->cd();
         this->outputTree->Write();
 
-        cout << "done." << endl;
+        cout << PBLU("Done with smearing") << endl;
+        cout << endl;
         delete this->outputFile;
     }
 };
@@ -773,19 +794,19 @@ void performUnitTests(SmearingOptions options) {
         h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta(), totalWeight);
     }
     h_lep_lab_eta_reproduced->Draw();
-    can->Print("DiagnosticPlots/h_lep_lab_eta_reproduced.eps");
+    can->Print("DiagnosticPlots/h_lepEta_reproduced.eps");
     passTest("Lepton eta plot in lab frame produced");
 
     //--- METl and mll smearing
     float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
 
-    TH1F* h_METl_reproduced = new TH1F("", "", 100, -3, 3);
-    TH1F* h_mll_reproduced = new TH1F("", "", 100, -3, 3);
+    TH1F* h_METl_reproduced = new TH1F("", "", 100, -100, 100);
+    TH1F* h_mll_reproduced = new TH1F("", "", 100, 0, 150);
     for (int i=0; i<100000; i++) {
         photon_tree->GetEntry(i);
-        cout << METl_unsmeared << ", " << gamma_pt << endl;
         auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
-        cout << "Smeared: " << METl << ", " << mll << endl;
+        //cout << "Unsmeared: " << METl_unsmeared << ", " << gamma_pt <<
+            //" | Smeared: " << METl << ", " << mll << ", " << totalWeight << endl;
         h_METl_reproduced->Fill(METl, totalWeight);
         h_mll_reproduced->Fill(mll, totalWeight);
     }
@@ -814,6 +835,8 @@ void SmearPhotons(SmearingOptions options) {
         performUnitTests(options);
     }
     else {
+        cout << BOLD(PBLU("Performing smearing")) << endl;
+        cout << endl;
         PhotonToZConverter converter(options);
         converter.convertEvents();
         if (options.diagnostic_plots) converter.drawMETlDistributions();

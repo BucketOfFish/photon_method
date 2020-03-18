@@ -412,6 +412,7 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
 void Main() {
     ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
     gErrorIgnoreLevel = kWarning; // turn off info dumps
+    bins::init_binning_histograms(); // prepare histograms
 
     GlobalOptions settings;
 
@@ -425,14 +426,15 @@ void Main() {
     settings.my_samples_folder = "/public/data/Photon/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
-    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    //settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = true;
     bool do_reweighting = false;
@@ -487,15 +489,15 @@ void Main() {
     if (do_smearing) {
         initSmearingFunctions();
 
-        vector<string> periods{"data15-16", "data17", "data18"};
-        //vector<string> periods{"data15-16"};
+        //vector<string> periods{"data15-16", "data17", "data18"};
+        vector<string> periods{"data15-16"};
         for (auto period : periods) {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            vector<string> channels{"ee", "mm"};
+            //vector<string> channels{"ee", "mm"};
             vector<bool> is_datas{true};
-            //vector<string> channels{"mm"};
+            vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
                     settings.channel = channel;
