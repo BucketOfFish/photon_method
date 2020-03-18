@@ -3,62 +3,9 @@
 
 using namespace std;
 
-//------------------
-// HELPER FUNCTIONS
-//------------------
-
-int rebinHistogram(TH1D* hist, int rebin) {
-
-    /**
-     * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd number of bins.
-     * This means having abs(negative_yield/positive_yield)<0.005 and core_yield/positive_yield>0.4.
-     * Else, rebin by #(rebin).
-     * Finally, set all negative bins values in the histogram to 0.
-     * Return the final rebinning factor for the histogram.
-     */
-
-    float negative_yield = 0.; // sum of bins with negative values
-    float positive_yield = 0.001; // sum of bins with positive values
-    float core_yield = 0.; // sum of bins within one sigma of axis center
-
-    if (rebin==0) {
-        rebin = 1;
-        for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-            if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-            else negative_yield += hist->GetBinContent(bin);
-        }
-        int has_odd_nbins = hist->GetNbinsX() % 2;
-        while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) && has_odd_nbins==0 && rebin<=32) {
-            hist->Rebin(2);
-            rebin = rebin*2;
-            has_odd_nbins = hist->GetNbinsX() % 2;
-            negative_yield = 0.;
-            positive_yield = 0.;
-            core_yield = 0.;
-            for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-                if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
-                else negative_yield += hist->GetBinContent(bin);
-                if (abs(hist->GetBinCenter(bin)-hist->GetMean())<hist->GetRMS()) { // if this bin is within a sigma of the center of the axis
-                    core_yield += hist->GetBinContent(bin); // core_yield = 68% for a perfect Guassian
-                }
-            }
-        }
-    }
-    else {
-        // merge every #rebin bins into a single bin
-        hist->Rebin(rebin);
-    }
-
-    for (int bin=1;bin<=hist->GetNbinsX();bin++) {
-        hist->SetBinContent(bin,max(hist->GetBinContent(bin),0.));
-    }
-
-    return rebin;
-};
-
-//------------------
-// CONVERSION CLASS
-//------------------
+//-----------------
+// CONVERTOR CLASS
+//-----------------
 
 class PhotonToZConverter {
 public:
@@ -73,9 +20,12 @@ public:
     std::vector<float> lep_cm_theta_bin_bounds;
     std::discrete_distribution<int> *lep_cm_theta_distribution;
 
-    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
-    map<int, pair<float, float>> smearing_gaussians;
+    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
+    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
     TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
+    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
+
+    map<int, pair<float, float>> smearing_gaussians;
 
     PhotonToZConverter(SmearingOptions options) {
         this->options = options;
@@ -117,9 +67,76 @@ public:
         myRandom.SetSeed(0);
 
         //--- set up histograms
+        for (int bin=0; bin<bins::n_pt_bins+2; bin++)
+            this->hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+
+        for (int bin=0; bin<bins::n_pt_bins+2; bin++) {
+            this->hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+            this->hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+
+            vector<TH1D*> hist_z_mll_bin_pt_metl_pt_bin;
+            for (int bin1=0; bin1<bins::n_METl_bins+2; bin1++) {
+                hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin));
+            }
+            this->hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
+        }
+
         this->getLepThetaHistograms();
         this->getSmearingGaussians();
     }
+
+    //------------------
+    // HELPER FUNCTIONS
+    //------------------
+
+    int rebinHistogram(TH1D* hist, int rebin) {
+
+        /**
+         * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd number of bins.
+         * This means having abs(negative_yield/positive_yield)<0.005 and core_yield/positive_yield>0.4.
+         * Else, rebin by #(rebin).
+         * Finally, set all negative bins values in the histogram to 0.
+         * Return the final rebinning factor for the histogram.
+         */
+
+        float negative_yield = 0.; // sum of bins with negative values
+        float positive_yield = 0.001; // sum of bins with positive values
+        float core_yield = 0.; // sum of bins within one sigma of axis center
+
+        if (rebin==0) {
+            rebin = 1;
+            for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+                if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+                else negative_yield += hist->GetBinContent(bin);
+            }
+            int has_odd_nbins = hist->GetNbinsX() % 2;
+            while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) && has_odd_nbins==0 && rebin<=32) {
+                hist->Rebin(2);
+                rebin = rebin*2;
+                has_odd_nbins = hist->GetNbinsX() % 2;
+                negative_yield = 0.;
+                positive_yield = 0.;
+                core_yield = 0.;
+                for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+                    if (hist->GetBinContent(bin)>=0) positive_yield += hist->GetBinContent(bin);
+                    else negative_yield += hist->GetBinContent(bin);
+                    if (abs(hist->GetBinCenter(bin)-hist->GetMean())<hist->GetRMS()) { // if this bin is within a sigma of the center of the axis
+                        core_yield += hist->GetBinContent(bin); // core_yield = 68% for a perfect Guassian
+                    }
+                }
+            }
+        }
+        else {
+            // merge every #rebin bins into a single bin
+            hist->Rebin(rebin);
+        }
+
+        for (int bin=1;bin<=hist->GetNbinsX();bin++) {
+            hist->SetBinContent(bin,max(hist->GetBinContent(bin),0.));
+        }
+
+        return rebin;
+    };
 
     //------------------
     // LEPTON SPLITTING
@@ -127,7 +144,7 @@ public:
 
     TH1F* getLepThetaHistogram() {
 
-        cout << PBLU("Getting Z lepton CM theta distribution histogram.") << endl;
+        cout << PBLU("Getting Z lepton CM theta distribution histogram") << endl;
         cout << endl;
         gStyle->SetOptStat(0);
 
@@ -205,26 +222,32 @@ public:
         }
         else h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
-        if (options.diagnostic_plots) {
+        if (options.diagnostic_plots || options.unit_testing) {
             TCanvas *can = new TCanvas("can","can",600,600);
             h_lep_cm_theta->Draw();
             can->Print("DiagnosticPlots/h_lep_cm_theta.eps");
 
             //--- get lep eta in lab frame as well if doing unit testing
             if (options.unit_testing) {
-                TH1F* h_lep_lab_theta = new TH1F("h_lab", "", 100, -3, 3);
+                TH1F* hdata_lab = new TH1F("hdata_lab", "", 100, -3, 3);
+                TH1F* hz_lab = new TH1F("hz_lab", "", 100, -3, 3);
+                TH1F* htt_lab = new TH1F("htt_lab", "", 100, -3, 3);
+                TH1F* hvv_lab = new TH1F("hvv_lab", "", 100, -3, 3);
                 if (options.is_data) {
-                    tch_data->Draw("lepEta>>h_lab", cuts::bkg_baseline, "goff");
-                    tch_tt->Draw("lepEta>>htt", cuts::bkg_baseline*cuts::bkg_weight, "goff");
-                    tch_vv->Draw("lepEta>>hvv", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+                    tch_data->Draw("lepEta>>hdata_lab", cuts::bkg_baseline, "goff");
+                    tch_tt->Draw("lepEta>>htt_lab", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+                    tch_vv->Draw("lepEta>>hvv_lab", cuts::bkg_baseline*cuts::bkg_weight, "goff");
 
-                    h_lep_lab_theta->Add(htt, -1.0);
-                    h_lep_lab_theta->Add(hvv, -1.0);
+                    hdata_lab->Add(htt_lab, -1.0);
+                    hdata_lab->Add(hvv_lab, -1.0);
+                    hdata_lab->Draw();
                 }
                 else {
-                    tch_zjets->Draw("lepEta>>h_lab", cuts::bkg_baseline*cuts::bkg_weight, "goff");
+                    TCut zeroed_cut = "min(" + (cuts::bkg_baseline*cuts::bkg_weight) + ", 0)";
+                    cout << zeroed_cut << endl; // CHECKPOINT
+                    tch_zjets->Draw("lepEta>>hz_lab", zeroed_cut, "goff");
+                    hz_lab->Draw();
                 }
-                h_lep_lab_theta->Draw();
                 can->Print("DiagnosticPlots/h_lep_lab_eta.eps");
             }
 
@@ -310,7 +333,7 @@ public:
     // MET SMEARING
     //--------------
 
-    void getMETlAndMllHistograms(TH1D **hist_z_metl_bin_pt, TH1D **hist_g_metl_bin_pt) {
+    void getMETlAndMllHistograms() {
         /**
          * Fills histogram arrays with Z/photon METl distributions (and Z mll distribution) in binned regions.
          */
@@ -319,17 +342,6 @@ public:
         cout << endl;
 
         //--- set up histograms and input files
-        for (int bin=0; bin<bins::n_pt_bins+2; bin++) {
-            hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
-            hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
-
-            vector<TH1D*> hist_z_mll_bin_pt_metl_pt_bin;
-            for (int bin1=0; bin1<bins::n_METl_bins+2; bin1++) {
-                hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin));
-            }
-            this->hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
-        }
-
         TFile* data_file = new TFile((this->options.in_file_path + this->options.data_period + "_data_bkg.root").c_str());
         TFile* ttbar_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_ttbar.root").c_str());
         TFile* diboson_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_diboson.root").c_str());
@@ -381,7 +393,7 @@ public:
                 this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
                 //if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
                 //if (jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
-                hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+                this->hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
             }
         }
 
@@ -402,7 +414,7 @@ public:
             tree->GetEntry(event_list->GetEntry(entry));
             //if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
             int pt_bin = bins::hist_pt_bins->FindBin(ptll);
-            hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
+            this->hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
         }
 
         //--- close files
@@ -413,7 +425,7 @@ public:
         photon_file->Close();
     };
 
-    void makeSmearingDiagnosticPlots(TH1D** hist_z_metl_bin_pt, TH1D** hist_g_metl_bin_pt, map<int, pair<float, float>> smearing_gaussians) {
+    void makeSmearingDiagnosticPlots(map<int, pair<float, float>> smearing_gaussians) {
         for (auto const& [pt_bin, gaussian] : smearing_gaussians) {
             //cout << "Pt bin " << pt_bin << " has a smearing mean, std of " << gaussian.first << ", " << gaussian.second << endl;
 
@@ -421,7 +433,7 @@ public:
             canvas->cd();
             canvas->SetLogy();
 
-            TH1D* z_hist = hist_z_metl_bin_pt[pt_bin];
+            TH1D* z_hist = this->hist_z_metl_bin_pt[pt_bin];
             TString z_plot_name = Form("DiagnosticPlots/z_ptbin_%d.eps", pt_bin);
             z_hist->SetLineColor(1); z_hist->SetFillColor(42); z_hist->SetLineStyle(1);
             z_hist->GetXaxis()->SetTitle("METl");
@@ -429,7 +441,7 @@ public:
             z_hist->Draw("hist");
             canvas->Print(z_plot_name);
 
-            TH1D* g_hist = hist_g_metl_bin_pt[pt_bin];
+            TH1D* g_hist = this->hist_g_metl_bin_pt[pt_bin];
             TString g_plot_name = Form("DiagnosticPlots/g_ptbin_%d.eps", pt_bin);
             g_hist->SetLineColor(1); g_hist->SetFillColor(42); g_hist->SetLineStyle(1);
             g_hist->GetXaxis()->SetTitle("METl");
@@ -458,10 +470,7 @@ public:
          */
 
         //--- METl histograms
-        TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
-        TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
-
-        this->getMETlAndMllHistograms(hist_z_metl_bin_pt, hist_g_metl_bin_pt);
+        this->getMETlAndMllHistograms();
 
         //--- perform smearing
         cout << PBLU("Calculating smearing Gaussians") << endl;
@@ -469,15 +478,17 @@ public:
         map<int, pair<float, float>> smearing_gaussians;
         for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
             //--- Rebin METl histograms to look reasonable
-            int rebin_factor = rebinHistogram(hist_z_metl_bin_pt[pt_bin], 0);
-            rebinHistogram(hist_g_metl_bin_pt[pt_bin], rebin_factor);
+            int rebin_factor = rebinHistogram(this->hist_z_metl_bin_pt[pt_bin], 0);
+            rebinHistogram(this->hist_g_metl_bin_pt[pt_bin], rebin_factor);
             for (int met_bin=0; met_bin<bins::n_METl_bins+2; met_bin++)
                 rebinHistogram(this->hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
             int n_hist_bins = bins::n_smearing_bins/rebin_factor;
 
             //--- Save smearing value
-            float smear_mean = hist_z_metl_bin_pt[pt_bin]->GetMean() - hist_g_metl_bin_pt[pt_bin]->GetMean();
-            float smear_rms = sqrt(pow(hist_z_metl_bin_pt[pt_bin]->GetRMS(), 2) - pow(hist_g_metl_bin_pt[pt_bin]->GetRMS(), 2));
+            float smear_mean = this->hist_z_metl_bin_pt[pt_bin]->GetMean() -
+                               this->hist_g_metl_bin_pt[pt_bin]->GetMean();
+            float smear_rms = sqrt(pow(this->hist_z_metl_bin_pt[pt_bin]->GetRMS(), 2) -
+                              pow(this->hist_g_metl_bin_pt[pt_bin]->GetRMS(), 2));
             if (isnan(smear_rms)) smear_rms = 0.0;
             
             pair<float, float> gaussian = make_pair(0.0, 0.0);
@@ -488,11 +499,37 @@ public:
 
         if (this->options.diagnostic_plots) {
             cout << PBLU("Saving diagnostic smearing plots") << endl;
-            this->makeSmearingDiagnosticPlots(hist_z_metl_bin_pt, hist_g_metl_bin_pt, smearing_gaussians);
+            this->makeSmearingDiagnosticPlots(smearing_gaussians);
         }
+        cout << endl;
 
         return smearing_gaussians;
     }
+
+    tuple<float, float> smearMETlAndMll(float METl, float gamma_pt) {
+        int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
+        auto gaussian_vals = this->smearing_gaussians.find(pt_bin);
+            
+        float METl_smeared;
+        if (this->options.turn_off_shifting_and_smearing)
+            METl_smeared = METl;
+        else {
+            normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
+            METl_smeared = METl + smearing_gaussian(*random_generator);
+        }
+        this->hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
+
+        int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
+        float mll = 0;
+        if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral()>0)
+            mll = this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->GetRandom();
+
+        return make_tuple(METl_smeared, mll);
+    }
+
+    //------------------
+    // EVENT CONVERSION
+    //------------------
 
     void drawMETlDistributions() {
         for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
@@ -511,10 +548,6 @@ public:
             delete canvas, g_smeared_hist;
         }
     }
-
-    //----------------------------
-    // PERFORM SMEARING ON EVENTS
-    //----------------------------
 
     void convertEvents() {
         TTree *inputTree = this->inputTree;
@@ -610,57 +643,37 @@ public:
         // loop over events
         //-----------------------------
 
-        for (int bin=0; bin<bins::n_pt_bins+2; bin++)
-            this->hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
-
         Long64_t nentries = inputTree->GetEntries();
         for (Long64_t i=0; i<nentries; i++) {
-
             if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
             inputTree->GetEntry(i);
 
-            //--- get random smearing values, then apply smearing (note signs)
-            float gamma_pt_smear = 0;
-            float gamma_phi_smear = 0;
-            gamma_pt_smeared = gamma_pt - gamma_pt_smear;
-            gamma_phi_smeared = gamma_phi + gamma_phi_smear;
+            //--- smearing
+            gamma_pt_smeared = gamma_pt;
+            gamma_phi_smeared = gamma_phi;
 
-            int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
-            auto gaussian_vals = this->smearing_gaussians.find(pt_bin);
-                
-            if (this->options.turn_off_shifting_and_smearing)
-                METl_smeared = METl;
-            else {
-                normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
-                METl_smeared = METl + smearing_gaussian(*random_generator);
-            }
             METt_smeared = METt;
-            MET_smeared = sqrt(pow(METl_smeared, 2) + pow(METt_smeared, 2));
-            this->hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
+            try {
+                auto [METl_smeared, mll] = this->smearMETlAndMll(METl, gamma_pt);
+            }
+            catch(...) {
+                cout << PRED("Problem in event ") << i << endl;
+                continue;
+            }
+            if (mll==0) continue;
 
+            MET_smeared = sqrt(pow(METl_smeared, 2) + pow(METt_smeared, 2));
             TLorentzVector MET_smeared_4vec;
-            MET_smeared_4vec.SetPtEtaPhiM(MET_smeared,0,MET_phi,0);
+            MET_smeared_4vec.SetPtEtaPhiM(MET_smeared, 0, MET_phi, 0);
             DPhi_METZPhoton_smear = gamma_phi_smeared - MET_smeared_4vec.Phi();
 
-            int gamma_pt_smear_bin = bins::hist_pt_bins->FindBin(gamma_pt_smeared);
-            int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
-            mll = 0;
-            if (this->hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->Integral()>0)
-                mll = this->hist_z_mll_bin_pt_metl[gamma_pt_smear_bin][METl_bin]->GetRandom();
-
-            //---------------------------------------------
-            // compute two lepton kinematics
-            //---------------------------------------------
+            //--- lepton splitting
             TLorentzVector z_4vec;
-            z_4vec.SetPtEtaPhiM(gamma_pt_smeared,gamma_eta,gamma_phi_smeared,mll);
+            z_4vec.SetPtEtaPhiM(gamma_pt_smeared, gamma_eta, gamma_phi_smeared, mll);
 
             auto [good_event, l0_lab_4vec, l1_lab_4vec] = splitLeptons(z_4vec);
             if (!good_event) continue;
 
-            //--- random leading lepton charge
-            int charge = myRandom.Integer(2)*2-1;
-
-            //--- add leptons to event
             lep_pT->clear();
             lep_pT->push_back(l0_lab_4vec.Pt());
             lep_pT->push_back(l1_lab_4vec.Pt());
@@ -670,6 +683,7 @@ public:
             lep_phi->clear();
             lep_phi->push_back(l0_lab_4vec.Phi());
             lep_phi->push_back(l1_lab_4vec.Phi());
+            int charge = myRandom.Integer(2)*2-1; // random leading lepton charge
             lep_charge->clear();
             lep_charge->push_back(charge);
             lep_charge->push_back(-charge);
@@ -709,12 +723,12 @@ SmearingOptions setUnitTestOptions(SmearingOptions options) {
     options.period = "data15-16";
     options.mc_period = getMCPeriod(options.period);
     options.data_period = DataPeriod(options.period);
-    //options.is_data = true;
-    options.is_data = false;
+    options.is_data = true;
+    //options.is_data = false;
     options.channel = "ee";
 
     options.turn_off_shifting_and_smearing = false;
-    options.diagnostic_plots = true;
+    options.diagnostic_plots = false;
 
     return options;
 }
@@ -733,7 +747,7 @@ void performUnitTests(SmearingOptions options) {
         h_lep_cm_theta_reproduced->Fill(converter.getRandomLepTheta());
     h_lep_cm_theta_reproduced->Draw();
     can->Print("DiagnosticPlots/h_lep_cm_theta_reproduced.eps");
-    passTest("Lepton theta plots in CM frame produced");
+    passTest("Lepton theta plot in CM frame produced");
 
     //--- lep_lab_eta
     string photon_file_name;
@@ -745,23 +759,41 @@ void performUnitTests(SmearingOptions options) {
     float gamma_pt; photon_tree->SetBranchAddress("gamma_pt", &gamma_pt);
     float gamma_eta; photon_tree->SetBranchAddress("gamma_eta", &gamma_eta);
     float gamma_phi; photon_tree->SetBranchAddress("gamma_phi", &gamma_phi);
-    //float mll; photon_tree->SetBranchAddress("mll", &mll);
+    double totalWeight; photon_tree->SetBranchAddress("totalWeight", &totalWeight);
     float mll = 91;
 
     TH1F* h_lep_lab_eta_reproduced = new TH1F("", "", 100, -3, 3);
     for (int i=0; i<100000; i++) {
         photon_tree->GetEntry(i);
-        //float split_lep_eta = Fill(converter.getRandomLepTheta());
         TLorentzVector z_4vec;
         z_4vec.SetPtEtaPhiM(gamma_pt, gamma_eta, gamma_phi, mll);
         auto [good_event, l0_lab_4vec, l1_lab_4vec] = converter.splitLeptons(z_4vec);
         if (!good_event) continue;
-        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta());
-        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta());
+        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta(), totalWeight);
+        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta(), totalWeight);
     }
     h_lep_lab_eta_reproduced->Draw();
     can->Print("DiagnosticPlots/h_lep_lab_eta_reproduced.eps");
-    passTest("Lepton eta plots in lab frame produced");
+    passTest("Lepton eta plot in lab frame produced");
+
+    //--- METl and mll smearing
+    float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
+
+    TH1F* h_METl_reproduced = new TH1F("", "", 100, -3, 3);
+    TH1F* h_mll_reproduced = new TH1F("", "", 100, -3, 3);
+    for (int i=0; i<100000; i++) {
+        photon_tree->GetEntry(i);
+        cout << METl_unsmeared << ", " << gamma_pt << endl;
+        auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
+        cout << "Smeared: " << METl << ", " << mll << endl;
+        h_METl_reproduced->Fill(METl, totalWeight);
+        h_mll_reproduced->Fill(mll, totalWeight);
+    }
+    h_METl_reproduced->Draw();
+    can->Print("DiagnosticPlots/h_METl_reproduced.eps");
+    h_mll_reproduced->Draw();
+    can->Print("DiagnosticPlots/h_mll_reproduced.eps");
+    passTest("Smeared METl and mll plots in lab frame produced");
 
     delete can;
     remove(options.out_file_name.c_str());
