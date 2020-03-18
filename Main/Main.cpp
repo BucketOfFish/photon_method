@@ -280,9 +280,9 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
 
     //--- set selection cut
     if (settings.is_photon)
-        options.cut = cuts::photon_baseline_ntuples;
+        options.cut = cuts::photon_baseline_ntuples + "totalWeight != 0";
     else
-        options.cut = cuts::bkg_baseline;
+        options.cut = cuts::bkg_baseline + "totalWeight != 0";
 
     //--- make reduced ntuples
     options.unit_testing = unit_testing;
