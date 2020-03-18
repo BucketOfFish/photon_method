@@ -279,14 +279,11 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     options.branches_to_add.insert(options.branches_to_add.end(), additional_add.begin(), additional_add.end());
 
     //--- set selection cut
-    if (settings.is_photon) {
+    if (settings.is_photon)
         options.cut = cuts::photon_baseline_ntuples;
-        options.final_cut = "totalWeight != 0";
-    }
-    else {
+    else
         options.cut = cuts::bkg_baseline;
-        options.final_cut = "totalWeight != 0";
-    }
+    options.final_cut = "totalWeight!=0";
 
     //--- make reduced ntuples
     options.unit_testing = unit_testing;
@@ -454,8 +451,6 @@ void Main() {
     if (do_reduction) {
         initFillingFunctions(); // functions used for adding new branches
 
-        //vector<bool> is_datas{true, false};
-        //vector<string> periods{"data15-16", "data17", "data18"};
         vector<bool> is_datas{true, false};
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto is_data : is_datas) {

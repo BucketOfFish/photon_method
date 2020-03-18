@@ -391,7 +391,7 @@ public:
 
         //--- apply cut
         if (!final_cut.empty())
-            reduced_dataframe = reduced_dataframe->Filter(this->final_cut.c_str());
+            reduced_dataframe = reduced_dataframe.Filter(this->final_cut.c_str());
 
         reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
         cout << endl;
@@ -441,6 +441,7 @@ struct ReductionOptions {
     BranchAddOptions branches_to_add;
 
     string cut;
+    string final_cut;
 
     bool unit_testing;
 };

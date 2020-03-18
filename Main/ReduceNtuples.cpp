@@ -102,6 +102,7 @@ void ReduceNtuples(ReductionOptions options) {
     reducer->setBranchesToAdd(options.branches_to_add);
 
     reducer->setCut(options.cut);
+    reducer->setFinalCut(options.final_cut);
 
     reducer->write(options.out_file_name, options.out_tree_name);
 
@@ -111,8 +112,6 @@ void ReduceNtuples(ReductionOptions options) {
         performUnitTests(out_tree);
         remove(options.out_file_name.c_str());
     }
-
-    reducer->setFinalCut(options.final_cut);
 
     cout << PBLU("Done with reduction") << endl;
     cout << endl;
