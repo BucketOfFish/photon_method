@@ -279,10 +279,14 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
     options.branches_to_add.insert(options.branches_to_add.end(), additional_add.begin(), additional_add.end());
 
     //--- set selection cut
-    if (settings.is_photon)
-        options.cut = cuts::photon_baseline_ntuples + "totalWeight != 0";
-    else
-        options.cut = cuts::bkg_baseline + "totalWeight != 0";
+    if (settings.is_photon) {
+        options.cut = cuts::photon_baseline_ntuples;
+        options.final_cut = "totalWeight != 0";
+    }
+    else {
+        options.cut = cuts::bkg_baseline;
+        options.final_cut = "totalWeight != 0";
+    }
 
     //--- make reduced ntuples
     options.unit_testing = unit_testing;

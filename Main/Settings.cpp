@@ -320,6 +320,7 @@ public:
     string out_file_name;
     string out_tree_name;
     string cut;
+    string final_cut;
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;
     BranchAddOptions branches_to_add;
@@ -348,6 +349,10 @@ public:
 
     void setCut(string cut) {
         this->cut = cut;
+    }
+
+    void setFinalCut(string cut) {
+        this->final_cut = cut;
     }
 
     void write(string file_name, string tree_name) {
@@ -383,6 +388,10 @@ public:
             reduced_dataframe = reduced_dataframe.Define(branch_name.c_str(), call.c_str());
             all_out_branches.push_back(branch_name);
         }
+
+        //--- apply cut
+        if (!final_cut.empty())
+            reduced_dataframe = reduced_dataframe->Filter(this->final_cut.c_str());
 
         reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
         cout << endl;

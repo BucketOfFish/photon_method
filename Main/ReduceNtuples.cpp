@@ -112,6 +112,8 @@ void ReduceNtuples(ReductionOptions options) {
         remove(options.out_file_name.c_str());
     }
 
+    reducer->setFinalCut(options.final_cut);
+
     cout << PBLU("Done with reduction") << endl;
     cout << endl;
 }
