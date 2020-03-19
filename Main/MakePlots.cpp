@@ -2,8 +2,7 @@
 
 using namespace std;
 
-//using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
-using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RRange<ROOT::Detail::RDF::RLoopManager>, void>;
+using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
 struct Selection {
     string region;
     string channel;
@@ -99,37 +98,22 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
 // SET UP RDATAFRAMES
 //--------------------
 
-unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string photon_data_or_mc) {
+unordered_map<string, ROOT::RDataFrame*> getRDataFrames(PlottingOptions options) {
     //--- load files
-    string mc_period = getMCPeriod(period);
-    //string data_filename= ntuple_path + "bkg_data/" + period + "_bkg.root";
-    //string tt_filename = ntuple_path + "bkg_mc/" + mc_period + "_ttbar.root";
-    //string vv_filename = ntuple_path + "bkg_mc/" + mc_period + "_diboson.root";
-    //string zmc_filename = ntuple_path + "bkg_mc/" + mc_period + "_Zjets.root";
-    //string photon_ee_filename, photon_mm_filename;
-    //if (photon_data_or_mc == "MC") {
-        //photon_ee_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_ee.root";
-        //photon_mm_filename = reweighting_path + "g_mc/" + mc_period + "_SinglePhoton222_mm.root";
-    //}
-    //else {
-        //photon_ee_filename = reweighting_path + "g_data/" + period + "_photon_ee.root";
-        //photon_mm_filename = reweighting_path + "g_data/" + period + "_photon_mm.root";
-    //}
-
-    string ntuple_path = "/public/data/Photon/NewSamples/ReducedNtuples/";
-    string photon_path = "/public/data/Photon/NewSamples/HistogramSampling/ReweightedNtuples/";
-    string data_filename= ntuple_path + period + "_data_bkg.root";
-    string tt_filename = ntuple_path + mc_period + "_ttbar.root";
-    string vv_filename = ntuple_path + mc_period + "_diboson.root";
-    string zmc_filename = ntuple_path + mc_period + "_Zjets.root";
+    string ntuple_path = options.reduction_folder;
+    string photon_path = options.reweighting_folder;
+    string data_filename= ntuple_path + options.data_period + "_data_bkg.root";
+    string tt_filename = ntuple_path + options.mc_period + "_ttbar.root";
+    string vv_filename = ntuple_path + options.mc_period + "_diboson.root";
+    string zmc_filename = ntuple_path + options.mc_period + "_Zjets.root";
     string photon_ee_filename, photon_mm_filename;
-    if (photon_data_or_mc == "MC") {
-        photon_ee_filename = photon_path + mc_period + "_SinglePhoton222_ee.root";
-        photon_mm_filename = photon_path + mc_period + "_SinglePhoton222_mm.root";
+    if (options.is_data) {
+        photon_ee_filename = photon_path + options.data_period + "_data_photon_ee.root";
+        photon_mm_filename = photon_path + options.data_period + "_data_photon_mm.root";
     }
     else {
-        photon_ee_filename = photon_path + period + "_data_photon_ee.root";
-        photon_mm_filename = photon_path + period + "_data_photon_mm.root";
+        photon_ee_filename = photon_path + options.mc_period + "_SinglePhoton222_ee.root";
+        photon_mm_filename = photon_path + options.mc_period + "_SinglePhoton222_mm.root";
     }
 
     cout << "data filename        " << data_filename << endl;
@@ -164,7 +148,7 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
     return RDataFrames;
 }
 
-unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered_map<string, ROOT::RDataFrame*> dataframes, int n_entries) {
+unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered_map<string, ROOT::RDataFrame*> dataframes) {
     unordered_map<string, string> plot_weights;
     plot_weights["data"] = "1";
     plot_weights["tt"] = cuts::bkg_weight;
@@ -175,16 +159,14 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
 
     unordered_map<string, unique_ptr<weightedDataFrame>> weighted_dataframes;
     for (auto [process, dataframe] : dataframes) {
-        if (n_entries == -1) n_entries = dataframe->Count().GetValue();
         if (process == "photon") {
-            auto weighted_dataframe = dataframe->Range(n_entries)
-                                             .Define("plot_raw_weight", plot_weights["photon_raw"])
-                                             .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
+            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"])
+                                                .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
         else {
-            auto weighted_dataframe = dataframe->Range(n_entries).Define("plot_weight", plot_weights[process]);
+            auto weighted_dataframe = dataframe->Define("plot_weight", plot_weights[process]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
@@ -196,22 +178,22 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
 // FILL HISTOGRAMS
 //-----------------
 
-tuple<histMap, histMap> setUpHistograms(unordered_map<string, unique_ptr<weightedDataFrame>>* WRDataFramesPtr, vector<string> plot_features, vector<string> regions, vector<string> channels) {
+tuple<histMap, histMap> setUpHistograms(unordered_map<string, unique_ptr<weightedDataFrame>>* WRDataFramesPtr, PlottingOptions options) {
     cout << "setting up histograms" << endl;
     cout << endl;
 
     histMap plot_region_histograms;
     histMap control_region_histograms;
 
-    for (string region : regions) {
-        for (string channel : channels) {
+    for (string region : options.regions) {
+        for (string channel : options.channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
             cout << "\tregion name          " << region_name << endl;
             cout << "\tplot region          " << plot_region << endl;
             cout << "\tnormalization reg.   " << plot_CR << endl;
             cout << endl;
 
-            for (auto plot_feature : plot_features) {
+            for (auto plot_feature : options.plot_features) {
                 for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
                     ROOT::RDF::TH1DModel hist_model = getHistogramInfo(plot_feature);
                     if (process == "photon") {
@@ -244,22 +226,23 @@ tuple<histMap, histMap> setUpHistograms(unordered_map<string, unique_ptr<weighte
     return make_tuple(plot_region_histograms, control_region_histograms);
 };
 
-resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> plot_features, vector<string> regions, vector<string> channels, string photon_data_or_mc) {
+resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions options) {
     cout << "making histograms" << endl;
     cout << endl;
 
     auto [plot_region_histograms, control_region_histograms] = region_hists;
     resultsMap results_map;
-    results_map.regions = regions;
-    results_map.features = plot_features;
-    results_map.channels = channels;
-    results_map.data_or_mc = photon_data_or_mc;
-    for (string region : regions) {
-        for (string channel : channels) {
+    results_map.regions = options.regions;
+    results_map.features = options.plot_features;
+    results_map.channels = options.channels;
+    results_map.data_or_mc = options.is_data ? "Data" : "MC";
+
+    for (string region : options.regions) {
+        for (string channel : options.channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
             auto prh = plot_region_histograms[region_name];
             auto crh = control_region_histograms[region_name];
-            string first_feature = plot_features[0];
+            string first_feature = options.plot_features[0];
             auto prh0 = prh[first_feature];
             auto crh0 = crh[first_feature];
 
@@ -277,7 +260,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
             cout << endl;
 
             float zdata_integral = crh0["data"]->Integral(0, nbins+1) - crh0["tt"]->Integral(0, nbins+1) - crh0["vv"]->Integral(0, nbins+1);
-            if (photon_data_or_mc == "MC")
+            if (!options.is_data)
                 zdata_integral = crh0["zmc"]->Integral(0, nbins+1);
             float SF = zdata_integral / crh0["photon_raw"]->Integral(0, nbins+1);
             if (crh0["photon_raw"]->Integral(0, nbins+1) == 0) SF = 0;
@@ -287,19 +270,19 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, vector<string> p
             cout << "\tScaling raw photon data by " << SF << endl;
             cout << "\tScaling reweighted photon data by " << SFrw << endl;
 
-            for (auto plot_feature : plot_features) {
+            for (auto plot_feature : options.plot_features) {
                 prh[plot_feature]["photon_raw"]->Scale(SF);
                 prh[plot_feature]["photon_reweighted"]->Scale(SFrw);
             }
 
             float photon_yield = prh0["photon_reweighted"]->Integral(0, nbins+1);
             float zmc_yield = prh0["zmc"]->Integral(0, nbins+1);
-            float zdata_yield = (photon_data_or_mc == "MC") ? -999 : prh0["data"]->Integral(0, nbins+1) - prh0["tt"]->Integral(0, nbins+1) - prh0["vv"]->Integral(0, nbins+1);
+            float zdata_yield = (!options.is_data) ? -999 : prh0["data"]->Integral(0, nbins+1) - prh0["tt"]->Integral(0, nbins+1) - prh0["vv"]->Integral(0, nbins+1);
             cout << "\tPhoton yield of " << photon_yield << endl;
             cout << endl;
 
             unordered_map<string, unordered_map<string, TH1D*>> region_hists;
-            for (auto plot_feature : plot_features) {
+            for (auto plot_feature : options.plot_features) {
                 for (auto [process, histogram] : prh[plot_feature]) {
                     TH1D* new_histogram = new TH1D;
                     histogram->Copy(*new_histogram);
@@ -635,6 +618,8 @@ void testMakePlot(resultsMap results_map, string plot_folder) {
 }
 
 void unit_tests() {
+    cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
+
     resultsMap results_map;
     vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
     vector<string> features{"METl", "METt", "met_Et"};
@@ -707,38 +692,40 @@ void unit_tests() {
     results_map.results["VR_test1 SF"] = Result{test_hists, 0, 0, 0};
 
     //testTablePrintout(results_map);
-    //testMakePlot(results_map);
+    //testMakePlot(results_map, plot_folder);
+
+    passTest("Produced sample yield table");
+    passTest("Produced sample plots");
+    passTest("Passed all test");
 }
 
 //---------------
 // MAIN FUNCTION
 //---------------
 
-void run_quickDraw(PlottingOptions options, string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only, string plot_folder) {
-    cout << "period               " << period << endl;
-    cout << "photon data          " << photon_data_or_mc << endl;
+void run_quickDraw(PlottingOptions options) {
+    cout << BOLD(PBLU("Making plots")) << endl;
     cout << endl;
 
-    //--- parse arguments
-    vector<string> plot_features = splitStringBy(plot_feature_list, " ");
-    vector<string> regions = splitStringBy(region_list, " ");
-    vector<string> channels{"ee", "mm", "SF"};
+    cout << "period                 : " << options.data_period << endl;
+    cout << "is data?               : " << options.is_data << endl;
+    cout << endl;
 
     //--- get input data in the form of RDataFrames
-    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
-    unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames, options.n_events);
+    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(options);
+    unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames);
 
     //--- set up all histograms and fill simulaneously
-    auto region_hists = setUpHistograms(&WRDataFrames, plot_features, regions, channels);
-    resultsMap results_map = fillHistograms(region_hists, plot_features, regions, channels, photon_data_or_mc);
+    auto region_hists = setUpHistograms(&WRDataFrames, options);
+    resultsMap results_map = fillHistograms(region_hists, options);
 
     //--- print photon yield tables
-    TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", plot_folder);
-    printPhotonYieldTables(results_map, "FinalOutputs/" + period + "_" + results_map.data_or_mc + "_yields.txt", blinded);
+    TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", options.plots_folder);
+    printPhotonYieldTables(results_map, "FinalOutputs/" + options.data_period + "_" + results_map.data_or_mc + "_yields.txt", options.blinded);
 
     //--- draw and save plot
-    if (!print_photon_yield_only)
-        makePlot(results_map, period, blinded, plot_folder);
+    if (!options.print_photon_yield_only)
+        makePlot(results_map, options.data_period, options.blinded, options.plots_folder);
 }
 
 void MakePlots(PlottingOptions options) {
@@ -747,7 +734,8 @@ void MakePlots(PlottingOptions options) {
     gStyle->SetOptStat(0);
 
     //--- either perform unit tests or run code
-    //unit_tests();
-    string photon_data_or_mc = options.is_data ? "Data" : "MC";
-    run_quickDraw(options, options.period, photon_data_or_mc, options.plot_feature_list, options.region_list, options.blinded, options.print_photon_yield_only, options.plots_folder);
+    if (options.unit_testing)
+        unit_tests();
+    else
+        run_quickDraw(options);
 }

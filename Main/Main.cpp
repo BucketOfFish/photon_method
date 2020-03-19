@@ -459,13 +459,16 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.plots_folder = settings.plots_folder;
     options.reweight_var = "Ptll";
 
-    options.region_list = "SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ";
-    //options.plot_feature_list = "METl METt met_Et lepPt lepEta lepPhi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jetPt Ht30";
-    options.plot_feature_list = "METl";
+    options.regions = vector<string>{"SRTest", "SRC", "SRCZ", "SRLow4", "SRLowZ", "SRMed4", "SRMedZ", "SRHigh4",
+                                      "SRHighZ", "VRC", "VRCZ", "VRLow4", "VRLowZ", "VRMed4", "VRMedZ", "VRHigh4",
+                                      "VRHighZ"};
+    //options.plot_features = vector<string>{"METl", "METt", "met_Et", "lepPt", "lepEta", "lepPhi", "dPhiMetJet1",
+                                            //"dPhiMetJet2", "Ptll", "mll", "jet_eta", "jet_phi", "jetPt", "Ht30"};
+    options.plot_features = vector<string>{"METl"};
+    options.channels = vector<string>{"ee", "mm", "SF"};
+
     options.blinded = true;
     options.print_photon_yield_only = false;
-
-    options.n_events = -1;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -513,7 +516,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -523,6 +526,7 @@ void Main() {
     if (unit_testing) {
         ReductionStep(settings, unit_testing);
         SmearingStep(settings, unit_testing); 
+        PlottingStep(settings, unit_testing); 
         return;
     }
 

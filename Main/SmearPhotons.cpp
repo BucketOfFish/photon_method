@@ -33,7 +33,7 @@ public:
         //--- open files
         cout << "channel                : " << options.channel         << endl;
         cout << "period                 : " << options.period          << endl;
-        cout << "isData?                : " << options.is_data          << endl;
+        cout << "is data?               : " << options.is_data          << endl;
         cout << "smearing output        : " << options.out_file_name   << endl;
 
         TH1::SetDefaultSumw2();

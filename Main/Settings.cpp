@@ -502,12 +502,12 @@ struct PlottingOptions {
     bool is_data;
     string reweight_var;
 
-    string region_list;
-    string plot_feature_list;
+    vector<string> regions;
+    vector<string> plot_features;
+    vector<string> channels;
+
     bool blinded;
     bool print_photon_yield_only;
-
-    int n_events = -1;
 
     string reduction_folder;
     string reweighting_folder;
