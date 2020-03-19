@@ -460,9 +460,12 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.reweight_var = "Ptll";
 
     options.region_list = "SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ";
-    options.plot_feature_list = "METl METt met_Et lepPt lepEta lepPhi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jetPt Ht30";
+    //options.plot_feature_list = "METl METt met_Et lepPt lepEta lepPhi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jetPt Ht30";
+    options.plot_feature_list = "METl";
     options.blinded = true;
     options.print_photon_yield_only = false;
+
+    options.n_events = -1;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -485,7 +488,7 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
 //---------------
 
 void Main() {
-    ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
+    //ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
     gErrorIgnoreLevel = kWarning; // turn off info dumps
     bins::init_binning_histograms(); // prepare histograms
     TH1::SetDefaultSumw2(); // histogram summing option
@@ -603,7 +606,8 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
-        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<string> periods{"data15-16", "data17", "data18"};
+        vector<string> periods{"data18"};
         //vector<bool> is_datas{true, false};
         vector<bool> is_datas{true};
         for (auto period : periods) {

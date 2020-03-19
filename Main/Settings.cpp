@@ -507,6 +507,8 @@ struct PlottingOptions {
     bool blinded;
     bool print_photon_yield_only;
 
+    int n_events = -1;
+
     string reduction_folder;
     string reweighting_folder;
     string plots_folder;

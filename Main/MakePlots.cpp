@@ -2,7 +2,8 @@
 
 using namespace std;
 
-using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
+//using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
+using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RRange<ROOT::Detail::RDF::RLoopManager>, void>;
 struct Selection {
     string region;
     string channel;
@@ -163,7 +164,7 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
     return RDataFrames;
 }
 
-unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered_map<string, ROOT::RDataFrame*> dataframes) {
+unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered_map<string, ROOT::RDataFrame*> dataframes, int n_entries) {
     unordered_map<string, string> plot_weights;
     plot_weights["data"] = "1";
     plot_weights["tt"] = cuts::bkg_weight;
@@ -173,15 +174,17 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
     plot_weights["photon_reweighted"] = cuts::photon_weight_rw;
 
     unordered_map<string, unique_ptr<weightedDataFrame>> weighted_dataframes;
-    for (auto const& [process, dataframe] : dataframes) {
+    for (auto [process, dataframe] : dataframes) {
+        if (n_entries == -1) n_entries = dataframe->Count().GetValue();
         if (process == "photon") {
-            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"])
+            auto weighted_dataframe = dataframe->Range(n_entries)
+                                             .Define("plot_raw_weight", plot_weights["photon_raw"])
                                              .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
         else {
-            auto weighted_dataframe = dataframe->Define("plot_weight", plot_weights[process]);
+            auto weighted_dataframe = dataframe->Range(n_entries).Define("plot_weight", plot_weights[process]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
@@ -711,7 +714,7 @@ void unit_tests() {
 // MAIN FUNCTION
 //---------------
 
-void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only, string plot_folder) {
+void run_quickDraw(PlottingOptions options, string period, string photon_data_or_mc, string plot_feature_list, string region_list, bool blinded, bool print_photon_yield_only, string plot_folder) {
     cout << "period               " << period << endl;
     cout << "photon data          " << photon_data_or_mc << endl;
     cout << endl;
@@ -719,12 +722,11 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
     //--- parse arguments
     vector<string> plot_features = splitStringBy(plot_feature_list, " ");
     vector<string> regions = splitStringBy(region_list, " ");
-    //vector<string> channels{"ee", "mm", "SF"};
-    vector<string> channels{"SF"};
+    vector<string> channels{"ee", "mm", "SF"};
 
     //--- get input data in the form of RDataFrames
     unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(period, photon_data_or_mc);
-    unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames);
+    unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames, options.n_events);
 
     //--- set up all histograms and fill simulaneously
     auto region_hists = setUpHistograms(&WRDataFrames, plot_features, regions, channels);
@@ -741,11 +743,11 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
 
 void MakePlots(PlottingOptions options) {
     //--- set global options
-    ROOT::EnableImplicitMT();
+    //ROOT::EnableImplicitMT();
     gStyle->SetOptStat(0);
 
     //--- either perform unit tests or run code
     //unit_tests();
     string photon_data_or_mc = options.is_data ? "Data" : "MC";
-    run_quickDraw(options.period, photon_data_or_mc, options.plot_feature_list, options.region_list, options.blinded, options.print_photon_yield_only, options.plots_folder);
+    run_quickDraw(options, options.period, photon_data_or_mc, options.plot_feature_list, options.region_list, options.blinded, options.print_photon_yield_only, options.plots_folder);
 }
