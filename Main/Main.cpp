@@ -452,15 +452,15 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.period = settings.period;
     options.data_period = DataPeriod(options.period);
     options.mc_period = getMCPeriod(options.period);
-    options.channel = settings.channel;
     options.is_data = settings.is_data;
     options.in_file_path = settings.reweighting_folder;
     options.reduction_folder = settings.reduction_folder;
+    options.reweighting_folder = settings.reweighting_folder;
     options.plots_folder = settings.plots_folder;
     options.reweight_var = "Ptll";
 
     options.region_list = "SRTest SRC SRCZ SRLow4 SRLowZ SRMed4 SRMedZ SRHigh4 SRHighZ VRC VRCZ VRLow4 VRLowZ VRMed4 VRMedZ VRHigh4 VRHighZ";
-    options.plot_feature_list = "METl METt met_Et lepPt lep_eta lep_phi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jet_pT HT";
+    options.plot_feature_list = "METl METt met_Et lepPt lepEta lepPhi dPhiMetJet1 dPhiMetJet2 Ptll mll jet_eta jet_phi jetPt Ht30";
     options.blinded = true;
     options.print_photon_yield_only = false;
 
@@ -513,8 +513,8 @@ void Main() {
     bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
-    bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_reweighting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (unit_testing) {
@@ -606,15 +606,11 @@ void Main() {
         vector<string> periods{"data15-16", "data17", "data18"};
         //vector<bool> is_datas{true, false};
         vector<bool> is_datas{true};
-        vector<string> channels{"ee", "mm"};
         for (auto period : periods) {
             settings.period = period;
             for (auto is_data : is_datas) {
                 settings.is_data = is_data;
-                for (auto channel : channels) {
-                    settings.channel = channel;
-                    PlottingStep(settings, unit_testing); 
-                }
+                PlottingStep(settings, unit_testing); 
             }
         }
     }

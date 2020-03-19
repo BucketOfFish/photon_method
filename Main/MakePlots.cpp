@@ -82,8 +82,8 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);
     plot_settings["lepPt[0]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},1} [GeV]", 20, 0, 300);
     plot_settings["lepPt[1]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},2} [GeV]", 20, 0, 200);
-    plot_settings["lep_eta[0]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,1} [GeV]", 30, -3, 3);
-    plot_settings["lep_eta[1]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,2} [GeV]", 30, -3, 3);
+    plot_settings["lepEta[0]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,1} [GeV]", 30, -3, 3);
+    plot_settings["lepEta[1]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,2} [GeV]", 30, -3, 3);
     plot_settings["DPhi_METLepLeading"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["DPhi_METLepSecond"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet1"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
@@ -116,18 +116,19 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(string period, string ph
     //}
 
     string ntuple_path = "/public/data/Photon/NewSamples/ReducedNtuples/";
+    string photon_path = "/public/data/Photon/NewSamples/HistogramSampling/ReweightedNtuples/";
     string data_filename= ntuple_path + period + "_data_bkg.root";
     string tt_filename = ntuple_path + mc_period + "_ttbar.root";
     string vv_filename = ntuple_path + mc_period + "_diboson.root";
     string zmc_filename = ntuple_path + mc_period + "_Zjets.root";
     string photon_ee_filename, photon_mm_filename;
     if (photon_data_or_mc == "MC") {
-        photon_ee_filename = ntuple_path + mc_period + "_SinglePhoton222_ee.root";
-        photon_mm_filename = ntuple_path + mc_period + "_SinglePhoton222_mm.root";
+        photon_ee_filename = photon_path + mc_period + "_SinglePhoton222_ee.root";
+        photon_mm_filename = photon_path + mc_period + "_SinglePhoton222_mm.root";
     }
     else {
-        photon_ee_filename = ntuple_path + period + "_photon_ee.root";
-        photon_mm_filename = ntuple_path + period + "_photon_mm.root";
+        photon_ee_filename = photon_path + period + "_data_photon_ee.root";
+        photon_mm_filename = photon_path + period + "_data_photon_mm.root";
     }
 
     cout << "data filename        " << data_filename << endl;
@@ -619,8 +620,8 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
 //----------------
 
 void testTablePrintout(resultsMap results_map) {
-    printPhotonYieldTables(results_map, "Output/test_table_blindeded.txt", true);
-    printPhotonYieldTables(results_map, "Output/test_table_unblindeded.txt", false);
+    printPhotonYieldTables(results_map, "FinalOutputs/test_table_blindeded.txt", true);
+    printPhotonYieldTables(results_map, "FinalOutputs/test_table_unblindeded.txt", false);
 }
 
 void testMakePlot(resultsMap results_map, string plot_folder) {
@@ -731,7 +732,7 @@ void run_quickDraw(string period, string photon_data_or_mc, string plot_feature_
 
     //--- print photon yield tables
     TString plot_name = getPlotSaveName(period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", plot_folder);
-    printPhotonYieldTables(results_map, "Output/" + period + "_" + results_map.data_or_mc + "_yields.txt", blinded);
+    printPhotonYieldTables(results_map, "FinalOutputs/" + period + "_" + results_map.data_or_mc + "_yields.txt", blinded);
 
     //--- draw and save plot
     if (!print_photon_yield_only)

@@ -500,7 +500,6 @@ struct PlottingOptions {
     string data_period;
     string mc_period;
     bool is_data;
-    string channel;
     string reweight_var;
 
     string region_list;
@@ -509,6 +508,7 @@ struct PlottingOptions {
     bool print_photon_yield_only;
 
     string reduction_folder;
+    string reweighting_folder;
     string plots_folder;
 
     vector<string> branches_to_copy;
