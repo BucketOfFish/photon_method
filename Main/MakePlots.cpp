@@ -534,7 +534,7 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
                 mainpad->cd();
                 mainpad->SetLogy();
 
-                bool applicable_blinded = (blinded && (region.find("SR") != std::string::npos));
+                bool applicable_blinded = (results_map.data_or_mc == "Data") && (blinded && (region.find("SR") != std::string::npos));
 
                 if (results_map.data_or_mc == "Data") {
                     reweight_g_stack->Draw("hist");
@@ -544,8 +544,7 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
                     reweight_g_stack->GetYaxis()->SetTitle("entries / bin");
                 }
                 else {
-                    if (!applicable_blinded)
-                        data_stack->Draw("hist");
+                    data_stack->Draw("hist");
                     raw_g_stack->Draw("samehist");
                     reweight_g_stack->Draw("samehist");
                     data_stack->GetXaxis()->SetTitle(formatted_feature);
