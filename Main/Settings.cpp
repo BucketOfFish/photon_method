@@ -96,6 +96,7 @@ namespace cuts {
     TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
 
     std::unordered_map<std::string, TCut> plot_regions = {
+        {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
         {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && nLep_signal==2 && mll<100"},
         {"VR", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
@@ -130,6 +131,7 @@ namespace cuts {
     TCut CR("met_Et<100.0");
 
     std::unordered_map<std::string, TCut> plot_region_met_portions = {
+        {"Inclusive", "1"},
         {"SRTest", "1"},
         {"VRTest", "1"},
         {"VRcom", "(met_Et>100 && met_Et<200)"},
