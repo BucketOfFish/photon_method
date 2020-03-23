@@ -15,6 +15,7 @@ struct Result {
     float photon_yield;
     float zmc_yield;
     float data_yield;
+    float photon_SF;
 };
 struct resultsMap {
     vector<string> regions;
@@ -75,15 +76,21 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["Z_pt"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 20, 0, 100);
     plot_settings["nJet30"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
     plot_settings["jet_n"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
+    plot_settings["jet_eta"] = ROOT::RDF::TH1DModel("", "jet_{#eta}", 30, -3, 3);
+    plot_settings["jet_phi"] = ROOT::RDF::TH1DModel("", "jet_{#phi}", 20, 0, 3.14);
+    plot_settings["jetPt"] = ROOT::RDF::TH1DModel("", "jet_{p_{T}} [GeV]", 20, 0, 300);
     plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
     plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 20, 0, 1000);
     plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
     plot_settings["MT2"] = ROOT::RDF::TH1DModel("", "m_{T2} [GeV]", 20, 0, 200);
     plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);
+    plot_settings["lepEta"] = ROOT::RDF::TH1DModel("", "lep_{#eta}", 30, -3, 3);
+    plot_settings["lepPhi"] = ROOT::RDF::TH1DModel("", "lep_{#phi}", 20, 0, 3.14);
+    plot_settings["lepPt"] = ROOT::RDF::TH1DModel("", "lep_{p_{T}} [GeV]", 20, 0, 300);
     plot_settings["lepPt[0]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},1} [GeV]", 20, 0, 300);
     plot_settings["lepPt[1]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},2} [GeV]", 20, 0, 200);
-    plot_settings["lepEta[0]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,1} [GeV]", 30, -3, 3);
-    plot_settings["lepEta[1]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,2} [GeV]", 30, -3, 3);
+    plot_settings["lepEta[0]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,1}", 30, -3, 3);
+    plot_settings["lepEta[1]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,2}", 30, -3, 3);
     plot_settings["DPhi_METLepLeading"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["DPhi_METLepSecond"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet1"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
@@ -289,7 +296,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
                     region_hists[plot_feature][process] = new_histogram;
                 }
             }
-            results_map.results[region_name] = Result{region_hists, photon_yield, zmc_yield, zdata_yield};
+            results_map.results[region_name] = Result{region_hists, photon_yield, zmc_yield, zdata_yield, SFrw};
         }
     }
 
@@ -332,6 +339,40 @@ void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind
             out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
         else
             out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
+    }
+
+    out_file << "\\end{tabular}" << endl;
+    out_file << "\\end{center}" << endl;
+    out_file << "\\end{table}" << endl;
+    out_file << endl;
+    out_file << "\\end{document}" << endl;
+
+    out_file.close();
+}
+
+void printPhotonScaleFactorTables(resultsMap results_map, string save_name) {
+    //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
+    //--- region_name can further be split into [region][channel]
+    ofstream out_file;
+    out_file.open(save_name);
+
+    out_file << "\\documentclass{article}" << endl;
+    out_file << "\\usepackage[utf8]{inputenc}" << endl;
+    out_file << endl;
+    out_file << "\\begin{document}" << endl;
+    out_file << endl;
+    out_file << "\\begin{table}" << endl;
+    out_file << "\\caption{Photon Method Scale Factors}" << endl;
+    out_file << "\\begin{center}" << endl;
+    out_file << "\\begin{tabular}{c|c}" << endl;
+    out_file << "region & photon scale factor (ee / mm / SF) \\\\" << endl;
+    out_file << "\\hline" << endl;
+
+    for (auto region : results_map.regions) {
+        float photon_ee_sf = results_map.results[region + " ee"].scale_factor;
+        float photon_mm_sf = results_map.results[region + " mm"].scale_factor;
+        float photon_SF_sf = results_map.results[region + " SF"].scale_factor;
+        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -605,8 +646,9 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
 //----------------
 
 void testTablePrintout(resultsMap results_map) {
-    printPhotonYieldTables(results_map, "FinalOutputs/test_table_blindeded.txt", true);
-    printPhotonYieldTables(results_map, "FinalOutputs/test_table_unblindeded.txt", false);
+    printPhotonYieldTables(results_map, "FinalOutputs/test_yield_table_blindeded.txt", true);
+    printPhotonYieldTables(results_map, "FinalOutputs/test_yield_table_unblindeded.txt", false);
+    printPhotonScaleFactorTables(results_map, "FinalOutputs/test_scale_factor_table.txt");
 }
 
 void testMakePlot(resultsMap results_map, string plot_folder) {
@@ -641,57 +683,25 @@ void unit_tests() {
         }
     }
 
-    results_map.results["SR_test1 ee"] = Result{test_hists, 1.3, 1.5, 1.4};
-    results_map.results["SR_test1 mm"] = Result{test_hists, 1.2, 1.6, 1.3};
-    results_map.results["SR_test1 SF"] = Result{test_hists, 2.5, 3.1, 2.7};
+    results_map.results["SR_test1 ee"] = Result{test_hists, 1.3, 1.5, 1.4, 1};
+    results_map.results["SR_test1 mm"] = Result{test_hists, 1.2, 1.6, 1.3, 1};
+    results_map.results["SR_test1 SF"] = Result{test_hists, 2.5, 3.1, 2.7, 1};
 
-    results_map.results["SR_test2 ee"] = Result{test_hists, 3.6, 3.5, 3.7};
-    results_map.results["SR_test2 mm"] = Result{test_hists, 3.1, 3.2, 3.4};
-    results_map.results["SR_test2 SF"] = Result{test_hists, 6.7, 6.7, 7.1};
+    results_map.results["SR_test2 ee"] = Result{test_hists, 3.6, 3.5, 3.7, 3.1};
+    results_map.results["SR_test2 mm"] = Result{test_hists, 3.1, 3.2, 3.4, 3.1};
+    results_map.results["SR_test2 SF"] = Result{test_hists, 6.7, 6.7, 7.1, 3.1};
 
-    results_map.results["SR_test3 ee"] = Result{test_hists, 12.9, 13.3, 11.2};
-    results_map.results["SR_test3 mm"] = Result{test_hists, 11.6, 12.8, 12.0};
-    results_map.results["SR_test3 SF"] = Result{test_hists, 24.5, 26.1, 23.2};
+    results_map.results["SR_test3 ee"] = Result{test_hists, 12.9, 13.3, 11.2, 1.8};
+    results_map.results["SR_test3 mm"] = Result{test_hists, 11.6, 12.8, 12.0, 1.3};
+    results_map.results["SR_test3 SF"] = Result{test_hists, 24.5, 26.1, 23.2, 1.9};
 
-    results_map.results["VR_test1 ee"] = Result{test_hists, 112.9, 113.3, 111.2};
-    results_map.results["VR_test1 mm"] = Result{test_hists, 111.6, 112.8, 112.0};
-    results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2};
+    results_map.results["VR_test1 ee"] = Result{test_hists, 112.9, 113.3, 111.2, 2.5};
+    results_map.results["VR_test1 mm"] = Result{test_hists, 111.6, 112.8, 112.0, 5};
+    results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2, 1.8};
 
     testTablePrintout(results_map);
     string plot_folder = "DiagnosticPlots/Plots/";
     testMakePlot(results_map, plot_folder);
-
-    n_entries["data"] = 0;
-    n_entries["tt"] = 0;
-    n_entries["vv"] = 0;
-    n_entries["zmc"] = 0;
-    n_entries["photon_raw"] = 0;
-    n_entries["photon_reweighted"] = 0;
-    for (auto feature : features) {
-        for (auto process : processes) {
-            test_hists[feature][process] = new TH1D("", "", 100, -3, 3);
-            test_hists[feature][process]->FillRandom("gaus", n_entries[process]);
-        }
-    }
-
-    results_map.results["SR_test1 ee"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test1 mm"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test1 SF"] = Result{test_hists, 0, 0, 0};
-
-    results_map.results["SR_test2 ee"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test2 mm"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test2 SF"] = Result{test_hists, 0, 0, 0};
-
-    results_map.results["SR_test3 ee"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test3 mm"] = Result{test_hists, 0, 0, 0};
-    results_map.results["SR_test3 SF"] = Result{test_hists, 0, 0, 0};
-
-    results_map.results["VR_test1 ee"] = Result{test_hists, 0, 0, 0};
-    results_map.results["VR_test1 mm"] = Result{test_hists, 0, 0, 0};
-    results_map.results["VR_test1 SF"] = Result{test_hists, 0, 0, 0};
-
-    //testTablePrintout(results_map);
-    //testMakePlot(results_map, plot_folder);
 
     passTest("Produced sample yield table");
     passTest("Produced sample plots");

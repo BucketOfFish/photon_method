@@ -505,8 +505,8 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
+    //settings.my_samples_folder = "/public/data/Photon/NewSamples/";
+    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     //settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
@@ -516,7 +516,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = true;
+    bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
