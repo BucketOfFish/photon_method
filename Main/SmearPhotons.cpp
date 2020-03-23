@@ -141,36 +141,18 @@ public:
     // LEPTON SPLITTING
     //------------------
 
-    TH1F* getLepThetaHistogram() {
-
+    void getLepThetaHistograms() {
         cout << PBLU("Getting Z lepton CM theta distribution histogram") << endl;
         cout << endl;
         gStyle->SetOptStat(0);
 
         //--- open files and create TChains
-        string data_filename = options.in_file_path + options.data_period + "_data_bkg.root";
-        string tt_filename = options.in_file_path + options.mc_period + "_ttbar.root";
-        string vv_filename = options.in_file_path + options.mc_period + "_diboson.root";
+        TChain *tch_zjets;
+
         string zjets_filename = options.in_file_path + options.mc_period + "_Zjets.root";
-
-        TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
-
-        if (options.is_data) {
-            cout << "Opening data file      : " << data_filename << endl;
-            tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
-            cout << "data entries           : " << tch_data->GetEntries() << endl;
-            cout << "Opening ttbar file     : " << tt_filename << endl;
-            tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-            cout << "ttbar entries          : " << tch_tt->GetEntries() << endl;
-            cout << "Opening diboson file   : " << vv_filename << endl;
-            tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
-            cout << "diboson entries        : " << tch_vv->GetEntries() << endl;
-        }
-        else {
-            cout << "Opening Z+jets file    : " << zjets_filename << endl;
-            tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
-            cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
-        }
+        cout << "Opening Z+jets file    : " << zjets_filename << endl;
+        tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
+        cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
         cout << endl;
 
         //--- modify event selections and weights
@@ -182,56 +164,26 @@ public:
             exit(0);
         }
 
-        if (TString(options.data_period).EqualTo("data17")){
-            TCut RunRange = TCut("RunNumber < 348000");  
-            cout << "Data17! adding cut " << RunRange.GetTitle() << endl;
-            bkg_baseline_with_channel *= RunRange;
-        }
-
         cout << "bkg selection          : " << bkg_baseline_with_channel.GetTitle() << endl;
         cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
 
-        //--- fill lep theta histograms
-        TH1F* hdata  = new TH1F("hdata", "", 100, 0, 3);
-        TH1F* htt    = new TH1F("htt", "", 100, 0, 3);
-        TH1F* hvv    = new TH1F("hvv", "", 100, 0, 3);
-        TH1F* hz     = new TH1F("hz", "", 100, 0, 3);
-        TH1F* histoG = new TH1F("histoG", "", 100, 0, 3);
+        //--- fill lep theta histogram
+        TH1F* hz = new TH1F("hz", "", 100, 0, 3);
 
-        if (options.is_data) {
-            tch_data->Draw("Z_cm_lep_theta>>hdata", bkg_baseline_with_channel, "goff");
-            tch_tt->Draw("Z_cm_lep_theta>>htt", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
-            tch_vv->Draw("Z_cm_lep_theta>>hvv", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
+        tch_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
+        cout << "Z+jets integral        : " << hz->Integral() << endl;
 
-            cout << "data integral          : " << hdata->Integral() << endl;
-            cout << "ttbar integral         : " << htt->Integral() << endl;
-            cout << "diboson integral       : " << hvv->Integral() << endl;
-        }
-        else {
-            tch_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
-
-            cout << "Z+jets integral        : " << hz->Integral() << endl;
-        }
-
-        //--- return lep theta histogram
-        TH1F* h_lep_cm_theta;
-        if (options.is_data) {
-            h_lep_cm_theta = (TH1F*) hdata->Clone("h_lep_cm_theta");
-            h_lep_cm_theta->Add(htt, -1.0);
-            h_lep_cm_theta->Add(hvv, -1.0);
-        }
-        else h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
+        this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
         if (options.diagnostic_plots || options.unit_testing) {
             TCanvas *can = new TCanvas("can","can",600,600);
-            h_lep_cm_theta->Draw();
+            this->h_lep_cm_theta->Draw();
             can->Print("DiagnosticPlots/h_lep_cm_theta.eps");
 
             //--- get other features in lab frame as well if doing unit testing
             TString zeroed_cut;
             zeroed_cut.Form("min(%s, 0)", (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle());
             //TString zeroed_cut = (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle();
-            //cout << zeroed_cut << endl;
 
             if (options.unit_testing) {
                 vector<string> features{"lepEta", "METl", "mll"};
@@ -272,13 +224,6 @@ public:
             delete can;
         }
         cout << endl;
-
-        return h_lep_cm_theta;
-    }
-
-    void getLepThetaHistograms() {
-        //--- get lep theta histogram in CM frame
-        this->h_lep_cm_theta = this->getLepThetaHistogram();
 
         //--- get lep theta histogram bin boundaries
         std::vector<int> h_lep_cm_bin_counts;

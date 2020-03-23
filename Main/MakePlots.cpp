@@ -307,7 +307,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
 // MAKE TABLES
 //-------------
 
-void printPhotonYieldTables(resultsMap results_map, string save_name, bool blinded) {
+void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, string save_name, bool blinded) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
@@ -322,7 +322,7 @@ void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind
     out_file << "\\caption{Photon Method Yields}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c|c|c}" << endl;
-    out_file << "region & photon ee / mm / SF & Z MC ee / mm / SF & data ee / mm / SF \\\\" << endl;
+    out_file << "region & photon (ee / mm / SF) & Z MC (ee / mm / SF) & data (ee / mm / SF) \\\\" << endl;
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
@@ -350,7 +350,7 @@ void printPhotonYieldTables(resultsMap results_map, string save_name, bool blind
     out_file.close();
 }
 
-void printPhotonScaleFactorTables(resultsMap results_map, string save_name) {
+void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_map, string save_name) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
@@ -369,9 +369,9 @@ void printPhotonScaleFactorTables(resultsMap results_map, string save_name) {
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
-        float photon_ee_sf = results_map.results[region + " ee"].scale_factor;
-        float photon_mm_sf = results_map.results[region + " mm"].scale_factor;
-        float photon_SF_sf = results_map.results[region + " SF"].scale_factor;
+        float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
+        float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
+        float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
         out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << endl;
     }
 
@@ -645,10 +645,10 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
 // TEST FUNCTIONS
 //----------------
 
-void testTablePrintout(resultsMap results_map) {
-    printPhotonYieldTables(results_map, "FinalOutputs/test_yield_table_blindeded.txt", true);
-    printPhotonYieldTables(results_map, "FinalOutputs/test_yield_table_unblindeded.txt", false);
-    printPhotonScaleFactorTables(results_map, "FinalOutputs/test_scale_factor_table.txt");
+void testTablePrintout(PlottingOptions options, resultsMap results_map) {
+    printPhotonYieldTables(options, results_map, "FinalOutputs/test_yield_table_blindeded.txt", true);
+    printPhotonYieldTables(options, results_map, "FinalOutputs/test_yield_table_unblindeded.txt", false);
+    printPhotonScaleFactorTables(options, results_map, "FinalOutputs/test_scale_factor_table.txt");
 }
 
 void testMakePlot(resultsMap results_map, string plot_folder) {
@@ -714,6 +714,7 @@ void unit_tests() {
 
 void run_quickDraw(PlottingOptions options) {
     cout << BOLD(PBLU("Making plots")) << endl;
+    std::cout << std::setprecision(2) << std::fixed; // set printouts to 2 sig figs
     cout << endl;
 
     cout << "period                 : " << options.data_period << endl;
@@ -730,7 +731,7 @@ void run_quickDraw(PlottingOptions options) {
 
     //--- print photon yield tables
     TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", options.plots_folder);
-    printPhotonYieldTables(results_map, "FinalOutputs/" + options.data_period + "_" + results_map.data_or_mc + "_yields.txt", options.blinded);
+    printPhotonYieldTables(options, results_map, "FinalOutputs/" + options.data_period + "_" + results_map.data_or_mc + "_yields.txt", options.blinded);
 
     //--- draw and save plot
     if (!options.print_photon_yield_only)
