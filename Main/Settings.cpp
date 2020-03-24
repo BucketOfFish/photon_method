@@ -424,6 +424,8 @@ struct GlobalOptions {
     string reweighting_folder;
     string plots_folder;
 
+    string unit_test_folder;
+
     string channel;
     string type;
 
@@ -435,6 +437,8 @@ struct ReductionOptions {
     string in_tree_name;
     string out_file_name;
     string out_tree_name;
+
+    string unit_test_folder;
 
     vector<string> branches_to_copy;
     BranchRenameOptions branches_to_rename;
@@ -452,6 +456,8 @@ struct SmearingOptions {
     string in_tree_name;
     string out_file_name;
     string out_tree_name;
+
+    string unit_test_folder;
 
     string period;
     string data_period;

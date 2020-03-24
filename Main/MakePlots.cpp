@@ -658,7 +658,7 @@ void testMakePlot(resultsMap results_map, string plot_folder) {
     makePlot(results_map, "data18", false, plot_folder);
 }
 
-void unit_tests() {
+void unit_tests(PlottingOptions options) {
     cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
 
     resultsMap results_map;
@@ -699,7 +699,7 @@ void unit_tests() {
     results_map.results["VR_test1 mm"] = Result{test_hists, 111.6, 112.8, 112.0, 5};
     results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2, 1.8};
 
-    testTablePrintout(results_map);
+    testTablePrintout(options, results_map);
     string plot_folder = "DiagnosticPlots/Plots/";
     testMakePlot(results_map, plot_folder);
 
@@ -745,7 +745,7 @@ void MakePlots(PlottingOptions options) {
 
     //--- either perform unit tests or run code
     if (options.unit_testing)
-        unit_tests();
+        unit_tests(options);
     else
         run_quickDraw(options);
 }

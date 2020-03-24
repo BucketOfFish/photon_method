@@ -7,7 +7,7 @@ using namespace std;
 //------------
 
 ReductionOptions setUnitTestOptions(ReductionOptions options) {
-    options.in_file_name = "/public/data/Photon/UnitTest/data15-16_bkg.root";
+    options.in_file_name = options.unit_test_folder + "data15-16_bkg.root";
     options.out_file_name = "unit_test.root";
     options.in_tree_name = "BaselineTree";
     options.out_tree_name = "BaselineTree";

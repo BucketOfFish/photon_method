@@ -186,6 +186,8 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
 
     options.out_tree_name = settings.save_tree_name;
 
+    options.unit_test_folder = settings.unit_test_folder;
+
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
         "PhotonConversionType",
@@ -349,6 +351,8 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     options.is_data = settings.is_data;
     options.in_file_path = settings.reduction_folder;
 
+    options.unit_test_folder = settings.unit_test_folder;
+
     if (settings.is_data) {
         options.in_file_name = settings.reduction_folder + options.data_period + "_data_photon.root";
         options.out_file_name = settings.smearing_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
@@ -505,28 +509,32 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
+    //settings.my_samples_folder = "/public/data/Photon/NewSamples/";
+    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
     settings.sampling_method = "HistogramSampling";
-    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    //settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
+    settings.reduction_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/ReducedNtuples/";
     //settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
+    settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
+
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (unit_testing) {
-        ReductionStep(settings, unit_testing);
+        //ReductionStep(settings, unit_testing);
         SmearingStep(settings, unit_testing); 
-        PlottingStep(settings, unit_testing); 
+        //PlottingStep(settings, unit_testing); 
         return;
     }
 
@@ -570,14 +578,14 @@ void Main() {
     if (do_smearing) {
         initSmearingFunctions();
 
-        //vector<string> periods{"data15-16", "data17", "data18"};
-        vector<string> periods{"data18"};
+        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<string> periods{"data18"};
         for (auto period : periods) {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
             vector<string> channels{"ee", "mm"};
-            vector<bool> is_datas{true};
+            vector<bool> is_datas{false};
             //vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
@@ -596,7 +604,7 @@ void Main() {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            vector<bool> is_datas{true};
+            vector<bool> is_datas{false};
             vector<string> channels{"ee", "mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
@@ -610,10 +618,10 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
-        //vector<string> periods{"data15-16", "data17", "data18"};
-        vector<string> periods{"data18"};
-        //vector<bool> is_datas{true, false};
-        vector<bool> is_datas{true};
+        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<string> periods{"data18"};
+        vector<bool> is_datas{true, false};
+        //vector<bool> is_datas{true};
         for (auto period : periods) {
             settings.period = period;
             for (auto is_data : is_datas) {
