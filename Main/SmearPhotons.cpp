@@ -25,7 +25,7 @@ public:
     TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
     vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
 
-    map<string, TH1F*> unit_test_plots;
+    map<string, map<int, TH1F*>> unit_test_plots;
 
     map<int, pair<float, float>> smearing_gaussians;
 
@@ -90,7 +90,69 @@ public:
     // UNIT TESTS
     //------------
 
-    map<string, TH1F*> getUnitTestPlots() {
+    void fillUnitTestPlots(TTree* ttree_data, TTree* ttree_tt, TTree* ttree_vv, TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
+        //--- initialize histograms
+        vector<string> features{"lepEta", "METl", "mll"};
+        vector<string> processes = options.is_data ? vector<string>{"data", "tt", "vv"} : vector<string>{"z"};
+
+        map<string, map<string, map<int, TH1F*>>> h_features;
+        for (auto feature : features) {
+            for (auto process : processes) {
+                for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
+                    TString hist_name = "h" + process + "_" + feature + "_pt_bin_" + pt_bin;
+                    TH1F* h_temp;
+                    if (feature == "lepEta") h_temp = new TH1F(hist_name, "", 100, -3, 3);
+                    else if (feature == "METl") h_temp = new TH1F(hist_name, "", 100, -100, 100);
+                    else if (feature == "mll") h_temp = new TH1F(hist_name, "", 100, 0, 150);
+                    h_features[feature][process][pt_bin] = h_temp;
+                }
+            }
+        }
+
+        //--- fill histograms
+        map<string, TTree*> ttrees;
+        ttrees["data"] = ttree_data; ttrees["tt"] = ttree_tt; ttrees["vv"] = ttree_vv; ttrees["zjets"] = ttree_zjets;
+        for (auto process : processes) {
+            ttrees[process]->Draw(">>event_list", bkg_baseline_with_channel);
+            auto event_list = (TEventList*) gDirectory->Get("event_list");
+
+            ttrees[process]->SetBranchStatus("*", 0);
+            vector<float> *lepEta = new vector<float>(10); SetInputBranch(ttrees[process], "lepEta", &lepEta);
+            float METl; SetInputBranch(ttrees[process], "METl", &METl);
+            float mll; SetInputBranch(ttrees[process], "mll", &mll);
+            float Ptll; SetInputBranch(ttrees[process], "Ptll", &Ptll);
+            double totalWeight; SetInputBranch(ttrees[process], "totalWeight", &totalWeight);
+
+            for (int i=0; i<event_list->GetN(); i++) {
+                ttrees[process]->GetEntry(i);
+                int pt_bin = bins::hist_pt_bins->FindBin(Ptll);
+
+                h_features["lepEta"][process][pt_bin]->Fill(lepEta->at(0), totalWeight);
+                h_features["lepEta"][process][pt_bin]->Fill(lepEta->at(1), totalWeight);
+                h_features["METl"][process][pt_bin]->Fill(METl, totalWeight);
+                h_features["mll"][process][pt_bin]->Fill(mll, totalWeight);
+            }
+        }
+
+        //--- add histograms for data
+        for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++)
+            this->unit_test_plots["lep_cm_theta"][pt_bin] = this->h_lep_cm_theta;
+
+        for (auto feature : features) {
+            for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
+                if (options.is_data) {
+                    h_features[feature]["data"][pt_bin]->Add(h_features[feature]["tt"][pt_bin], -1.0);
+                    h_features[feature]["data"][pt_bin]->Add(h_features[feature]["vv"][pt_bin], -1.0);
+                    this->unit_test_plots[feature][pt_bin] = h_features[feature]["data"][pt_bin];
+                }
+                else {
+                    this->unit_test_plots[feature][pt_bin] = h_features[feature]["z"][pt_bin];
+                }
+            }
+        }
+    }
+
+    map<string, map<int, TH1F*>> getUnitTestPlots() {
         return this->unit_test_plots;
     };
 
@@ -157,7 +219,7 @@ public:
         gStyle->SetOptStat(0);
 
         //--- open files and create TChains
-        TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets;
+        TTree *ttree_data, *ttree_tt, *ttree_vv, *ttree_zjets;
 
         string data_filename = options.in_file_path + options.data_period + "_data_bkg.root";
         string tt_filename = options.in_file_path + options.mc_period + "_ttbar.root";
@@ -165,17 +227,17 @@ public:
         string zjets_filename = options.in_file_path + options.mc_period + "_Zjets.root";
 
         cout << "Opening data file      : " << data_filename << endl;
-        tch_data = new TChain("BaselineTree"); tch_data->Add(data_filename.c_str());
-        cout << "data entries           : " << tch_data->GetEntries() << endl;
+        ttree_data = (TTree*)(new TFile(data_filename.c_str()))->Get("BaselineTree");
+        cout << "data entries           : " << ttree_data->GetEntries() << endl;
         cout << "Opening ttbar file     : " << tt_filename << endl;
-        tch_tt = new TChain("BaselineTree"); tch_tt->Add(tt_filename.c_str());
-        cout << "ttbar entries          : " << tch_tt->GetEntries() << endl;
+        ttree_tt = (TTree*)(new TFile(tt_filename.c_str()))->Get("BaselineTree");
+        cout << "ttbar entries          : " << ttree_tt->GetEntries() << endl;
         cout << "Opening diboson file   : " << vv_filename << endl;
-        tch_vv = new TChain("BaselineTree"); tch_vv->Add(vv_filename.c_str());
-        cout << "diboson entries        : " << tch_vv->GetEntries() << endl;
+        ttree_vv = (TTree*)(new TFile(vv_filename.c_str()))->Get("BaselineTree");
+        cout << "diboson entries        : " << ttree_vv->GetEntries() << endl;
         cout << "Opening Z+jets file    : " << zjets_filename << endl;
-        tch_zjets = new TChain("BaselineTree"); tch_zjets->Add(zjets_filename.c_str());
-        cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
+        ttree_zjets = (TTree*)(new TFile(zjets_filename.c_str()))->Get("BaselineTree");
+        cout << "Z+jets entries         : " << ttree_zjets->GetEntries() << endl;
         cout << endl;
 
         //--- modify event selections and weights
@@ -193,56 +255,13 @@ public:
         //--- fill lep theta histogram
         TH1F* hz = new TH1F("hz", "", 100, 0, 3);
 
-        tch_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
+        ttree_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
         cout << "Z+jets integral        : " << hz->Integral() << endl;
 
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
         if (options.diagnostic_plots || options.unit_testing) {
-            TCanvas *can = new TCanvas("can","can",600,600);
-            this->unit_test_plots["lep_cm_theta"] = this->h_lep_cm_theta;
-
-            //--- get other features in lab frame as well if doing unit testing
-            TString zeroed_cut;
-            zeroed_cut.Form("min(%s, 0)", (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle());
-            //TString zeroed_cut = (bkg_baseline_with_channel*cuts::bkg_weight).GetTitle();
-
-            if (options.unit_testing) {
-                vector<string> features{"lepEta", "METl", "mll"};
-                unordered_map<string, unordered_map<string, TH1F*>> lab_hists;
-                unordered_map<string, TChain*> tch_lab;
-                vector<string> processes;
-                if (options.is_data) {
-                    processes = vector<string>{"data", "tt", "vv"};
-                    tch_lab["data"] = tch_data; tch_lab["tt"] = tch_tt; tch_lab["vv"] = tch_vv;
-                }
-                else {
-                    processes = vector<string>{"z"};
-                    tch_lab["z"] = tch_zjets;
-                }
-                for (auto feature : features) {
-                    for (auto process : processes) {
-                        string hist_name = "h" + process + "_" + feature + "_lab";
-                        TH1F* h_temp;
-                        if (feature == "lepEta") h_temp = new TH1F(hist_name.c_str(), "", 100, -3, 3);
-                        else if (feature == "METl") h_temp = new TH1F(hist_name.c_str(), "", 100, -100, 100);
-                        else if (feature == "mll") h_temp = new TH1F(hist_name.c_str(), "", 100, 0, 150);
-                        lab_hists[feature][process] = h_temp;
-
-                        tch_lab[process]->Draw((feature+">>"+hist_name).c_str(), zeroed_cut, "goff");
-                    }
-                    if (options.is_data) {
-                        lab_hists[feature]["data"]->Add(lab_hists[feature]["tt"], -1.0);
-                        lab_hists[feature]["data"]->Add(lab_hists[feature]["vv"], -1.0);
-                        this->unit_test_plots[feature] = lab_hists[feature]["data"];
-                    }
-                    else {
-                        this->unit_test_plots[feature] = lab_hists[feature]["z"];
-                    }
-                }
-            }
-
-            delete can;
+            this->fillUnitTestPlots(ttree_data, ttree_tt, ttree_vv, ttree_zjets, bkg_baseline_with_channel);
         }
         cout << endl;
 
@@ -720,27 +739,25 @@ SmearingOptions setUnitTestOptions(SmearingOptions options) {
     return options;
 }
 
-map<string, TH1F*> performUnitTests(SmearingOptions options) {
+void performUnitTests(SmearingOptions options) {
     cout << BOLD(PBLU("Performing unit testing on smearing step")) << endl;
     cout << endl;
 
+    //--- get bkg feature plots and set up photon feature plots for comparison
     PhotonToZConverter converter(options);
-    map<string, TH1F*> unit_test_plots = converter.getUnitTestPlots();
+    map<string, map<int, TH1F*>> bkg_plots = converter.getUnitTestPlots();
 
     TCanvas *can = new TCanvas("can","can",600,600);
+    map<string, map<int, TH1F*>> photon_plots;
 
-    //--- lep_cm_theta
-    TH1F* h_lep_cm_theta_reproduced = new TH1F("", "", 100, 0, 3);
-    for (int i=0; i<1000000; i++)
-        h_lep_cm_theta_reproduced->Fill(converter.getRandomLepTheta());
-    unit_test_plots["lep_cm_theta"]->Draw("hist");
-    h_lep_cm_theta_reproduced->Scale(unit_test_plots["lep_cm_theta"]->Integral()/h_lep_cm_theta_reproduced->Integral());
-    h_lep_cm_theta_reproduced->SetLineColor(kRed);
-    h_lep_cm_theta_reproduced->Draw("samehist");
-    can->Print("DiagnosticPlots/h_lep_cm_theta.eps");
-    passTest("Lepton theta plot in CM frame produced");
+    for (int i=0; i<bins::n_pt_bins+2; i++) {
+        photon_plots["lep_cm_theta"][i] = new TH1F("", "", 100, 0, 3);
+        photon_plots["lepEta"][i] = new TH1F("", "", 100, -3, 3);
+        photon_plots["METl"][i] = new TH1F("", "", 100, -100, 100);
+        photon_plots["mll"][i] = new TH1F("", "", 100, 0, 150);
+    }
 
-    //--- lep_lab_eta
+    //--- open photon files
     string photon_file_name;
     if (options.is_data) photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
     else photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
@@ -751,54 +768,44 @@ map<string, TH1F*> performUnitTests(SmearingOptions options) {
     float gamma_eta; photon_tree->SetBranchAddress("gamma_eta", &gamma_eta);
     float gamma_phi; photon_tree->SetBranchAddress("gamma_phi", &gamma_phi);
     double totalWeight; photon_tree->SetBranchAddress("totalWeight", &totalWeight);
-    float mll = 91;
-
-    TH1F* h_lep_lab_eta_reproduced = new TH1F("", "", 100, -3, 3);
-    for (int i=0; i<100000; i++) {
-        photon_tree->GetEntry(i);
-        TLorentzVector z_4vec;
-        z_4vec.SetPtEtaPhiM(gamma_pt, gamma_eta, gamma_phi, mll);
-        auto [good_event, l0_lab_4vec, l1_lab_4vec] = converter.splitLeptons(z_4vec);
-        if (!good_event) continue;
-        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta(), totalWeight);
-        h_lep_lab_eta_reproduced->Fill(l0_lab_4vec.Eta(), totalWeight);
-    }
-    unit_test_plots["lepEta"]->Draw("hist");
-    h_lep_lab_eta_reproduced->Scale(unit_test_plots["lepEta"]->Integral()/h_lep_lab_eta_reproduced->Integral());
-    h_lep_lab_eta_reproduced->SetLineColor(kRed);
-    h_lep_lab_eta_reproduced->Draw("samehist");
-    can->Print("DiagnosticPlots/h_lep_lab_eta.eps");
-    passTest("Lepton eta plot in lab frame produced");
-
-    //--- METl and mll smearing
     float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
 
-    TH1F* h_METl_reproduced = new TH1F("", "", 100, -100, 100);
-    TH1F* h_mll_reproduced = new TH1F("", "", 100, 0, 150);
-    for (int i=0; i<100000; i++) {
+    //--- fill photon histograms
+    float Z_m = 91;
+    for (int i=0; i<1000000; i++) {
         photon_tree->GetEntry(i);
+        int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
+
+        photon_plots["lep_cm_theta"][pt_bin]->Fill(converter.getRandomLepTheta());
+
+        TLorentzVector z_4vec;
+        z_4vec.SetPtEtaPhiM(gamma_pt, gamma_eta, gamma_phi, Z_m);
+        auto [good_event, l0_lab_4vec, l1_lab_4vec] = converter.splitLeptons(z_4vec);
+        if (good_event) {
+            photon_plots["lepEta"][pt_bin]->Fill(l0_lab_4vec.Eta(), totalWeight);
+            photon_plots["lepEta"][pt_bin]->Fill(l0_lab_4vec.Eta(), totalWeight);
+        }
+
         auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
-        //cout << "Unsmeared: " << METl_unsmeared << ", " << gamma_pt <<
-            //" | Smeared: " << METl << ", " << mll << ", " << totalWeight << endl;
-        h_METl_reproduced->Fill(METl, totalWeight);
-        h_mll_reproduced->Fill(mll, totalWeight);
+        //cout << METl << " " << mll << " " << pt_bin << endl;
+        photon_plots["METl"][pt_bin]->Fill(METl, totalWeight);
+        photon_plots["mll"][pt_bin]->Fill(mll, totalWeight);
     }
-    unit_test_plots["METl"]->Draw("hist");
-    h_METl_reproduced->Scale(unit_test_plots["METl"]->Integral()/h_METl_reproduced->Integral());
-    h_METl_reproduced->SetLineColor(kRed);
-    h_METl_reproduced->Draw("samehist");
-    can->Print("DiagnosticPlots/h_METl.eps");
-    unit_test_plots["mll"]->Draw("hist");
-    h_mll_reproduced->SetLineColor(kRed);
-    h_mll_reproduced->Draw("samehist");
-    h_mll_reproduced->Scale(unit_test_plots["mll"]->Integral()/h_mll_reproduced->Integral());
-    can->Print("DiagnosticPlots/h_mll.eps");
-    passTest("Smeared METl and mll plots in lab frame produced");
+
+    //--- save comparison plots
+    for (auto& [key, hist] : bkg_plots) {
+        for (int i=0; i<bins::n_pt_bins+2; i++) {
+            bkg_plots[key][i]->Draw("hist");
+            photon_plots[key][i]->Scale(bkg_plots[key][i]->Integral()/photon_plots[key][i]->Integral());
+            photon_plots[key][i]->SetLineColor(kRed);
+            photon_plots[key][i]->Draw("samehist");
+            can->Print("DiagnosticPlots/" + key + "_pt_bin_" + i + ".eps");
+        }
+        passTest("Comparison plots for " + key + " produced");
+    }
 
     remove(options.out_file_name.c_str());
     passTest("Passed all unit tests");
-
-    return unit_test_plots;
 }
 
 //---------------
@@ -811,7 +818,7 @@ void SmearPhotons(SmearingOptions options) {
 
     if (options.unit_testing) {
         options = setUnitTestOptions(options);
-        map<string, TH1F*> unit_test_plots = performUnitTests(options);
+        performUnitTests(options);
     }
     else {
         cout << BOLD(PBLU("Performing smearing")) << endl;
