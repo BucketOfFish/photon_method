@@ -447,7 +447,7 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
         float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
         float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
         float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
-        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << endl;
+        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << " \\\\\\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
