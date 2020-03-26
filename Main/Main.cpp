@@ -201,7 +201,7 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
         "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
         "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        "mll_RJ", "mll_RJ_VR", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20",
+        "mll_RJ", "mll_RJ_VR", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20", "met_Sign",
     };
 
     //--- branches to rename and copy
@@ -209,7 +209,6 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         make_tuple("nBJet30_MV2c10_FixedCutBEff_77", "bjet_n"),
         make_tuple("jetEta", "jet_eta"),
         make_tuple("jetPhi", "jet_phi"),
-        make_tuple("met_Sign", "MET_sig"),
     };
 
     //--- new branches to add
@@ -381,7 +380,7 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
         //"R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
         //"dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
         //"mll_RJ", "mll_RJ_VR",
-        //"bjet_n", "jet_eta", "jet_phi", "MET_sig",
+        //"bjet_n", "jet_eta", "jet_phi", "met_Sign",
         //"dPhiMetJet2", "dPhiMetJet12Min", "lumi",
     //};
 
