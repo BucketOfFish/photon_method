@@ -437,7 +437,7 @@ public:
             canvas->SetLogy();
 
             TH1D* z_hist = this->hist_z_metl_bin_pt[pt_bin];
-            TString z_plot_name = Form("DiagnosticPlots/z_ptbin_%d.eps", pt_bin);
+            TString z_plot_name = Form("Diagnostics/Smearing/z_ptbin_%d.eps", pt_bin);
             z_hist->SetLineColor(1); z_hist->SetFillColor(42); z_hist->SetLineStyle(1);
             z_hist->GetXaxis()->SetTitle("METl");
             z_hist->GetYaxis()->SetTitle("entries / bin");
@@ -445,7 +445,7 @@ public:
             canvas->Print(z_plot_name);
 
             TH1D* g_hist = this->hist_g_metl_bin_pt[pt_bin];
-            TString g_plot_name = Form("DiagnosticPlots/g_ptbin_%d.eps", pt_bin);
+            TString g_plot_name = Form("Diagnostics/Smearing/g_ptbin_%d.eps", pt_bin);
             g_hist->SetLineColor(1); g_hist->SetFillColor(42); g_hist->SetLineStyle(1);
             g_hist->GetXaxis()->SetTitle("METl");
             g_hist->GetYaxis()->SetTitle("entries / bin");
@@ -454,7 +454,7 @@ public:
 
             for (int metl_bin=0; metl_bin<bins::n_METl_bins+2; metl_bin++) {
                 TH1D* z_mll_hist = this->hist_z_mll_bin_pt_metl[pt_bin][metl_bin];
-                TString z_mll_plot_name = Form("DiagnosticPlots/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
+                TString z_mll_plot_name = Form("Diagnostics/Smearing/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
                 z_mll_hist->SetLineColor(1); z_mll_hist->SetFillColor(42); z_mll_hist->SetLineStyle(1);
                 z_mll_hist->GetXaxis()->SetTitle("mll");
                 z_mll_hist->GetYaxis()->SetTitle("entries / bin");
@@ -541,7 +541,7 @@ public:
             canvas->SetLogy();
 
             TH1D* g_smeared_hist = this->hist_g_smeared_metl_bin_pt[pt_bin];
-            TString g_smeared_plot_name = Form("DiagnosticPlots/g_smeared_ptbin_%d.eps", pt_bin);
+            TString g_smeared_plot_name = Form("Diagnostics/Smearing/g_smeared_ptbin_%d.eps", pt_bin);
             g_smeared_hist->SetLineColor(1); g_smeared_hist->SetFillColor(42); g_smeared_hist->SetLineStyle(1);
             g_smeared_hist->GetXaxis()->SetTitle("METl");
             g_smeared_hist->GetYaxis()->SetTitle("entries / bin");
@@ -799,13 +799,16 @@ void performUnitTests(SmearingOptions options) {
             photon_plots[key][i]->Scale(bkg_plots[key][i]->Integral()/photon_plots[key][i]->Integral());
             photon_plots[key][i]->SetLineColor(kRed);
             photon_plots[key][i]->Draw("samehist");
-            can->Print("DiagnosticPlots/" + key + "_pt_bin_" + i + ".eps");
+            can->Print("Diagnostics/Smearing/" + key + "_pt_bin_" + i + ".eps");
         }
         passTest("Comparison plots for " + key + " produced");
     }
 
     remove(options.out_file_name.c_str());
+    delete can;
+
     passTest("Passed all unit tests");
+    cout << endl;
 }
 
 //---------------

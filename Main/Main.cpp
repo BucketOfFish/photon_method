@@ -469,10 +469,11 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     //options.plot_features = vector<string>{"METl", "METt", "met_Et", "lepPt", "lepEta", "lepPhi", "dPhiMetJet1",
                                             //"dPhiMetJet2", "Ptll", "mll", "jet_eta", "jet_phi", "jetPt", "Ht30"};
     options.plot_features = vector<string>{"METl"};
-    options.channels = vector<string>{"ee", "mm", "SF"};
+    //options.channels = vector<string>{"ee", "mm", "SF"};
+    options.channels = vector<string>{"SF"};
 
     options.blinded = true;
-    options.print_photon_yield_only = false;
+    options.print_photon_yield_only = true;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -509,32 +510,32 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    //settings.my_samples_folder = "/public/data/Photon/NewSamples/";
+    settings.my_samples_folder = "/public/data/Photon/Samples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
-    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
+    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
     settings.sampling_method = "HistogramSampling";
-    //settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
-    settings.reduction_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/ReducedNtuples/";
+    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
     //settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
     settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
-    settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
+    //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
+    settings.unit_test_folder = "/public/data/Photon/UnitTest/";
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = true;
+    bool unit_testing = false;
     bool do_reduction = false;
-    bool do_smearing = true;
+    bool do_smearing = false;
     bool do_reweighting = false;
-    bool do_plotting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (unit_testing) {
-        //ReductionStep(settings, unit_testing);
+        ReductionStep(settings, unit_testing);
         SmearingStep(settings, unit_testing); 
-        //PlottingStep(settings, unit_testing); 
+        PlottingStep(settings, unit_testing); 
         return;
     }
 
@@ -618,9 +619,10 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
-        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<string> periods{"data15-16", "data17", "data18"};
+        vector<string> periods{"data15-16", "data17"};
         //vector<string> periods{"data18"};
-        vector<bool> is_datas{true, false};
+        vector<bool> is_datas{true};
         //vector<bool> is_datas{true};
         for (auto period : periods) {
             settings.period = period;

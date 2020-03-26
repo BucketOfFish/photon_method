@@ -2,14 +2,17 @@
 
 using namespace std;
 
-using weightedDataFrame = ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>;
-struct Selection {
-    string region;
-    string channel;
-    string feature;
-    string process;
-};
-using histMap = unordered_map<string, unordered_map<string, unordered_map<string, ROOT::RDF::RResultPtr<TH1D>>>>; // [region][feature][process]
+using dataFrameMap = unordered_map<string, ROOT::RDataFrame*>;
+using weightedDataFrameMap = unordered_map<string,
+                             unique_ptr<ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>>>;
+using filteredDataFrameMap = unordered_map<string, // region
+                             unordered_map<string, // feature
+                             unordered_map<string, // SR/CR
+                             unique_ptr<ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void>>>>>;
+using histMap = unordered_map<string, // region
+                unordered_map<string, // feature
+                unordered_map<string, // process
+                ROOT::RDF::RResultPtr<TH1D>>>>;
 struct Result {
     unordered_map<string, unordered_map<string, TH1D*>> histograms; // [feature][process] histogram
     float photon_yield;
@@ -105,7 +108,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
 // SET UP RDATAFRAMES
 //--------------------
 
-unordered_map<string, ROOT::RDataFrame*> getRDataFrames(PlottingOptions options) {
+dataFrameMap getRDataFrames(PlottingOptions options) {
     //--- load files
     string ntuple_path = options.reduction_folder;
     string photon_path = options.reweighting_folder;
@@ -137,7 +140,7 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(PlottingOptions options)
     tch_photon->Add(photon_mm_filename.c_str());
 
     //--- add files to RDataFrame
-    unordered_map<string, ROOT::RDataFrame*> RDataFrames = {
+    dataFrameMap RDataFrames = {
         {"data", new ROOT::RDataFrame("BaselineTree", data_filename)},
         {"tt", new ROOT::RDataFrame("BaselineTree", tt_filename)},
         {"vv", new ROOT::RDataFrame("BaselineTree", vv_filename)},
@@ -155,7 +158,7 @@ unordered_map<string, ROOT::RDataFrame*> getRDataFrames(PlottingOptions options)
     return RDataFrames;
 }
 
-unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered_map<string, ROOT::RDataFrame*> dataframes) {
+weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes) {
     unordered_map<string, string> plot_weights;
     plot_weights["data"] = "1";
     plot_weights["tt"] = cuts::bkg_weight;
@@ -164,7 +167,7 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
     plot_weights["photon_raw"] = cuts::photon_weight;
     plot_weights["photon_reweighted"] = cuts::photon_weight_rw;
 
-    unordered_map<string, unique_ptr<weightedDataFrame>> weighted_dataframes;
+    weightedDataFrameMap weighted_dataframes;
     for (auto [process, dataframe] : dataframes) {
         if (process == "photon") {
             auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"])
@@ -181,11 +184,83 @@ unordered_map<string, unique_ptr<weightedDataFrame>> weightRDataFrames(unordered
     return weighted_dataframes;
 }
 
+filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, PlottingOptions options) {
+    filteredDataFrameMap filtered_dataframes;
+
+    for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
+        for (string region : options.regions) {
+            for (string channel : options.channels) {
+                auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
+                auto filtered_df_plot = weighted_dataframe->Filter(plot_region);
+                auto filtered_df_CR = weighted_dataframe->Filter(plot_CR);
+                using DFType = decltype(filtered_df_plot);
+
+                for (auto plot_feature : options.plot_features) {
+                    filtered_dataframes[region_name][plot_feature]["plot_region"] =
+                                        std::make_unique<DFType>(filtered_df_plot);  
+                    filtered_dataframes[region_name][plot_feature]["control_region"] =
+                                        std::make_unique<DFType>(filtered_df_CR);  
+                }
+            }
+        }
+    }
+
+    return filtered_dataframes;
+};
+
 //-----------------
 // FILL HISTOGRAMS
 //-----------------
 
-tuple<histMap, histMap> setUpHistograms(unordered_map<string, unique_ptr<weightedDataFrame>>* WRDataFramesPtr, PlottingOptions options) {
+tuple<histMap, histMap> setUpHistograms(filteredDataFrameMap* FRDataFramesPtr, PlottingOptions options) {
+    cout << "setting up histograms" << endl;
+    cout << endl;
+
+    histMap plot_region_histograms;
+    histMap control_region_histograms;
+
+    for (string region : options.regions) {
+        for (string channel : options.channels) {
+            auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
+            cout << "\tregion name          " << region_name << endl;
+            cout << "\tplot region          " << plot_region << endl;
+            cout << "\tnormalization reg.   " << plot_CR << endl;
+            cout << endl;
+
+            for (auto plot_feature : options.plot_features) {
+                ROOT::RDF::TH1DModel hist_model = getHistogramInfo(plot_feature);
+                for (auto process : vector<string>{"data", "tt", "vv", "zmc", "photon"}) {
+                    if (process == "photon") {
+                        //plot_region_histograms[region_name][plot_feature]["photon_raw"] =
+                                            //(*FRDataFramesPtr)[region_name][plot_feature]["plot_region"]
+                                            //->Histo1D(hist_model, plot_feature, "plot_raw_weight");
+                        plot_region_histograms[region_name][plot_feature]["photon_reweighted"] =
+                                            (*FRDataFramesPtr)[region_name][plot_feature]["plot_region"]
+                                            ->Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+                        //control_region_histograms[region_name][plot_feature]["photon_raw"] =
+                                            //(*FRDataFramesPtr)[region_name][plot_feature]["control_region"]
+                                            //->Histo1D(hist_model, plot_feature, "plot_raw_weight");
+                        control_region_histograms[region_name][plot_feature]["photon_reweighted"] =
+                                            (*FRDataFramesPtr)[region_name][plot_feature]["control_region"]
+                                            ->Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
+                    }
+                    else {
+                        plot_region_histograms[region_name][plot_feature][process] =
+                                            (*FRDataFramesPtr)[region_name][plot_feature]["plot_region"]
+                                            ->Histo1D(hist_model, plot_feature, "plot_weight");
+                        control_region_histograms[region_name][plot_feature][process] =
+                                            (*FRDataFramesPtr)[region_name][plot_feature]["control_region"]
+                                            ->Histo1D(hist_model, plot_feature, "plot_weight");
+                    }
+                }
+            }
+        }
+    }
+
+    return make_tuple(plot_region_histograms, control_region_histograms);
+};
+
+tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, PlottingOptions options) {
     cout << "setting up histograms" << endl;
     cout << endl;
 
@@ -646,9 +721,9 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
 //----------------
 
 void testTablePrintout(PlottingOptions options, resultsMap results_map) {
-    printPhotonYieldTables(options, results_map, "FinalOutputs/test_yield_table_blindeded.txt", true);
-    printPhotonYieldTables(options, results_map, "FinalOutputs/test_yield_table_unblindeded.txt", false);
-    printPhotonScaleFactorTables(options, results_map, "FinalOutputs/test_scale_factor_table.txt");
+    printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_blindeded.txt", true);
+    printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_unblindeded.txt", false);
+    printPhotonScaleFactorTables(options, results_map, "Diagnostics/test_scale_factor_table.txt");
 }
 
 void testMakePlot(resultsMap results_map, string plot_folder) {
@@ -660,6 +735,7 @@ void testMakePlot(resultsMap results_map, string plot_folder) {
 
 void unit_tests(PlottingOptions options) {
     cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
+    cout << endl;
 
     resultsMap results_map;
     vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
@@ -700,12 +776,13 @@ void unit_tests(PlottingOptions options) {
     results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2, 1.8};
 
     testTablePrintout(options, results_map);
-    string plot_folder = "DiagnosticPlots/Plots/";
+    string plot_folder = "Diagnostics/Plotting/";
     testMakePlot(results_map, plot_folder);
 
     passTest("Produced sample yield table");
     passTest("Produced sample plots");
-    passTest("Passed all test");
+    passTest("Passed all unit tests");
+    cout << endl;
 }
 
 //---------------
@@ -722,16 +799,22 @@ void run_quickDraw(PlottingOptions options) {
     cout << endl;
 
     //--- get input data in the form of RDataFrames
-    unordered_map<string, ROOT::RDataFrame*> RDataFrames = getRDataFrames(options);
-    unordered_map<string, unique_ptr<weightedDataFrame>> WRDataFrames = weightRDataFrames(RDataFrames);
+    dataFrameMap RDataFrames = getRDataFrames(options);
+    weightedDataFrameMap WRDataFrames = weightRDataFrames(RDataFrames);
 
     //--- set up all histograms and fill simulaneously
+    //auto FRDataFrames = filterRDataFrames(&WRDataFrames, options);
+    //auto region_hists = setUpHistograms(&FRDataFrames, options);
     auto region_hists = setUpHistograms(&WRDataFrames, options);
     resultsMap results_map = fillHistograms(region_hists, options);
 
     //--- print photon yield tables
-    TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", results_map.data_or_mc, "allRegions", options.plots_folder);
-    printPhotonYieldTables(options, results_map, "FinalOutputs/" + options.data_period + "_" + results_map.data_or_mc + "_yields.txt", options.blinded);
+    TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", results_map.data_or_mc,
+                                        "allRegions", options.plots_folder);
+    printPhotonYieldTables(options, results_map, "FinalOutputs/" + options.data_period + "_" +
+                           results_map.data_or_mc + "_yields.txt", options.blinded);
+    printPhotonScaleFactorTables(options, results_map, "FinalOutputs/" + options.data_period + "_" +
+                                 results_map.data_or_mc + "_scale_factors.txt");
 
     //--- draw and save plot
     if (!options.print_photon_yield_only)
