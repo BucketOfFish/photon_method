@@ -387,6 +387,7 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
     out_file.open(save_name);
+    out_file << std::setprecision(3) << std::fixed; // set printouts to 3 sig figs
 
     out_file << "\\documentclass{article}" << endl;
     out_file << "\\usepackage[utf8]{inputenc}" << endl;
@@ -430,6 +431,7 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
     out_file.open(save_name);
+    out_file << std::setprecision(3) << std::fixed; // set printouts to 3 sig figs
 
     out_file << "\\documentclass{article}" << endl;
     out_file << "\\usepackage[utf8]{inputenc}" << endl;
@@ -447,7 +449,7 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
         float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
         float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
         float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
-        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << " \\\\\\\\" << endl;
+        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -791,7 +793,6 @@ void unit_tests(PlottingOptions options) {
 
 void run_quickDraw(PlottingOptions options) {
     cout << BOLD(PBLU("Making plots")) << endl;
-    std::cout << std::setprecision(2) << std::fixed; // set printouts to 2 sig figs
     cout << endl;
 
     cout << "period                 : " << options.data_period << endl;
