@@ -382,12 +382,26 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
 // MAKE TABLES
 //-------------
 
+string toString(float val) {
+    std::ostringstream out;
+    out << std::setprecision(3) << std::fixed << val; // set printouts to 3 sig figs
+    return out.str();
+}
+
+string getChannelString(map<string, string> channel_values, vector<string> channels) {
+    string channel_string = "";
+    for (auto channel : channels) {
+        if (channel_string.length() > 0) channel_string += " / ";
+        channel_string += channel_values[channel];
+    }
+    return channel_string;
+}
+
 void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, string save_name, bool blinded) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
     out_file.open(save_name);
-    out_file << std::setprecision(3) << std::fixed; // set printouts to 3 sig figs
 
     out_file << "\\documentclass{article}" << endl;
     out_file << "\\usepackage[utf8]{inputenc}" << endl;
@@ -398,7 +412,9 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     out_file << "\\caption{Photon Method Yields}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c|c|c}" << endl;
-    out_file << "region & photon (ee / mm / SF) & Z MC (ee / mm / SF) & data (ee / mm / SF) \\\\" << endl;
+    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
+    string channel_string = getChannelString(channels, results_map.channels);
+    out_file << "region & photon (" << channel_string << ") & Z MC (" << channel_string << ") & data (" << channel_string << ") \\\\" << endl;
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
@@ -411,10 +427,14 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
         float data_ee = results_map.results[region + " ee"].data_yield;
         float data_mm = results_map.results[region + " mm"].data_yield;
         float data_SF = results_map.results[region + " SF"].data_yield;
+        map<string, string> channel_photons = {{"ee", toString(photon_ee)}, {"mm", toString(photon_mm)}, {"SF", toString(photon_SF)}};
+        map<string, string> channel_zmc = {{"ee", toString(zmc_ee)}, {"mm", toString(zmc_mm)}, {"SF", toString(zmc_SF)}};
+        map<string, string> channel_data = {{"ee", toString(data_ee)}, {"mm", toString(data_mm)}, {"SF", toString(data_SF)}};
         if (blinded && (region.find("SR") != std::string::npos))
-            out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & - / - / - \\\\" << endl;
-        else
-            out_file << region << " & " << photon_ee << " / " << photon_mm << " / " << photon_SF << " & " << zmc_ee << " / " << zmc_mm << " / " << zmc_SF << " & " << data_ee << " / " << data_mm << " / " << data_SF << " \\\\" << endl;
+            channel_data = {{"ee", "-"}, {"mm", "-"}, {"SF", "-"}};
+        out_file << region << " & " << getChannelString(channel_photons, results_map.channels);
+        out_file << " & " << getChannelString(channel_zmc, results_map.channels);
+        out_file << " & " << getChannelString(channel_data, results_map.channels) << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -431,7 +451,6 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
     out_file.open(save_name);
-    out_file << std::setprecision(3) << std::fixed; // set printouts to 3 sig figs
 
     out_file << "\\documentclass{article}" << endl;
     out_file << "\\usepackage[utf8]{inputenc}" << endl;
@@ -442,14 +461,17 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     out_file << "\\caption{Photon Method Scale Factors}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c}" << endl;
-    out_file << "region & photon scale factor (ee / mm / SF) \\\\" << endl;
+    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
+    string channel_string = getChannelString(channels, results_map.channels);
+    out_file << "region & photon scale factor " << channel_string << " \\\\" << endl;
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
         float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
         float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
         float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
-        out_file << region << " & " << photon_ee_sf << " / " << photon_mm_sf << " / " << photon_SF_sf << " \\\\" << endl;
+        map<string, string> channel_photons = {{"ee", toString(photon_ee_sf)}, {"mm", toString(photon_mm_sf)}, {"SF", toString(photon_SF_sf)}};
+        out_file << region << " & " << getChannelString(channel_photons, results_map.channels) << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -722,10 +744,14 @@ void makePlot(resultsMap results_map, string period, bool blinded, string plot_f
 // TEST FUNCTIONS
 //----------------
 
-void testTablePrintout(PlottingOptions options, resultsMap results_map) {
-    printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_blindeded.txt", true);
-    printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_unblindeded.txt", false);
-    printPhotonScaleFactorTables(options, results_map, "Diagnostics/test_scale_factor_table.txt");
+void testTablePrintout(PlottingOptions options, resultsMap results_map, bool SF_only=false) {
+    if (SF_only)
+        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_SF_only_blindeded.txt", true);
+    else {
+        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_blindeded.txt", true);
+        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_unblindeded.txt", false);
+        printPhotonScaleFactorTables(options, results_map, "Diagnostics/test_scale_factor_table.txt");
+    }
 }
 
 void testMakePlot(resultsMap results_map, string plot_folder) {
@@ -744,6 +770,7 @@ void unit_tests(PlottingOptions options) {
     vector<string> features{"METl", "METt", "met_Et"};
     results_map.regions = regions;
     results_map.features = features;
+    results_map.channels = vector<string>{"ee", "mm", "SF"};
 
     unordered_map<string, unordered_map<string, TH1D*>> test_hists; // [feature][process] histogram
     vector<string> processes{"data", "tt", "vv", "zmc", "photon_raw", "photon_reweighted"};
@@ -778,6 +805,8 @@ void unit_tests(PlottingOptions options) {
     results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.2, 1.8};
 
     testTablePrintout(options, results_map);
+    results_map.channels = vector<string>{"SF"};
+    testTablePrintout(options, results_map, true);
     string plot_folder = "Diagnostics/Plotting/";
     testMakePlot(results_map, plot_folder);
 
