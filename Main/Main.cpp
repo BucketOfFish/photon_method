@@ -462,17 +462,18 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.plots_folder = settings.plots_folder;
     options.reweight_var = "Ptll";
 
-    options.regions = vector<string>{"SRTest", "SRC", "SRCZ", "SRLow4", "SRLowZ", "SRMed4", "SRMedZ", "SRHigh4",
-                                      "SRHighZ", "VRC", "VRCZ", "VRLow4", "VRLowZ", "VRMed4", "VRMedZ", "VRHigh4",
-                                      "VRHighZ"};
+    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23", "SRLow4",
+                                     //"SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6", "SRMedZ6",
+                                     //"SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2"};
+    options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6", "VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
     //options.plot_features = vector<string>{"METl", "METt", "met_Et", "lepPt", "lepEta", "lepPhi", "dPhiMetJet1",
-                                            //"dPhiMetJet2", "Ptll", "mll", "jet_eta", "jet_phi", "jetPt", "Ht30"};
-    options.plot_features = vector<string>{"METl"};
+                                            //"dPhiMetJet2", "Ptll", "mll", "nJet30", "jet_eta", "jet_phi", "jetPt", "Ht30"};
+    options.plot_features = vector<string>{"met_Et", "dPhiMetJet1", "dPhiMetJet2", "nJet30", "Ht30"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
 
     options.blinded = true;
-    options.print_photon_yield_only = true;
+    options.print_photon_yield_only = false;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -520,11 +521,11 @@ void Main() {
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
     //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
-    settings.unit_test_folder = "/public/data/Photon/UnitTest/";
+    settings.unit_test_folder = "../UnitTestData/";
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -547,8 +548,8 @@ void Main() {
         for (auto is_data : is_datas) {
             for (auto period : periods) {
                 vector<string> sampleIDs{"data", "photon"};
-                if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Zjets", "ttbar", "diboson", "higgs", "lowMassDY",
-                    "singleTop", "topOther", "triboson", "Wjets"};
+                if (!is_data) sampleIDs = vector<string>{"SinglePhoton222", "Vgamma", "Zjets", "ttbar", "diboson", "higgs",
+                    "lowMassDY", "singleTop", "topOther", "triboson", "Wjets"};
 
                 for (auto sampleID : sampleIDs) {
                     if (sampleID == "photon") {
@@ -558,6 +559,7 @@ void Main() {
                     else {
                         settings.sampleID = sampleID;
                         if (sampleID == "SinglePhoton222") settings.is_photon = true;
+                        else if (sampleID == "Vgamma") settings.is_photon = true;
                         else settings.is_photon = false;
                     }
                     settings.is_data = is_data;
@@ -618,11 +620,9 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
-        //vector<string> periods{"data15-16", "data17", "data18"};
-        vector<string> periods{"data15-16", "data17"};
-        //vector<string> periods{"data18"};
+        vector<string> periods{"data15-16", "data17", "data18"};
+        //vector<bool> is_datas{true, false};
         vector<bool> is_datas{true};
-        //vector<bool> is_datas{true};
         for (auto period : periods) {
             settings.period = period;
             for (auto is_data : is_datas) {
