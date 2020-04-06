@@ -360,6 +360,12 @@ void failTest(string msg) {
     exit(0);
 }
 
+string padString(string unpadded_string) {
+    int pad_len = 23;
+    string padded_string = unpadded_string + string(pad_len - unpadded_string.length(), ' ');
+    return padded_string;
+}
+
 //-------------------------
 // TREE MANIPULATION CLASS
 //-------------------------
@@ -562,6 +568,7 @@ struct PlottingOptions {
     vector<string> regions;
     vector<string> plot_features;
     vector<string> channels;
+    vector<string> processes;
 
     bool blinded;
     bool print_photon_yield_only;
