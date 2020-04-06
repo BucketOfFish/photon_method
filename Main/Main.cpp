@@ -462,19 +462,28 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.plots_folder = settings.plots_folder;
     options.reweight_var = "Ptll";
 
-    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23", "SRLow4",
-                                     //"SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6", "SRMedZ6",
-                                     //"SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2"};
-    //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6", "VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
+                                     //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
+                                     //"SRMedZ6", "SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2"};
+    //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6", "VRDPhiLow6", "VRDPhiMed6",
+                                     //"VRDPhiHigh6"};
     options.regions = vector<string>{"VRDPhiLow6"};
-    //options.plot_features = vector<string>{"METl", "METt", "met_Et", "lepPt", "lepEta", "lepPhi", "dPhiMetJet1",
-                                            //"dPhiMetJet2", "Ptll", "mll", "nJet30", "jet_eta", "jet_phi", "jetPt", "Ht30"};
-    //options.plot_features = vector<string>{"met_Et", "dPhiMetJet1", "dPhiMetJet2", "nJet30", "Ht30"};
-    options.plot_features = vector<string>{"met_Et"};
+    options.plot_features = vector<string>{"met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
     //options.processes = {"data_bkg", "photon", "Zjets", "lowMassDY", "topOther", "higgs", "diboson", "triboson", "singleTop", "ttbar"};
     options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs"};
+    options.process_latex = {{"data_bkg", "data"},
+                             {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
+                             {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
+                             {"Zjets", "Z+jets (from MC)"},
+                             {"ttbar", "t#bar{t}"},
+                             {"diboson", "diboson"},
+                             {"lowMassDY", "low mass DY"},
+                             {"topOther", "top other"},
+                             {"singleTop", "single top"},
+                             {"triboson", "triboson"},
+                             {"higgs", "higgs"}};
 
     options.blinded = true;
     options.print_photon_yield_only = false;

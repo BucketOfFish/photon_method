@@ -569,6 +569,7 @@ struct PlottingOptions {
     vector<string> plot_features;
     vector<string> channels;
     vector<string> processes;
+    map<string, string> process_latex;
 
     bool blinded;
     bool print_photon_yield_only;
