@@ -7,7 +7,6 @@
 #include <sstream>
 #include <fstream>
 #include <map>
-//#include <unordered_map>
 #include <boost/algorithm/string.hpp>
 #include <string>
 #include <iomanip> 
@@ -558,6 +557,8 @@ struct PlottingOptions {
     string in_tree_name;
     string out_file_name;
     string out_tree_name;
+
+    string unit_test_folder;
 
     string period;
     string data_period;

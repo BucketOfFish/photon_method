@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{table}
+\caption{Photon Method Yields}
+\begin{center}
+\begin{tabular}{c|c|c|c}
+region & photon & data \\
+\hline
+SRC & 0 & 0.0110761 & - \\
+SRLow2 & 20.6374 & 1.37084 & - \\
+SRMed2 & 5.555 & 1.03538 & - \\
+SRHigh2 & 1.91423 & 1.13197 & - \\
+SRLow23 & 12.4818 & 0.353989 & - \\
+SRMed23 & 2.40046 & 0.473754 & - \\
+SRHigh23 & 0.723963 & 0.397772 & - \\
+SRLow4 & 8.17583 & 1.01685 & - \\
+SRMed4 & 3.14571 & 0.561629 & - \\
+SRHigh4 & 1.19453 & 0.7342 & - \\
+SRLowZ4 & 2.18484 & 0.737309 & - \\
+SRMedZ4 & 0.946093 & 0.367142 & - \\
+SRHighZ4 & 0.506041 & 0.235529 & - \\
+SRLowZ6 & 0.375423 & 0.222039 & - \\
+SRMedZ6 & 0.182888 & 0.101636 & - \\
+SRHighZ6 & 0.152797 & 0.0734111 & - \\
+VRDPhiLow2 & 449.463 & 445.089 & 432.256 \\
+VRDPhiMed2 & 151.575 & 157.523 & 150.508 \\
+VRDPhiHigh2 & 14.9232 & 21.1338 & 14.7074 \\
+VR3L & 0 & 0 & 0 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

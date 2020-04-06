@@ -462,17 +462,19 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.plots_folder = settings.plots_folder;
     options.reweight_var = "Ptll";
 
+    options.unit_test_folder = settings.unit_test_folder;
+
     //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
                                      //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
                                      //"SRMedZ6", "SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2"};
     //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6", "VRDPhiLow6", "VRDPhiMed6",
                                      //"VRDPhiHigh6"};
     options.regions = vector<string>{"VRDPhiLow6"};
-    options.plot_features = vector<string>{"met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
+    options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
-    //options.processes = {"data_bkg", "photon", "Zjets", "lowMassDY", "topOther", "higgs", "diboson", "triboson", "singleTop", "ttbar"};
-    options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs"};
+    options.processes = {"data_bkg", "photon", "Zjets", "lowMassDY", "topOther", "higgs", "diboson", "triboson",
+                         "singleTop", "ttbar"};
     options.process_latex = {{"data_bkg", "data"},
                              {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
                              {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
@@ -534,7 +536,7 @@ void Main() {
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
     //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
-    settings.unit_test_folder = "../UnitTestData/";
+    settings.unit_test_folder = "/public/data/Photon/UnitTests/";
 
     settings.save_tree_name = "BaselineTree";
 

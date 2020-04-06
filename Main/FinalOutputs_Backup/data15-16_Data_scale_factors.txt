@@ -1,0 +1,36 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{table}
+\caption{Photon Method Scale Factors}
+\begin{center}
+\begin{tabular}{c|c}
+region & photon scale factor \\
+\hline
+SRC & 0 \\\\
+SRLow2 & 0.854554 \\\\
+SRMed2 & 1.04001 \\\\
+SRHigh2 & 1.13775 \\\\
+SRLow23 & 0.874606 \\\\
+SRMed23 & 1.10757 \\\\
+SRHigh23 & 1.13801 \\\\
+SRLow4 & 0.815792 \\\\
+SRMed4 & 0.984046 \\\\
+SRHigh4 & 1.13762 \\\\
+SRLowZ4 & 0.824641 \\\\
+SRMedZ4 & 0.976233 \\\\
+SRHighZ4 & 1.08457 \\\\
+SRLowZ6 & 0.767139 \\\\
+SRMedZ6 & 0.893299 \\\\
+SRHighZ6 & 0.993481 \\\\
+VRDPhiLow2 & 0.726287 \\\\
+VRDPhiMed2 & 0.684984 \\\\
+VRDPhiHigh2 & 0.836645 \\\\
+VR3L & 0 \\\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

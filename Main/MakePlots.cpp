@@ -2,19 +2,23 @@
 
 using namespace std;
 
-using dataFrameMap = unordered_map<string, ROOT::RDataFrame*>;
-using weightedDataFrameMap = unordered_map<string,
+//-----------------
+// DATA STRUCTURES
+//-----------------
+
+using dataFrameMap = map<string, ROOT::RDataFrame*>;
+using weightedDataFrameMap = map<string,
                              unique_ptr<ROOT::RDF::RInterface<ROOT::Detail::RDF::RLoopManager, void>>>;
-using filteredDataFrameMap = unordered_map<string, // region
-                             unordered_map<string, // feature
-                             unordered_map<string, // SR/CR
+using filteredDataFrameMap = map<string, // region
+                             map<string, // feature
+                             map<string, // SR/CR
                              unique_ptr<ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void>>>>>;
-using histMap = unordered_map<string, // region
-                unordered_map<string, // feature
-                unordered_map<string, // process
+using histMap = map<string, // region
+                map<string, // feature
+                map<string, // process
                 ROOT::RDF::RResultPtr<TH1D>>>>;
 struct Result {
-    unordered_map<string, unordered_map<string, TH1D*>> histograms; // [feature][process] histogram
+    map<string, map<string, TH1D*>> histograms; // [feature][process] histogram
     map<string, float> process_yields;
     float photon_SF;
 };
@@ -23,7 +27,7 @@ struct resultsMap {
     vector<string> features;
     vector<string> channels;
     string period;
-    unordered_map<string, Result> results; // results by [region]
+    map<string, Result> results; // results by [region]
 };
 
 //------------------
@@ -63,7 +67,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
 }
 
 ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
-    unordered_map<string, ROOT::RDF::TH1DModel> plot_settings;
+    map<string, ROOT::RDF::TH1DModel> plot_settings;
     plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 50, 0, 1000);
     plot_settings["METl"] = ROOT::RDF::TH1DModel("", "E_{T,||}^{miss} [GeV]", 30, -150, 150);
     plot_settings["METt"] = ROOT::RDF::TH1DModel("", "E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
@@ -139,7 +143,7 @@ dataFrameMap getRDataFrames(PlottingOptions options) {
     cout << endl;
 
     //--- add files to RDataFrame
-    dataFrameMap RDataFrames = {};
+    dataFrameMap RDataFrames;
     for (auto process : options.processes) {
         RDataFrames[process] = new ROOT::RDataFrame(*tchains[process]);
         cout << padString(process + " entries") << ": " << *(RDataFrames[process]->Count()) << endl;
@@ -150,7 +154,7 @@ dataFrameMap getRDataFrames(PlottingOptions options) {
 }
 
 weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, PlottingOptions options) {
-    unordered_map<string, string> plot_weights;
+    map<string, string> plot_weights;
     for (auto process : options.processes)
         plot_weights[process] = cuts::bkg_weight;
     plot_weights["data_bkg"] = "1";
@@ -317,7 +321,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
             cout << "\tPhoton yield of " << PR_integrals["photon_reweighted"] << endl;
             cout << endl;
 
-            unordered_map<string, unordered_map<string, TH1D*>> region_hists;
+            map<string, map<string, TH1D*>> region_hists;
             for (auto plot_feature : options.plot_features) {
                 for (auto [process, histogram] : prh[plot_feature]) {
                     TH1D* new_histogram = new TH1D;
@@ -443,14 +447,15 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
 // MAKE PLOTS
 //------------
 
-tuple<THStack*, THStack*, THStack*> createStacks(unordered_map<string, TH1D*> histograms, TString formatted_feature, PlottingOptions options) {
+tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, PlottingOptions options) {
     //--- set plotting options
-    vector<int> colors = {kGreen-2, kBlue-2, kYellow+1, kMagenta, kCyan, kSpring+10};
+    vector<int> colors = {kGreen-5, kGreen+2, kRed+1, kSpring+10, kCyan, kMagenta, kYellow+1, kAzure-9, kGreen-2,
+                          kViolet+5};
     int color_count = 0;
     for (auto [process, histogram] : histograms) {
         histograms[process]->SetLineColor(1);
-        histograms[process]->SetLineWidth(2);
-        histograms[process]->SetFillColor(colors[color_count++]);
+        histograms[process]->SetLineWidth(1);
+        if (process != "data_bkg") histograms[process]->SetFillColor(colors[color_count++]);
         if (process == "photon_raw") {
             histograms[process]->SetLineColor(4);
             histograms[process]->SetLineStyle(2);
@@ -487,14 +492,18 @@ tuple<THStack*, THStack*, THStack*> createStacks(unordered_map<string, TH1D*> hi
     THStack *reweight_g_stack = new THStack("reweight_g_stack", "");
 
     for (auto [process, histogram] : histograms) {
-        if (process == "data_bkg")
+        if (process == "data_bkg") {
             if (options.is_data) data_stack->Add(histograms[process]);
-        else if (process == "Zjets")
+        }
+        else if (process == "Zjets") {
             if (!options.is_data) data_stack->Add(histograms[process]);
-        else if (process == "photon_raw")
+        }
+        else if (process == "photon_raw") {
             raw_g_stack->Add(histograms[process]);
-        else if (process == "photon_reweighted")
+        }
+        else if (process == "photon_reweighted") {
             reweight_g_stack->Add(histograms[process]);
+        }
         else if (options.is_data) {
             raw_g_stack->Add(histograms[process]);
             reweight_g_stack->Add(histograms[process]);
@@ -514,7 +523,7 @@ TString getPlotSaveName(string period, string channel, string plot_feature, bool
     return plot_name;
 }
 
-TLegend* getLegend(PlottingOptions options, unordered_map<string, TH1D*> histograms) {
+TLegend* getLegend(PlottingOptions options, map<string, TH1D*> histograms) {
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     if (options.is_data) {
         for (auto [process, histogram] : histograms) {
@@ -556,7 +565,7 @@ string getPlotTex(string period, bool is_data) {
     return tex_string;
 }
 
-tuple<TH1D*, TH1D*> getRatioPlots(unordered_map<string, TH1D*> histograms, bool is_data) {
+tuple<TH1D*, TH1D*> getRatioPlots(map<string, TH1D*> histograms, bool is_data) {
     TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (is_data) {
@@ -750,11 +759,20 @@ void testMakePlot(resultsMap results_map, string plots_folder) {
     makePlot(results_map, options);
 }
 
-void unit_tests(PlottingOptions options) {
-    cout << BOLD(PBLU("Unit tests currently unimplemented")) << endl;
+void run_quickDraw(PlottingOptions options);
 
-    //cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
-    //cout << endl;
+void unit_tests(PlottingOptions options) {
+    cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
+    cout << endl;
+
+    options.data_period = "data15-16";
+    options.is_data = true;
+    options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
+    options.reweighting_folder = options.unit_test_folder + "ReweightedNtuples/";
+    options.plots_folder = "Diagnostics/Plots/";
+    run_quickDraw(options);
+
+    passTest("Check output folders for sample tables and plots");
 
     //resultsMap results_map;
     //vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
@@ -763,8 +781,8 @@ void unit_tests(PlottingOptions options) {
     //results_map.features = features;
     //results_map.channels = vector<string>{"ee", "mm", "SF"};
 
-    //unordered_map<string, unordered_map<string, TH1D*>> test_hists; // [feature][process] histogram
-    //unordered_map<string, int> n_entries;
+    //map<string, map<string, TH1D*>> test_hists; // [feature][process] histogram
+    //map<string, int> n_entries;
     //n_entries["data_bkg"] = 10000;
     //n_entries["ttbar"] = 6000;
     //n_entries["diboson"] = 3000;
@@ -823,8 +841,6 @@ void run_quickDraw(PlottingOptions options) {
     weightedDataFrameMap WRDataFrames = weightRDataFrames(RDataFrames, options);
 
     //--- set up all histograms and fill simulaneously
-    //auto FRDataFrames = filterRDataFrames(&WRDataFrames, options);
-    //auto region_hists = setUpHistograms(&FRDataFrames, options);
     auto region_hists = setUpHistograms(&WRDataFrames, options);
     resultsMap results_map = fillHistograms(region_hists, options);
 

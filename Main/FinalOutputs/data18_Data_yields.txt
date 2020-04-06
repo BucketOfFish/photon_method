@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{table}
+\caption{Photon Method Yields}
+\begin{center}
+\begin{tabular}{c|c|c|c}
+region & photon (ee / mm / SF) & Z MC (ee / mm / SF) & data (ee / mm / SF) \\
+\hline
+VRDPhiLow6 & 0 / 0 / 2.38527 & 0 / 0 / 6.50724 & 0 / 0 / 9.36757 \\
+VRDPhiMed6 & 0 / 0 / 3.49302 & 0 / 0 / 8.4128 & 0 / 0 / 12.2166 \\
+VRDPhiHigh6 & 0 / 0 / 2.32288 & 0 / 0 / 7.33371 & 0 / 0 / 6.35035 \\
+VRDPhiLow6 & 0 / 0 / 2.38527 & 0 / 0 / 6.50724 & 0 / 0 / 9.36757 \\
+VRDPhiMed6 & 0 / 0 / 3.49302 & 0 / 0 / 8.4128 & 0 / 0 / 12.2166 \\
+VRDPhiHigh6 & 0 / 0 / 2.32288 & 0 / 0 / 7.33371 & 0 / 0 / 6.35035 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

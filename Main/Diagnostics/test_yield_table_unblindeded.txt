@@ -1,0 +1,20 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{table}
+\caption{Photon Method Yields}
+\begin{center}
+\begin{tabular}{c|c|c|c}
+region & photon (ee / mm / SF) & Z MC (ee / mm / SF) & data (ee / mm / SF) \\
+\hline
+SR_test1 & 1.300 / 1.200 / 2.500 & 1.500 / 1.600 / 3.100 & 1.400 / 1.300 / 2.700 \\
+SR_test2 & 3.600 / 3.100 / 6.700 & 3.500 / 3.200 / 6.700 & 3.700 / 3.400 / 7.100 \\
+SR_test3 & 12.900 / 11.600 / 24.500 & 13.300 / 12.800 / 26.100 & 11.200 / 12.000 / 23.200 \\
+VR_test1 & 112.900 / 111.600 / 124.500 & 113.300 / 112.800 / 126.100 & 111.200 / 112.000 / 123.200 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

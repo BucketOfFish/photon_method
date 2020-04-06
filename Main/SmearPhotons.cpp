@@ -721,7 +721,7 @@ public:
 //------------
 
 SmearingOptions setUnitTestOptions(SmearingOptions options) {
-    options.in_file_path = options.unit_test_folder + "Smearing/";
+    options.in_file_path = options.unit_test_folder + "ReducedNtuples/";
     options.out_file_name = "unit_test.root";
     options.in_tree_name = "BaselineTree";
     options.out_tree_name = "BaselineTree";
