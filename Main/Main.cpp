@@ -467,9 +467,8 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
                                      //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
                                      //"SRMedZ6", "SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2"};
-    //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6", "VRDPhiLow6", "VRDPhiMed6",
-                                     //"VRDPhiHigh6"};
-    options.regions = vector<string>{"VRDPhiLow6"};
+    //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+    options.regions = vector<string>{"VRDPhiHigh6"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};

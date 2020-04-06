@@ -371,7 +371,10 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     string channel_string = getChannelString(channels, options.channels);
     out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
-    out_file << "\\begin{tabular}{c|c|c|c}" << endl;
+    out_file << "\\begin{tabular}{c";
+    for (auto process : options.processes)
+        out_file << "|c";
+    out_file << "}" << endl;
     out_file << "region";
     for (auto process : options.processes)
         out_file << " & " << process;
@@ -418,12 +421,12 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     out_file << "\\begin{document}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
-    out_file << "\\caption{Photon Method Scale Factors}" << endl;
+    out_file << "\\caption{Photon Method Scale Factors (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c}" << endl;
     map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
     string channel_string = getChannelString(channels, results_map.channels);
-    out_file << "region & photon scale factor " << channel_string << " \\\\" << endl;
+    out_file << "region & photon scale factor \\\\" << endl;
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
