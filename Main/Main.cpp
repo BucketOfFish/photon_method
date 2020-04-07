@@ -201,7 +201,8 @@ void ReductionStep(GlobalOptions settings, bool unit_testing) {
         "PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
         "R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
         "dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        "mll_RJ", "mll_RJ_VR", "nBJet20_MV2c10_FixedCutBEff_77", "nJet20", "met_Sign",
+        "mll_RJ", "mll_RJ_VR", "nJet20", "met_Sign",
+        "mjj_minDPhiZMET", "mbb", "PtISR",
     };
 
     //--- branches to rename and copy
@@ -524,8 +525,8 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    settings.my_samples_folder = "/public/data/Photon/Samples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+    //settings.my_samples_folder = "/public/data/Photon/Samples/";
+    settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
     settings.sampling_method = "HistogramSampling";
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
@@ -534,16 +535,16 @@ void Main() {
     settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
-    //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
-    settings.unit_test_folder = "/public/data/Photon/UnitTests/";
+    settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
+    //settings.unit_test_folder = "/public/data/Photon/UnitTests/";
 
     settings.save_tree_name = "BaselineTree";
 
     bool unit_testing = false;
-    bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_reduction = true;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (unit_testing) {

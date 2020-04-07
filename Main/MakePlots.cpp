@@ -421,11 +421,11 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     out_file << "\\begin{document}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
+    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
+    string channel_string = getChannelString(channels, results_map.channels);
     out_file << "\\caption{Photon Method Scale Factors (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c}" << endl;
-    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
-    string channel_string = getChannelString(channels, results_map.channels);
     out_file << "region & photon scale factor \\\\" << endl;
     out_file << "\\hline" << endl;
 

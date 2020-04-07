@@ -597,7 +597,7 @@ public:
             "met_Sign/F", "minDphi/D", "minDPhi2JetsMet/F", "mll_RJ/D", "mll_RJ_VR/D", "nJet30/I", "nJet20/I", "mjj/F",
             "nBJet20_MV2c10_FixedCutBEff_77/I", "trigMatch_2LTrigOR/I", "genWeight/D", "eventWeight/D", "leptonWeight/D",
             "jvtWeight/D", "bTagWeight/D", "pileupWeight/D", "globalDiLepTrigSF/D", "RunNumber/I", "RandomRunNumber/I",
-            "trigMatch_2LTrig/I", "lumi/D"};
+            "trigMatch_2LTrig/I", "lumi/D", "mjj_minDPhiZMET/F", "mbb/F", "PtISR/F"};
         CopyAllBranches(inputTree, outputTree, histFitterBranches);
 
         vector<float>* dPhiMetJet = new vector<float>(10); CopyBranch(inputTree, outputTree, "dPhiMetJet", "dPhiMetJet", &dPhiMetJet, "vector<float>");
