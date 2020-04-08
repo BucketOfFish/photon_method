@@ -9,3 +9,4 @@ PhotonSmearing/Plots
 */*/run_all.sh
 Plotting/Studies/Plots
 Studies/*.pkl
+Main/Diagnostics/
