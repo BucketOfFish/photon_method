@@ -305,6 +305,11 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
                     mc_bkg_PR_integral += PR_integrals[process];
                 }
             }
+
+            PR_integrals["bkg MC"] = mc_bkg_PR_integral;
+            PR_integrals["photon + bkg MC"] = PR_integrals["photon_reweighted"] + mc_bkg_PR_integral;
+            PR_integrals["Z + bkg MC"] = PR_integrals["Zjets"] + mc_bkg_PR_integral;
+
             float zdata_integral = CR_integrals["data_bkg"] - mc_bkg_CR_integral;
             if (!options.is_data) zdata_integral = CR_integrals["Zjets"];
             float SF = CR_integrals["photon_raw"] == 0 ? 0.0 : zdata_integral / CR_integrals["photon_raw"];
@@ -362,28 +367,28 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     out_file.open(save_name);
 
     out_file << "\\documentclass{article}" << endl;
+    out_file << endl;
     out_file << "\\usepackage[utf8]{inputenc}" << endl;
+    out_file << "\\usepackage{color, colortbl}" << endl;
     out_file << endl;
     out_file << "\\begin{document}" << endl;
+    out_file << endl;
+    out_file << "\\definecolor{Gray}{gray}{0.9}" << endl;
+    out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
     map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
     string channel_string = getChannelString(channels, options.channels);
     out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
-    out_file << "\\begin{tabular}{c";
-    for (auto process : options.processes)
-        out_file << "|c";
-    out_file << "}" << endl;
-    out_file << "region";
-    for (auto process : options.processes)
-        out_file << " & " << process;
-    out_file << " \\\\" << endl;
+    out_file << "\\begin{tabular}{c|gcccgg}" << endl;
+    vector<string> table_processes = {"data_bkg", "bkg MC", "photon", "Zjets", "photon + bkg MC", "Z + bkg MC"};
+    out_file << "region & data & bkg$_{MC}$ & photon & Zjets & photon$_{tot}$ & Zjets$_{tot}$ \\\\" << endl;
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.regions) {
         out_file << region;
-        for (auto process : options.processes) {
+        for (auto process : table_processes) {
             if (process == "photon") process = "photon_reweighted";
             float yield_ee = results_map.results[region + " ee"].process_yields[process];
             float yield_mm = results_map.results[region + " mm"].process_yields[process];
@@ -740,28 +745,6 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
 // TEST FUNCTIONS
 //----------------
 
-void testTablePrintout(PlottingOptions options, resultsMap results_map, bool SF_only=false) {
-    if (SF_only)
-        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_SF_only_blindeded.txt", true);
-    else {
-        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_blindeded.txt", true);
-        printPhotonYieldTables(options, results_map, "Diagnostics/test_yield_table_unblindeded.txt", false);
-        printPhotonScaleFactorTables(options, results_map, "Diagnostics/test_scale_factor_table.txt");
-    }
-}
-
-void testMakePlot(resultsMap results_map, string plots_folder) {
-    PlottingOptions options;
-    options.data_period = "all";
-    options.is_data = true;
-    options.blinded = true;
-    options.plots_folder = plots_folder;
-    makePlot(results_map, options);
-
-    options.blinded = false;
-    makePlot(results_map, options);
-}
-
 void run_quickDraw(PlottingOptions options);
 
 void unit_tests(PlottingOptions options) {
@@ -776,55 +759,6 @@ void unit_tests(PlottingOptions options) {
     run_quickDraw(options);
 
     passTest("Check output folders for sample tables and plots");
-
-    //resultsMap results_map;
-    //vector<string> regions{"SR_test1", "SR_test2", "SR_test3", "VR_test1"};
-    //vector<string> features{"METl", "METt", "met_Et"};
-    //results_map.regions = regions;
-    //results_map.features = features;
-    //results_map.channels = vector<string>{"ee", "mm", "SF"};
-
-    //map<string, map<string, TH1D*>> test_hists; // [feature][process] histogram
-    //map<string, int> n_entries;
-    //n_entries["data_bkg"] = 10000;
-    //n_entries["ttbar"] = 6000;
-    //n_entries["diboson"] = 3000;
-    //n_entries["Zjets"] = 1000;
-    //n_entries["photon_raw"] = 1000;
-    //n_entries["photon_reweighted"] = 1000;
-    //for (auto feature : features) {
-        //for (auto process : options.processes) {
-            //test_hists[feature][process] = new TH1D("", "", 100, -3, 3);
-            //test_hists[feature][process]->FillRandom("gaus", n_entries[process]);
-        //}
-    //}
-
-    //results_map.results["SR_test1 ee"] = Result{test_hists, 1.3, 1.5, 1.8, 0.4, 1};
-    //results_map.results["SR_test1 mm"] = Result{test_hists, 1.2, 1.6, 1.9, 0.6, 1};
-    //results_map.results["SR_test1 SF"] = Result{test_hists, 2.5, 3.1, 2.8, 0.1, 1};
-
-    //results_map.results["SR_test2 ee"] = Result{test_hists, 3.6, 3.5, 3.9, 0.2, 3.1};
-    //results_map.results["SR_test2 mm"] = Result{test_hists, 3.1, 3.2, 3.9, 0.5, 3.1};
-    //results_map.results["SR_test2 SF"] = Result{test_hists, 6.7, 6.7, 7.4, 0.3, 3.1};
-
-    //results_map.results["SR_test3 ee"] = Result{test_hists, 12.9, 13.3, 11.8, 0.6, 1.8};
-    //results_map.results["SR_test3 mm"] = Result{test_hists, 11.6, 12.8, 12.7, 0.7, 1.3};
-    //results_map.results["SR_test3 SF"] = Result{test_hists, 24.5, 26.1, 23.8, 0.6, 1.9};
-
-    //results_map.results["VR_test1 ee"] = Result{test_hists, 112.9, 113.3, 111.4, 0.2 2.5};
-    //results_map.results["VR_test1 mm"] = Result{test_hists, 111.6, 112.8, 112.3, 0.3, 5};
-    //results_map.results["VR_test1 SF"] = Result{test_hists, 124.5, 126.1, 123.7, 0.5, 1.8};
-
-    //testTablePrintout(options, results_map);
-    //results_map.channels = vector<string>{"SF"};
-    //testTablePrintout(options, results_map, true);
-    //string plot_folder = "Diagnostics/Plotting/";
-    //testMakePlot(results_map, plot_folder);
-
-    //passTest("Produced sample yield table");
-    //passTest("Produced sample plots");
-    //passTest("Passed all unit tests");
-    //cout << endl;
 }
 
 //---------------
@@ -851,9 +785,9 @@ void run_quickDraw(PlottingOptions options) {
     TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", options.is_data,
                                         "allRegions", options.plots_folder);
     string type = options.is_data ? "Data" : "MC";
-    printPhotonYieldTables(options, results_map, "FinalOutputs/" + options.data_period + "_" +
+    printPhotonYieldTables(options, results_map, options.plots_folder + options.data_period + "_" +
                            type + "_yields.txt", options.blinded);
-    printPhotonScaleFactorTables(options, results_map, "FinalOutputs/" + options.data_period + "_" +
+    printPhotonScaleFactorTables(options, results_map, options.plots_folder + options.data_period + "_" +
                                  type + "_scale_factors.txt");
 
     //--- draw and save plot
