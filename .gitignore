@@ -10,3 +10,4 @@ PhotonSmearing/Plots
 Plotting/Studies/Plots
 Studies/*.pkl
 Main/Diagnostics/
+Main/FinalOutputs/
