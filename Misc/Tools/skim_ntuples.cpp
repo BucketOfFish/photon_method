@@ -3,22 +3,14 @@
 #include <vector>
 #include <string>
 
-string oldpath = "/public/data/Photon/Samples/ReducedNtuples/";
-string newpath = "/public/data/Photon/UnitTests/ReducedNtuples/";
+string oldpath = "/public/data/Photon/NewSamples/HistogramSampling/ReweightedNtuples/";
+string newpath = "/public/data/Photon/NewSamples/UnitTests/ReweightedNtuples/";
 
 vector<string> filenames {
-    "data15-16_data_bkg.root",
-    "data15-16_data_photon.root",
-    "mc16a_higgs.root",
-    "mc16a_singleTop.root",
-    "mc16a_ttbar.root",
-    "mc16a_lowMassDY.root",
-    "mc16a_topOther.root",
-    "mc16a_Wjets.root",
-    "mc16a_diboson.root",
-    "mc16a_SinglePhoton222.root",
-    "mc16a_triboson.root",
-    "mc16a_Zjets.root"
+    "data15-16_data_photon_ee.root", "data18_data_photon_ee.root", "mc16cd_SinglePhoton222_ee.root",
+    "data15-16_data_photon_mm.root", "data18_data_photon_mm.root", "mc16cd_SinglePhoton222_mm.root",
+    "data17_data_photon_ee.root", "mc16a_SinglePhoton222_ee.root", "mc16e_SinglePhoton222_ee.root",
+    "data17_data_photon_mm.root", "mc16a_SinglePhoton222_mm.root", "mc16e_SinglePhoton222_mm.root",
 };
 
 void skim_ntuples() {
