@@ -15,18 +15,18 @@ void compare_entries_and_yields() {
     string old_file_path = "/public/data/Photon/Samples/ReducedNtuples/";
     string new_file_path = "/public/data/Photon/NewSamples/ReducedNtuples/";
     vector<string> filenames {
-        //"data15-16_data_bkg.root", "data17_data_bkg.root", "data18_data_bkg.root",
-        //"data15-16_data_photon.root", "data17_data_photon.root", "data18_data_photon.root",
-        "mc16a_SinglePhoton222.root", //"mc16cd_SinglePhoton222.root", "mc16e_SinglePhoton222.root",
-        "mc16a_ttbar.root", //"mc16cd_ttbar.root", "mc16e_ttbar.root",
-        "mc16a_triboson.root", //"mc16cd_triboson.root", "mc16e_triboson.root",
-        "mc16a_singleTop.root", //"mc16cd_singleTop.root", "mc16e_singleTop.root",
-        "mc16a_topOther.root", //"mc16cd_topOther.root", "mc16e_topOther.root",
-        "mc16a_lowMassDY.root", //"mc16cd_lowMassDY.root", "mc16e_lowMassDY.root",
-        "mc16a_Wjets.root", //"mc16cd_Wjets.root", "mc16e_Wjets.root",
-        "mc16a_Zjets.root", //"mc16cd_Zjets.root", "mc16e_Zjets.root",
-        "mc16a_diboson.root", //"mc16cd_diboson.root", "mc16e_diboson.root",
-        "mc16a_higgs.root", //"mc16cd_higgs.root", "mc16e_higgs.root",
+        "data15-16_data_bkg.root", "data17_data_bkg.root", "data18_data_bkg.root",
+        "data15-16_data_photon.root", "data17_data_photon.root", "data18_data_photon.root",
+        "mc16a_SinglePhoton222.root", "mc16cd_SinglePhoton222.root", "mc16e_SinglePhoton222.root",
+        "mc16a_ttbar.root", "mc16cd_ttbar.root", "mc16e_ttbar.root",
+        "mc16a_triboson.root", "mc16cd_triboson.root", "mc16e_triboson.root",
+        "mc16a_singleTop.root", "mc16cd_singleTop.root", "mc16e_singleTop.root",
+        "mc16a_topOther.root", "mc16cd_topOther.root", "mc16e_topOther.root",
+        "mc16a_lowMassDY.root", "mc16cd_lowMassDY.root", "mc16e_lowMassDY.root",
+        "mc16a_Wjets.root", "mc16cd_Wjets.root", "mc16e_Wjets.root",
+        "mc16a_Zjets.root", "mc16cd_Zjets.root", "mc16e_Zjets.root",
+        "mc16a_diboson.root", "mc16cd_diboson.root", "mc16e_diboson.root",
+        "mc16a_higgs.root", "mc16cd_higgs.root", "mc16e_higgs.root",
     };
 
     //--- compare entries
@@ -74,8 +74,13 @@ void compare_entries_and_yields() {
         //}
         string region = (filename.find("hoton") != std::string::npos) ? "photon_comparison" : "bkg_baseline";
         cout << "\t" << "old " << region << " entries: ";
-        cout << old_ttree->GetEntries(cuts::plot_regions[region]) << endl;
+        TH1F* hz = new TH1F("hz", "", 100, 0, 3);
+        old_ttree->Draw("mll>>hz", cuts::plot_regions[region]*"totalWeight", "goff");
+        cout << hz->Integral() << endl;
+        //cout << old_ttree->GetEntries(cuts::plot_regions[region]*"totalWeight") << endl;
         cout << "\t" << "new " << region << " entries: ";
-        cout << new_ttree->GetEntries(cuts::plot_regions[region]) << endl;
+        new_ttree->Draw("mll>>hz", cuts::plot_regions[region]*"totalWeight", "goff");
+        cout << hz->Integral() << endl;
+        //cout << new_ttree->GetEntries(cuts::plot_regions[region]) << endl;
     }
 }
