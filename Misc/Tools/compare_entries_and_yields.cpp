@@ -12,28 +12,30 @@ void compare_entries_and_yields() {
         //"data18_data_photon_ee.root",
         //"data18_data_photon_mm.root",
     //};
-    string old_file_path = "/public/data/Photon/Samples/HistogramSmearing/SmearedNtuples/";
-    string new_file_path = "/public/data/Photon/NewSamples/HistogramSmearing/SmearedNtuples/";
-    //vector<string> filenames {
-        //"data15-16_data_bkg.root", "data17_data_bkg.root", "data18_data_bkg.root",
-        //"data15-16_data_photon.root", "data17_data_photon.root", "data18_data_photon.root",
-        //"mc16a_SinglePhoton222.root", "mc16cd_SinglePhoton222.root", "mc16e_SinglePhoton222.root",
-        //"mc16a_ttbar.root", "mc16cd_ttbar.root", "mc16e_ttbar.root",
-        //"mc16a_triboson.root", "mc16cd_triboson.root", "mc16e_triboson.root",
-        //"mc16a_singleTop.root", "mc16cd_singleTop.root", "mc16e_singleTop.root",
-        //"mc16a_topOther.root", "mc16cd_topOther.root", "mc16e_topOther.root",
-        //"mc16a_lowMassDY.root", "mc16cd_lowMassDY.root", "mc16e_lowMassDY.root",
-        //"mc16a_Wjets.root", "mc16cd_Wjets.root", "mc16e_Wjets.root",
-        //"mc16a_Zjets.root", "mc16cd_Zjets.root", "mc16e_Zjets.root",
-        //"mc16a_diboson.root", "mc16cd_diboson.root", "mc16e_diboson.root",
-        //"mc16a_higgs.root", "mc16cd_higgs.root", "mc16e_higgs.root",
-    //};
+    string old_file_path = "/public/data/Photon/Samples/ReducedNtuples/";
+    string new_file_path = "/public/data/Photon/NewSamples/ReducedNtuples/";
     vector<string> filenames {
-        "data15-16_data_photon_ee.root", "data18_data_photon_ee.root", "mc16cd_SinglePhoton222_ee.root",
-        "data15-16_data_photon_mm.root", "data18_data_photon_mm.root", "mc16cd_SinglePhoton222_mm.root",
-        "data17_data_photon_ee.root", "mc16a_SinglePhoton222_ee.root", "mc16e_SinglePhoton222_ee.root",
-        "data17_data_photon_mm.root", "mc16a_SinglePhoton222_mm.root", "mc16e_SinglePhoton222_mm.root",
+        "data15-16_data_bkg.root", "data17_data_bkg.root", "data18_data_bkg.root",
+        "data15-16_data_photon.root", "data17_data_photon.root", "data18_data_photon.root",
+        "mc16a_SinglePhoton222.root", "mc16cd_SinglePhoton222.root", "mc16e_SinglePhoton222.root",
+        "mc16a_ttbar.root", "mc16cd_ttbar.root", "mc16e_ttbar.root",
+        "mc16a_triboson.root", "mc16cd_triboson.root", "mc16e_triboson.root",
+        "mc16a_singleTop.root", "mc16cd_singleTop.root", "mc16e_singleTop.root",
+        "mc16a_topOther.root", "mc16cd_topOther.root", "mc16e_topOther.root",
+        "mc16a_lowMassDY.root", "mc16cd_lowMassDY.root", "mc16e_lowMassDY.root",
+        "mc16a_Wjets.root", "mc16cd_Wjets.root", "mc16e_Wjets.root",
+        "mc16a_Zjets.root", "mc16cd_Zjets.root", "mc16e_Zjets.root",
+        "mc16a_diboson.root", "mc16cd_diboson.root", "mc16e_diboson.root",
+        "mc16a_higgs.root", "mc16cd_higgs.root", "mc16e_higgs.root",
     };
+    //string old_file_path = "/public/data/Photon/Samples/HistogramSmearing/SmearedNtuples/";
+    //string new_file_path = "/public/data/Photon/NewSamples/HistogramSmearing/SmearedNtuples/";
+    //vector<string> filenames {
+        //"data15-16_data_photon_ee.root", "data18_data_photon_ee.root", "mc16cd_SinglePhoton222_ee.root",
+        //"data15-16_data_photon_mm.root", "data18_data_photon_mm.root", "mc16cd_SinglePhoton222_mm.root",
+        //"data17_data_photon_ee.root", "mc16a_SinglePhoton222_ee.root", "mc16e_SinglePhoton222_ee.root",
+        //"data17_data_photon_mm.root", "mc16a_SinglePhoton222_mm.root", "mc16e_SinglePhoton222_mm.root",
+    //};
 
     //--- compare entries
     cout << "Comparing n entries" << endl;
@@ -72,22 +74,14 @@ void compare_entries_and_yields() {
         TTree *old_ttree = (TTree*)old_tfile->Get("BaselineTree");
         TFile *new_tfile = TFile::Open((new_file_path + filename).c_str());
         TTree *new_ttree = (TTree*)new_tfile->Get("BaselineTree");
-        //for (string region : regions) {
-            //cout << "\t" << "old " << region << " entries: ";
-            //cout << old_ttree->GetEntries(cuts::plot_regions[region]) << endl;
-            //cout << "\t" << "new " << region << " entries: ";
-            //cout << new_ttree->GetEntries(cuts::plot_regions[region]) << endl;
-        //}
         string region = (filename.find("hoton") != std::string::npos) ? "photon_comparison" : "bkg_baseline";
-        string weight = (filename.find("data") != std::string::npos) ? "1" : "totalWeight";
+        TCut weight = (filename.find("data") != std::string::npos) ? "1" : "totalWeight";
         cout << "\t" << "old " << region << " yield: ";
         TH1F* hz = new TH1F("hz", "", 1, 0, 1);
         old_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
         cout << hz->Integral(0, 2) << endl;
-        //cout << old_ttree->GetEntries(cuts::plot_regions[region]*"totalWeight") << endl;
         cout << "\t" << "new " << region << " yield: ";
         new_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
         cout << hz->Integral(0, 2) << endl;
-        //cout << new_ttree->GetEntries(cuts::plot_regions[region]) << endl;
     }
 }
