@@ -465,28 +465,46 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
 
     options.unit_test_folder = settings.unit_test_folder;
 
-    options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
-                                     "SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
-                                     "SRMedZ6", "SRHighZ6", "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
-                                     "VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-    //options.regions = vector<string>{"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-    //options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
-    options.plot_features = vector<string>{"mll"};
+    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
+                                     //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
+                                     //"SRMedZ6", "SRHighZ6",
+                                     //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
+                                     //"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
+                                     //"VRMedZ6", "VRHighZ6",
+                                     //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
+                                     //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+    options.regions = vector<string>{"VRC"};
+    options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
+    //options.plot_features = vector<string>{"mll"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
-    options.processes = {"data_bkg", "photon", "Zjets", "lowMassDY", "topOther", "higgs", "diboson", "triboson",
-                         "singleTop", "ttbar"};
-    options.process_latex = {{"data_bkg", "data"},
+
+    options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
+                         "Wjets", "triboson"};
+    options.process_colors = {{"data_bkg", kBlack},
+                             {"photon_raw", kYellow+2},
+                             {"photon_reweighted", kGreen-1},
+                             {"Zjets", kYellow-1},
+                             {"Wjets", kSpring+1},
+                             {"ttbar", kBlue+3},
+                             {"diboson", kOrange+1},
+                             {"lowMassDY", kGreen+4},
+                             {"topOther", kAzure-9},
+                             {"singleTop", kAzure+2},
+                             {"triboson", kOrange-9},
+                             {"higgs", kRed-10}};
+    options.process_latex = {{"data_bkg", "Data"},
                              {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
                              {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
                              {"Zjets", "Z+jets (from MC)"},
+                             {"Wjets", "W+jets"},
                              {"ttbar", "t#bar{t}"},
-                             {"diboson", "diboson"},
-                             {"lowMassDY", "low mass DY"},
-                             {"topOther", "top other"},
-                             {"singleTop", "single top"},
-                             {"triboson", "triboson"},
-                             {"higgs", "higgs"}};
+                             {"diboson", "Diboson"},
+                             {"lowMassDY", "Low mass DY"},
+                             {"topOther", "Top other"},
+                             {"singleTop", "Single top"},
+                             {"triboson", "Triboson"},
+                             {"higgs", "Higgs"}};
 
     options.blinded = true;
     options.print_photon_yield_only = false;
@@ -526,7 +544,7 @@ void Main() {
     //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
     //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
 
-    settings.my_samples_folder = "/public/data/Photon/Samples/";
+    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
     settings.sampling_method = "HistogramSampling";
@@ -537,7 +555,7 @@ void Main() {
     settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
 
     //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
-    settings.unit_test_folder = "/public/data/Photon/UnitTests/";
+    settings.unit_test_folder = "/public/data/Photon/Samples/UnitTests/";
 
     settings.save_tree_name = "BaselineTree";
 

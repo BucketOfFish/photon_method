@@ -97,6 +97,12 @@ namespace cuts {
     TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrig && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
     TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrig && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4";
     std::unordered_map<std::string, TCut> plot_regions = {
+        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR"},
+        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0"},
+        {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
+        {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
+        {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
+
         {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
         {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && nLep_signal==2 && mll<100"},
@@ -569,7 +575,9 @@ struct PlottingOptions {
     vector<string> regions;
     vector<string> plot_features;
     vector<string> channels;
+
     vector<string> processes;
+    map<string, int> process_colors;
     map<string, string> process_latex;
 
     bool blinded;

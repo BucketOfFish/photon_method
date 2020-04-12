@@ -68,15 +68,15 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
 
 ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     map<string, ROOT::RDF::TH1DModel> plot_settings;
-    plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 50, 0, 1000);
+    plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 20, 0, 1000);
     plot_settings["METl"] = ROOT::RDF::TH1DModel("", "E_{T,||}^{miss} [GeV]", 30, -150, 150);
     plot_settings["METt"] = ROOT::RDF::TH1DModel("", "E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
-    plot_settings["met_Sign"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} significance", 50, 0, 50);
+    plot_settings["met_Sign"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} significance", 20, 0, 50);
     plot_settings["MET_loose"] = ROOT::RDF::TH1DModel("", "E_{T,loose}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tight"] = ROOT::RDF::TH1DModel("", "E_{T,tight}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tighter"] = ROOT::RDF::TH1DModel("", "E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tenacious"] = ROOT::RDF::TH1DModel("", "E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
-    plot_settings["mt2leplsp_0"] = ROOT::RDF::TH1DModel("", "m_{T2}^{0} [GeV]", 50, 0, 500);
+    plot_settings["mt2leplsp_0"] = ROOT::RDF::TH1DModel("", "m_{T2}^{0} [GeV]", 20, 0, 500);
     plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 25, 0, 1000);
     plot_settings["Z_pt"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 20, 0, 100);
     plot_settings["nJet30"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
@@ -85,7 +85,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["jet_phi"] = ROOT::RDF::TH1DModel("", "jet_{#phi}", 20, 0, 3.14);
     plot_settings["jetPt"] = ROOT::RDF::TH1DModel("", "jet_{p_{T}} [GeV]", 20, 0, 300);
     plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
-    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 30, 0, 1500);
+    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 15, 0, 1500);
     plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
     plot_settings["MT2"] = ROOT::RDF::TH1DModel("", "m_{T2} [GeV]", 20, 0, 200);
     plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);
@@ -162,15 +162,15 @@ weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, PlottingOptions 
     plot_weights["photon_reweighted"] = cuts::photon_weight_rw;
 
     weightedDataFrameMap weighted_dataframes;
-    for (auto [process, dataframe] : dataframes) {
+    for (auto process : options.processes) {
         if (process == "photon") {
-            auto weighted_dataframe = dataframe->Define("plot_raw_weight", plot_weights["photon_raw"])
+            auto weighted_dataframe = dataframes[process]->Define("plot_raw_weight", plot_weights["photon_raw"])
                                                 .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
         else {
-            auto weighted_dataframe = dataframe->Define("plot_weight", plot_weights[process]);
+            auto weighted_dataframe = dataframes[process]->Define("plot_weight", plot_weights[process]);
             using DFType = decltype(weighted_dataframe);
             weighted_dataframes[process] = std::make_unique<DFType>(weighted_dataframe);  
         }
@@ -456,61 +456,61 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
 //------------
 
 tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, PlottingOptions options) {
-    //--- set plotting options
-    vector<int> colors = {kGreen-5, kGreen+2, kRed+1, kSpring+10, kCyan, kMagenta, kYellow+1, kAzure-9, kGreen-2,
-                          kViolet+5};
-    int color_count = 0;
-    for (auto [process, histogram] : histograms) {
-        histograms[process]->SetLineColor(1);
-        histograms[process]->SetLineWidth(1);
-        if (process != "data_bkg") histograms[process]->SetFillColor(colors[color_count++]);
-        if (process == "photon_raw") {
-            histograms[process]->SetLineColor(4);
-            histograms[process]->SetLineStyle(2);
-        }
-        else if (process == "photon_reweighted") {
-            if (options.is_data)
-                histograms[process]->SetFillColor(kOrange-2);
-            else {
-                histograms[process]->SetLineColor(kRed-2);
-                histograms[process]->SetFillStyle(0);
-            }
-        }
-        else if (process == "Zjets") {
-            if (options.is_data) {
-                histograms[process]->SetLineColor(2);
-                histograms[process]->SetLineStyle(7);
-            }
-            else {
-                histograms[process]->SetFillColor(42);
-                histograms[process]->SetLineStyle(1);
-            }
-        }
-        else if (process == "data_bkg")
-            if (options.is_data) histograms[process]->SetMarkerStyle(20);
-    }
-
-    //--- turn on overflow bin
-    for (auto [process, histogram] : histograms)
-        histograms[process]->GetXaxis()->SetRange(0, histograms[process]->GetNbinsX() + 1);
-
-    //--- make stacks
     THStack *data_stack = new THStack("data_stack", "");
     THStack *raw_g_stack = new THStack("raw_g_stack", "");
     THStack *reweight_g_stack = new THStack("reweight_g_stack", "");
 
-    for (auto [process, histogram] : histograms) {
+    for (auto process_ptr = options.processes.rbegin(); process_ptr != options.processes.rend(); ++process_ptr) {
+        auto process = *process_ptr;
+
+        //--- set plotting options
+        if (process == "photon") {
+            histograms["photon_raw"]->SetLineColor(1); histograms["photon_reweighted"]->SetLineColor(1);
+            histograms["photon_raw"]->SetLineWidth(0); histograms["photon_reweighted"]->SetLineWidth(0);
+            histograms["photon_raw"]->SetFillColor(options.process_colors["photon_raw"]);
+            histograms["photon_reweighted"]->SetFillColor(options.process_colors["photon_reweighted"]);
+        }
+        else {
+            histograms[process]->SetLineColor(1);
+            histograms[process]->SetLineWidth(0);
+            histograms[process]->SetFillColor(options.process_colors[process]);
+        }
+
+        if (process == "data_bkg")
+            histograms[process]->SetMarkerStyle(20);
+
+        if (!options.is_data) {
+            if (process == "photon") {
+                histograms["photon_raw"]->SetLineColor(4);
+                histograms["photon_raw"]->SetLineStyle(2);
+                histograms["photon_raw"]->SetFillStyle(0);
+                histograms["photon_reweighted"]->SetLineColor(kRed-2);
+                histograms["photon_reweighted"]->SetFillStyle(0);
+            }
+            else if (process == "Zjets") {
+                histograms[process]->SetFillColor(42);
+                histograms[process]->SetLineStyle(1);
+            }
+        }
+
+        //--- turn on overflow bin
+        if (process == "photon") {
+            histograms["photon_raw"]->GetXaxis()->SetRange(0, histograms["photon_raw"]->GetNbinsX() + 1);
+            histograms["photon_reweighted"]->GetXaxis()->SetRange(0, histograms["photon_reweighted"]->GetNbinsX() + 1);
+        }
+        else
+            histograms[process]->GetXaxis()->SetRange(0, histograms[process]->GetNbinsX() + 1);
+
+        //--- add to relevant stack
         if (process == "data_bkg") {
             if (options.is_data) data_stack->Add(histograms[process]);
         }
         else if (process == "Zjets") {
             if (!options.is_data) data_stack->Add(histograms[process]);
         }
-        else if (process == "photon_raw") {
-            raw_g_stack->Add(histograms[process]);
-        }
-        else if (process == "photon_reweighted") {
-            reweight_g_stack->Add(histograms[process]);
+        else if (process == "photon") {
+            raw_g_stack->Add(histograms["photon_raw"]);
+            reweight_g_stack->Add(histograms["photon_reweighted"]);
         }
         else if (options.is_data) {
             raw_g_stack->Add(histograms[process]);
@@ -534,12 +534,14 @@ TString getPlotSaveName(string period, string channel, string plot_feature, bool
 TLegend* getLegend(PlottingOptions options, map<string, TH1D*> histograms) {
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     if (options.is_data) {
-        for (auto [process, histogram] : histograms) {
-            if (process == "data_bkg") {
-                leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "lp");
-            }
-            else if (process != "photon_raw") {
-                leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
+        leg->AddEntry(histograms["data_bkg"], options.process_latex["data_bkg"].c_str(), "lp");
+        for (auto process : options.processes) {
+            if ((process != "data_bkg") && (process != "Zjets")) {
+                if (process == "photon")
+                    leg->AddEntry(histograms["photon_reweighted"],
+                                  options.process_latex["photon_reweighted"].c_str(), "f");
+                else
+                    leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
             }
         }
     }
@@ -555,16 +557,16 @@ TLegend* getLegend(PlottingOptions options, map<string, TH1D*> histograms) {
     return leg;
 }
 
-string getPlotTex(string period, bool is_data) {
+string getPlotTex(PlottingOptions options) {
     string tex_string;
-    if(TString(period).Contains("all")) tex_string = "139 fb^{-1} 2015-2018 data";
-    if (is_data) {
-        if(TString(period).Contains("data15-16")) tex_string = "36 fb^{-1} 2015-2016 data";
-        if(TString(period).Contains("data17")) tex_string = "44 fb^{-1} 2017 data";
-        if(TString(period).Contains("data18")) tex_string = "60 fb^{-1} 2018 data";
+    if (TString(options.period).Contains("all")) tex_string = "139 fb^{-1} 2015-2018 data";
+    if (options.is_data) {
+        if(TString(options.period).Contains("data15-16")) tex_string = "36 fb^{-1} 2015-2016 data";
+        if(TString(options.period).Contains("data17")) tex_string = "44 fb^{-1} 2017 data";
+        if(TString(options.period).Contains("data18")) tex_string = "60 fb^{-1} 2018 data";
     }
     else {
-        string mc_period = getMCPeriod(period);
+        string mc_period = getMCPeriod(options.period);
         if(TString(mc_period).Contains("mc16a")) tex_string = "MC16a";
         if(TString(mc_period).Contains("mc16cd")) tex_string = "MC16cd";
         if(TString(mc_period).Contains("mc16e")) tex_string = "MC16e";
@@ -573,17 +575,16 @@ string getPlotTex(string period, bool is_data) {
     return tex_string;
 }
 
-tuple<TH1D*, TH1D*> getRatioPlots(map<string, TH1D*> histograms, bool is_data) {
+tuple<TH1D*, TH1D*> getRatioPlots(PlottingOptions options, map<string, TH1D*> histograms) {
     TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
-    if (is_data) {
+    if (options.is_data) {
         hratio = (TH1D*) histograms["data_bkg"]->Clone("hratio");
         hratio_unreweighted = (TH1D*) histograms["data_bkg"]->Clone("hratio");
         hmctot = (TH1D*) histograms["photon_reweighted"]->Clone("hmctot");
         hmctot_unreweighted = (TH1D*) histograms["photon_raw"]->Clone("hmctot");
-        for (auto [process, histogram] : histograms) {
-            if ((process != "data_bkg") && (process != "Zjets") && (process != "photon_raw")
-               && (process != "photon_reweighted")) {
+        for (auto process : options.processes) {
+            if ((process != "data_bkg") && (process != "Zjets") && (process != "photon")) {
                 hmctot->Add(histograms[process]);
                 hmctot_unreweighted->Add(histograms[process]);
             }
@@ -623,7 +624,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(map<string, TH1D*> histograms, bool is_data) {
     hratio->GetXaxis()->SetTitle("");
     hratio->GetXaxis()->SetLabelSize(0.);
     hratio->GetYaxis()->SetNdivisions(5);
-    if (is_data)
+    if (options.is_data)
         hratio->GetYaxis()->SetTitle("data/bkg");
     else
         hratio->GetYaxis()->SetTitle("Z/#gamma MC");
@@ -642,8 +643,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(map<string, TH1D*> histograms, bool is_data) {
 
 void makePlot(resultsMap results_map, PlottingOptions options) {
     for (auto region : results_map.regions) {
-        vector<string> channels = {"SF"};
-        for (auto channel : channels) {
+        for (auto channel : options.channels) {
             string region_name = region + " " + channel;
             for (auto feature : results_map.features) {
                 //--- draw title
@@ -667,12 +667,19 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
                 TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
                 mainpad->Draw();
                 mainpad->cd();
-                mainpad->SetLogy();
 
-                bool applicable_blinded = (options.is_data) && (options.blinded && (region.find("SR") != std::string::npos));
+                float max_y = 15;
+                float min_y = 0;
+                vector<string> log_features = {"met_Et", "met_Sign"};
+                if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
+                    mainpad->SetLogy();
+                    max_y = pow(10.0, 4);
+                    min_y = pow(10.0, -2);
+                }
 
-                float max_y = pow(10.0, 4);
-                float min_y = pow(10.0, -2);
+                bool applicable_blinded = (options.is_data)
+                                          && (options.blinded && (region.find("SR") != std::string::npos));
+
                 if (options.is_data) {
                     reweight_g_stack->Draw("hist");
                     reweight_g_stack->SetMaximum(max_y);
@@ -701,7 +708,7 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
                 tex->SetNDC();
                 tex->SetTextSize(0.025);
                 tex->DrawLatex(0.6,0.65,"ATLAS Internal");
-                tex->DrawLatex(0.6,0.61,getPlotTex(options.data_period, options.is_data).c_str());
+                tex->DrawLatex(0.6,0.61,getPlotTex(options).c_str());
                 if(TString(channel).Contains("ee")) tex->DrawLatex(0.6,0.57,"ee events");
                 if(TString(channel).Contains("mm")) tex->DrawLatex(0.6,0.57,"#mu#mu events");
                 if(TString(channel).Contains("em")) tex->DrawLatex(0.6,0.57,"e#mu events");
@@ -716,7 +723,7 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
                 ratio_pad->cd();
                 ratio_pad->SetGridy();
 
-                auto [hratio, hratio_unreweighted] = getRatioPlots(hist_map, options.is_data);
+                auto [hratio, hratio_unreweighted] = getRatioPlots(options, hist_map);
                 if (applicable_blinded) {
                     TH1D *empty_hist = new TH1D("", "", 1, 0, 1);
                     empty_hist->Draw();
@@ -756,6 +763,10 @@ void unit_tests(PlottingOptions options) {
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.reweighting_folder = options.unit_test_folder + "ReweightedNtuples/";
     options.plots_folder = "Diagnostics/Plots/";
+
+    options.regions = vector<string>{"VRDPhiLow6"};
+    options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
+
     run_quickDraw(options);
 
     passTest("Check output folders for sample tables and plots");
