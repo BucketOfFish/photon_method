@@ -61,17 +61,17 @@ TH1F* GetSimpleReweightingHistograms(ReweightingOptions options) {
         tch_data->Draw((options.reweight_var+">>hdata").c_str(), reweight_region, "goff");
         tch_tt->Draw((options.reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
         tch_vv->Draw((options.reweight_var+">>hvv").c_str(), reweight_region*cuts::bkg_weight, "goff");
-        cout << "data integral          : " << hdata->Integral() << endl;
-        cout << "ttbar integral         : " << htt->Integral() << endl;
-        cout << "diboson integral       : " << hvv->Integral() << endl;
+        cout << "data integral          : " << hdata->Integral(0, n_reweighting_bins+1) << endl;
+        cout << "ttbar integral         : " << htt->Integral(0, n_reweighting_bins+1) << endl;
+        cout << "diboson integral       : " << hvv->Integral(0, n_reweighting_bins+1) << endl;
     }
     else {
         tch_zjets->Draw((options.reweight_var+">>hz").c_str(), reweight_region*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral() << endl;
+        cout << "Z+jets integral        : " << hz->Integral(0, n_reweighting_bins+1) << endl;
     }
 
     tch_photon->Draw((options.reweight_var+">>histoG").c_str(), reweight_region*cuts::photon_weight, "goff");
-    cout << "photon integral      " << histoG->Integral() << endl;
+    cout << "photon integral      " << histoG->Integral(0, n_reweighting_bins+1) << endl;
     cout << endl;
 
     //--- calculate reweighting ratios
@@ -86,9 +86,9 @@ TH1F* GetSimpleReweightingHistograms(ReweightingOptions options) {
     TH1F* hratio = (TH1F*) histoZ->Clone("hratio");
     hratio->Divide(histoG);
 
-    cout << "photon integral        : " << histoG->Integral() << endl;
-    cout << "bkg integral           : " << histoZ->Integral() << endl;
-    cout << "scaling factor         : " << hratio->Integral() << endl;
+    cout << "photon integral        : " << histoG->Integral(0, n_reweighting_bins+1) << endl;
+    cout << "bkg integral           : " << histoZ->Integral(0, n_reweighting_bins+1) << endl;
+    cout << "scaling factor         : " << hratio->Integral(0, n_reweighting_bins+1) << endl;
     cout << endl;
 
     return hratio;

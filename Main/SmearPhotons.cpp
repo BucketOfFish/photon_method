@@ -253,10 +253,10 @@ public:
         cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
 
         //--- fill lep theta histogram
-        TH1F* hz = new TH1F("hz", "", 100, 0, 3);
+        TH1F* hz = new TH1F("hz", "", 1, 0, 1);
 
         ttree_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral() << endl;
+        cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
 
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
@@ -524,7 +524,7 @@ public:
 
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
         float mll = 0;
-        if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral()>0)
+        if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral(0, bins::n_mll_bins+1)>0)
             mll = this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->GetRandom();
 
         return make_tuple(METl_smeared, mll);
@@ -796,7 +796,7 @@ void performUnitTests(SmearingOptions options) {
     for (auto& [key, hist] : bkg_plots) {
         for (int i=0; i<bins::n_pt_bins+2; i++) {
             bkg_plots[key][i]->Draw("hist");
-            photon_plots[key][i]->Scale(bkg_plots[key][i]->Integral()/photon_plots[key][i]->Integral());
+            photon_plots[key][i]->Scale(bkg_plots[key][i]->Integral(0, 2)/photon_plots[key][i]->Integral(0, 2));
             photon_plots[key][i]->SetLineColor(kRed);
             photon_plots[key][i]->Draw("samehist");
             can->Print("Diagnostics/Smearing/" + key + "_pt_bin_" + i + ".eps");

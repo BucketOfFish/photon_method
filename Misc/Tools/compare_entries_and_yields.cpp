@@ -81,13 +81,13 @@ void compare_entries_and_yields() {
         string region = (filename.find("hoton") != std::string::npos) ? "photon_comparison" : "bkg_baseline";
         string weight = (filename.find("data") != std::string::npos) ? "1" : "totalWeight";
         cout << "\t" << "old " << region << " yield: ";
-        TH1F* hz = new TH1F("hz", "", 100, 0, 3);
+        TH1F* hz = new TH1F("hz", "", 1, 0, 1);
         old_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
-        cout << hz->Integral() << endl;
+        cout << hz->Integral(0, 2) << endl;
         //cout << old_ttree->GetEntries(cuts::plot_regions[region]*"totalWeight") << endl;
         cout << "\t" << "new " << region << " yield: ";
         new_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
-        cout << hz->Integral() << endl;
+        cout << hz->Integral(0, 2) << endl;
         //cout << new_ttree->GetEntries(cuts::plot_regions[region]) << endl;
     }
 }
