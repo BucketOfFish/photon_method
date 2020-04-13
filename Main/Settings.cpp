@@ -457,7 +457,10 @@ public:
         if (!final_cut.empty())
             reduced_dataframe = reduced_dataframe.Filter(this->final_cut.c_str());
 
-        reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
+        if (all_out_branches.size() > 0)
+            reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str(), all_out_branches);
+        else
+            reduced_dataframe.Snapshot(this->out_tree_name.c_str(), out_file_name.c_str());
         cout << endl;
     }
 };
