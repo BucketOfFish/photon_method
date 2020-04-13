@@ -1,6 +1,0 @@
-executable = run_all.sh
-arguments = data15-16 MC
-output = data15-16_MC.out
-error = data15-16_MC.err
-log = data15-16_MC.log
-queue
