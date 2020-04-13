@@ -537,25 +537,24 @@ void Main() {
 
     GlobalOptions settings;
 
-    settings.photon_mc_path = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/JETM4/JETM4_";
-    settings.photon_data_path = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/JETM4/JETM4_Data/";
-    settings.bkg_mc_path = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/SUSY2/SUSY2_Bkgs_";
-    settings.bkg_data_path = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/SUSY2/SUSY2_Data/SUSY2_Data_v1.7/merged/";
-    //settings.bkg_mc_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_'
-    //settings.bkg_data_path = '/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/'
+    string SUSY_folder = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/";
+    settings.photon_mc_path = SUSY_folder + "JETM4/JETM4_";
+    settings.photon_data_path = SUSY_folder + "JETM4/JETM4_Data/";
+    settings.bkg_mc_path = SUSY_folder + "SUSY2/SUSY2_Bkgs_";
+    settings.bkg_data_path = SUSY_folder + "SUSY2/SUSY2_Data/SUSY2_Data_v1.7/merged/";
+    //settings.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
+    //settings.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
-    settings.my_samples_folder = "/public/data/Photon/NewSamples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewSamples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/TestSamples/";
-    settings.sampling_method = "HistogramSampling";
+    settings.my_samples_folder = "/public/data/Photon/Samples/";
+    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
-    //settings.reduction_folder = "/public/data/Photon/UnitTest/Smearing/";
-    settings.smearing_folder = settings.my_samples_folder + settings.sampling_method + "/SmearedNtuples/";
-    settings.reweighting_folder = settings.my_samples_folder + settings.sampling_method + "/ReweightedNtuples/";
-    settings.plots_folder = settings.my_samples_folder + settings.sampling_method + "/Plots/";
+    settings.smearing_folder = settings.my_samples_folder + "/SmearedNtuples/";
+    settings.reweighting_folder = settings.my_samples_folder + "/ReweightedNtuples/";
+    settings.plots_folder = settings.my_samples_folder + "/Plots/";
 
-    //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/UnitTest/";
-    settings.unit_test_folder = "/public/data/Photon/Samples/UnitTests/";
+    settings.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
+    //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
 
     settings.save_tree_name = "BaselineTree";
 
@@ -567,8 +566,8 @@ void Main() {
 
     //--- unit testing
     if (unit_testing) {
-        //ReductionStep(settings, unit_testing);
-        //SmearingStep(settings, unit_testing); 
+        ReductionStep(settings, unit_testing);
+        SmearingStep(settings, unit_testing); 
         PlottingStep(settings, unit_testing); 
         return;
     }
