@@ -112,76 +112,56 @@ public:
         this->getSmearingGaussians();
     }
 
-    //------------
-    // UNIT TESTS
-    //------------
+    //---------------
+    // Z MC FEATURES
+    //---------------
 
-    map<string, map<int, TH1F*>> unit_test_plots;
+    map<string, map<int, TH1F*>> zmc_hists;
 
-    void fillUnitTestPlots(TTree* ttree_data, TTree* ttree_tt, TTree* ttree_vv, TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
-        //--- initialize histograms
+    void fillZMCFeatureHists(TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
+        /// Compare lep eta, METl, and mll for photon vs. Z MC
         vector<string> features{"lepEta", "METl", "mll"};
-        vector<string> processes = options.is_data ? vector<string>{"data", "tt", "vv"} : vector<string>{"z"};
 
-        map<string, map<string, map<int, TH1F*>>> h_features;
+        //--- initialize histograms
         for (auto feature : features) {
-            for (auto process : processes) {
-                for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
-                    TString hist_name = "h" + process + "_" + feature + "_pt_bin_" + pt_bin;
-                    TH1F* h_temp;
-                    if (feature == "lepEta") h_temp = new TH1F(hist_name, "", 100, -3, 3);
-                    else if (feature == "METl") h_temp = new TH1F(hist_name, "", 100, -100, 100);
-                    else if (feature == "mll") h_temp = new TH1F(hist_name, "", 100, 0, 150);
-                    h_features[feature][process][pt_bin] = h_temp;
-                }
+            for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
+                TString hist_name = "hz_" + feature + "_pt_bin_" + pt_bin;
+                TH1F* h_temp;
+                if (feature == "lepEta") h_temp = new TH1F(hist_name, "", 100, -3, 3);
+                else if (feature == "METl") h_temp = new TH1F(hist_name, "", 100, -100, 100);
+                else if (feature == "mll") h_temp = new TH1F(hist_name, "", 100, 0, 150);
+                this->zmc_hists[feature][pt_bin] = h_temp;
             }
         }
 
         //--- fill histograms
-        map<string, TTree*> ttrees;
-        ttrees["data"] = ttree_data; ttrees["tt"] = ttree_tt; ttrees["vv"] = ttree_vv; ttrees["zjets"] = ttree_zjets;
-        for (auto process : processes) {
-            ttrees[process]->Draw(">>event_list", bkg_baseline_with_channel);
-            auto event_list = (TEventList*) gDirectory->Get("event_list");
+        ttree_zjets->Draw(">>event_list", bkg_baseline_with_channel);
+        auto event_list = (TEventList*) gDirectory->Get("event_list");
 
-            ttrees[process]->SetBranchStatus("*", 0);
-            vector<float> *lepEta = new vector<float>(10); SetInputBranch(ttrees[process], "lepEta", &lepEta);
-            float METl; SetInputBranch(ttrees[process], "METl", &METl);
-            float mll; SetInputBranch(ttrees[process], "mll", &mll);
-            float Ptll; SetInputBranch(ttrees[process], "Ptll", &Ptll);
-            double totalWeight; SetInputBranch(ttrees[process], "totalWeight", &totalWeight);
+        ttree_zjets->SetBranchStatus("*", 0);
+        vector<float> *lepEta = new vector<float>(10); SetInputBranch(ttree_zjets, "lepEta", &lepEta);
+        float METl; SetInputBranch(ttree_zjets, "METl", &METl);
+        float mll; SetInputBranch(ttree_zjets, "mll", &mll);
+        float Ptll; SetInputBranch(ttree_zjets, "Ptll", &Ptll);
+        double totalWeight; SetInputBranch(ttree_zjets, "totalWeight", &totalWeight);
 
-            for (int i=0; i<event_list->GetN(); i++) {
-                ttrees[process]->GetEntry(i);
-                int pt_bin = bins::hist_pt_bins->FindBin(Ptll);
+        for (int i=0; i<event_list->GetN(); i++) {
+            ttree_zjets->GetEntry(i);
+            int pt_bin = bins::hist_pt_bins->FindBin(Ptll);
 
-                h_features["lepEta"][process][pt_bin]->Fill(lepEta->at(0), totalWeight);
-                h_features["lepEta"][process][pt_bin]->Fill(lepEta->at(1), totalWeight);
-                h_features["METl"][process][pt_bin]->Fill(METl, totalWeight);
-                h_features["mll"][process][pt_bin]->Fill(mll, totalWeight);
-            }
+            this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(0), totalWeight);
+            this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(1), totalWeight);
+            this->zmc_hists["METl"][pt_bin]->Fill(METl, totalWeight);
+            this->zmc_hists["mll"][pt_bin]->Fill(mll, totalWeight);
         }
 
-        //--- add histograms for data
+        //--- store histograms
         for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++)
-            this->unit_test_plots["lep_cm_theta"][pt_bin] = this->h_lep_cm_theta;
-
-        for (auto feature : features) {
-            for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
-                if (options.is_data) {
-                    h_features[feature]["data"][pt_bin]->Add(h_features[feature]["tt"][pt_bin], -1.0);
-                    h_features[feature]["data"][pt_bin]->Add(h_features[feature]["vv"][pt_bin], -1.0);
-                    this->unit_test_plots[feature][pt_bin] = h_features[feature]["data"][pt_bin];
-                }
-                else {
-                    this->unit_test_plots[feature][pt_bin] = h_features[feature]["z"][pt_bin];
-                }
-            }
-        }
+            this->zmc_hists["lep_cm_theta"][pt_bin] = this->h_lep_cm_theta;
     }
 
-    map<string, map<int, TH1F*>> getUnitTestPlots() {
-        return this->unit_test_plots;
+    map<string, map<int, TH1F*>> getZMCFeatureHists() {
+        return this->zmc_hists;
     };
 
     //------------------
@@ -288,7 +268,7 @@ public:
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
         if (options.diagnostic_plots || options.unit_testing) {
-            this->fillUnitTestPlots(ttree_data, ttree_tt, ttree_vv, ttree_zjets, bkg_baseline_with_channel);
+            this->fillZMCFeatureHists(ttree_zjets, bkg_baseline_with_channel);
         }
         cout << endl;
 
@@ -382,21 +362,9 @@ public:
         else
             photon_file = new TFile((this->options.in_file_path + this->options.mc_period + "_SinglePhoton222.root").c_str());
 
-        vector<TFile*> z_files;
-        vector<int> z_file_weights;
-
-        if (this->options.is_data) {
-            z_files = {data_file, ttbar_mc_file, diboson_mc_file};
-            z_file_weights = {1, -1, -1};
-        }
-        else {
-            z_files = {Z_mc_file};
-            z_file_weights = {1};
-        }
-
         //--- z samples
-        for (int i=0; i<z_files.size(); i++) {
-            TTree* tree = (TTree*)z_files[i]->Get("BaselineTree");
+        if (true) { // lazy scoping
+            TTree* tree = (TTree*)Z_mc_file->Get("BaselineTree");
             tree->SetBranchStatus("*", 0);
             double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
             int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
@@ -408,8 +376,6 @@ public:
             int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
 
-            int fileWeight = z_file_weights[i];
-
             //tree->Draw(">>event_list", cuts::reweight_region);
             tree->Draw(">>event_list", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25");
             //tree->Draw(">>event_list", "nJet30>=2");
@@ -420,31 +386,33 @@ public:
                 if (TString(this->options.channel).EqualTo("mm") && channel != 0) continue;
                 int pt_bin = bins::hist_pt_bins->FindBin(ptll);
                 int METl_bin = bins::hist_METl_bins->FindBin(METl);
-                this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, fileWeight*totalWeight);
+                this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Fill(mll, totalWeight);
                 //if (ptll<50. || jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
                 //if (jet_n<2 || lep_pT->at(0)<cuts::leading_lep_pt_cut || lep_pT->at(1)<cuts::second_lep_pt_cut) continue;
-                this->hist_z_metl_bin_pt[pt_bin]->Fill(METl, fileWeight*totalWeight);
+                this->hist_z_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
             }
         }
 
         //--- photon sample
-        TTree* tree = (TTree*)photon_file->Get("BaselineTree");
-        tree->SetBranchStatus("*", 0);
-        double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
-        int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
-        int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
-        float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
-        int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
-        float METl; SetInputBranch(tree, "METl_unsmeared", &METl);
+        if (true) { // lazy scoping
+            TTree* tree = (TTree*)photon_file->Get("BaselineTree");
+            tree->SetBranchStatus("*", 0);
+            double totalWeight; SetInputBranch(tree, "totalWeight", &totalWeight);
+            int jet_n; SetInputBranch(tree, "nJet30", &jet_n);
+            int bjet_n; SetInputBranch(tree, "bjet_n", &bjet_n);
+            float ptll; SetInputBranch(tree, "gamma_pt", &ptll);
+            int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
+            float METl; SetInputBranch(tree, "METl_unsmeared", &METl);
 
-        //tree->Draw(">>event_list", cuts::reweight_region);
-        tree->Draw(">>event_list", "nJet30>=2");
-        auto event_list = (TEventList*) gDirectory->Get("event_list");
-        for (int entry=0; entry<event_list->GetN(); entry++) {
-            tree->GetEntry(event_list->GetEntry(entry));
-            //if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
-            int pt_bin = bins::hist_pt_bins->FindBin(ptll);
-            this->hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
+            //tree->Draw(">>event_list", cuts::reweight_region);
+            tree->Draw(">>event_list", "nJet30>=2");
+            auto event_list = (TEventList*) gDirectory->Get("event_list");
+            for (int entry=0; entry<event_list->GetN(); entry++) {
+                tree->GetEntry(event_list->GetEntry(entry));
+                //if (ptll<50. || jet_n!=1 || bjet_n!=0) continue;
+                int pt_bin = bins::hist_pt_bins->FindBin(ptll);
+                this->hist_g_metl_bin_pt[pt_bin]->Fill(METl, totalWeight);
+            }
         }
 
         //--- close files
@@ -758,7 +726,7 @@ SmearingOptions setUnitTestOptions(SmearingOptions options) {
     options.data_period = DataPeriod(options.period);
     options.is_data = true;
     //options.is_data = false;
-    options.channel = "ee";
+    options.channel = "mm";
 
     options.turn_off_shifting_and_smearing = false;
     options.diagnostic_plots = false;
@@ -770,9 +738,9 @@ void performUnitTests(SmearingOptions options) {
     cout << BOLD(PBLU("Performing unit testing on smearing step")) << endl;
     cout << endl;
 
-    //--- get bkg feature plots and set up photon feature plots for comparison
+    //--- get Z MC feature plots and set up photon feature plots for comparison
     PhotonToZConverter converter(options);
-    map<string, map<int, TH1F*>> bkg_plots = converter.getUnitTestPlots();
+    map<string, map<int, TH1F*>> zmc_plots = converter.getZMCFeatureHists();
 
     TCanvas *can = new TCanvas("can","can",600,600);
     map<string, map<int, TH1F*>> photon_plots;
@@ -786,7 +754,6 @@ void performUnitTests(SmearingOptions options) {
 
     //--- open photon files
     string photon_file_name;
-    cout << options.in_file_path << endl;
     if (options.is_data) photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
     else photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
     TFile *photon_file = new TFile(photon_file_name.c_str());
@@ -798,7 +765,7 @@ void performUnitTests(SmearingOptions options) {
     double totalWeight; photon_tree->SetBranchAddress("totalWeight", &totalWeight);
     float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
 
-    //--- fill photon histograms
+    //--- perform photon splitting and smearing
     float Z_m = 91;
     for (int i=0; i<1000000; i++) {
         photon_tree->GetEntry(i);
@@ -815,18 +782,20 @@ void performUnitTests(SmearingOptions options) {
         }
 
         auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
-        //cout << METl << " " << mll << " " << pt_bin << endl;
         photon_plots["METl"][pt_bin]->Fill(METl, totalWeight);
         photon_plots["mll"][pt_bin]->Fill(mll, totalWeight);
     }
 
-    //--- save comparison plots
-    for (auto& [key, hist] : bkg_plots) {
+    //--- draw and save comparison plots
+    for (auto& [key, hist] : zmc_plots) {
         for (int i=0; i<bins::n_pt_bins+2; i++) {
-            bkg_plots[key][i]->Draw("hist");
-            photon_plots[key][i]->Scale(bkg_plots[key][i]->Integral(0, 2)/photon_plots[key][i]->Integral(0, 2));
+            zmc_plots[key][i]->Draw("hist");
+            float z_yield = zmc_plots[key][i]->Integral();
+            float g_yield = photon_plots[key][i]->Integral();
+            float scale = g_yield != 0 ? z_yield/g_yield : 0;
+            photon_plots[key][i]->Scale(scale);
             photon_plots[key][i]->SetLineColor(kRed);
-            photon_plots[key][i]->Draw("samehist");
+            photon_plots[key][i]->Draw("hist same");
             can->Print("Diagnostics/Smearing/" + key + "_pt_bin_" + i + ".eps");
         }
         passTest("Comparison plots for " + key + " produced");
