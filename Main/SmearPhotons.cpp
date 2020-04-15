@@ -10,29 +10,15 @@ using namespace std;
 class PhotonToZConverter {
 public:
     SmearingOptions options;
-    std::default_random_engine *random_generator;
-    TRandom1 myRandom;
+
+    //----------------
+    // INITIALIZATION
+    //----------------
+
     TChain *inputTree;
-    TFile* outputFile;
-    TTree *outputTree;
 
-    TH1F* h_lep_cm_theta;
-    std::vector<float> lep_cm_theta_bin_bounds;
-    std::discrete_distribution<int> *lep_cm_theta_distribution;
-
-    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
-    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
-    TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
-    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
-
-    map<string, map<int, TH1F*>> unit_test_plots;
-
-    map<int, pair<float, float>> smearing_gaussians;
-
-    PhotonToZConverter(SmearingOptions options) {
-        this->options = options;
-
-        //--- open files
+    void openPhotonFile(SmearingOptions options) {
+        /// Open unsmeared photon file.
         cout << "channel                : " << options.channel         << endl;
         cout << "period                 : " << options.period          << endl;
         cout << "is data?               : " << options.is_data          << endl;
@@ -50,38 +36,78 @@ public:
         cout << endl;
         cout << "Opening read file      : " << photon_file_name        << endl;
         cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
+    }
 
-        TH1::SetDefaultSumw2();
+    TFile* outputFile;
+    TTree *outputTree;
 
-        string outfilename = options.out_file_name;
-
-        this->outputFile = new TFile(outfilename.c_str(), "recreate");          
+    void openOutputFile(SmearingOptions options) {
+        /// Open smeared output file.
+        this->outputFile = new TFile(options.out_file_name.c_str(), "recreate");          
         this->outputTree = new TTree("BaselineTree", "baseline tree");
         this->outputTree->SetDirectory(outputFile);
 
-        cout << "Opening write file     : " << outfilename << endl;
+        cout << "Opening write file     : " << options.out_file_name << endl;
         cout << endl;
+    }
 
-        //--- set up random generators
+    std::default_random_engine *random_generator;
+    TRandom1 myRandom;
+
+    void initRandomGenerators() {
         unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
         this->random_generator = new default_random_engine(random_seed);
         myRandom.SetSeed(0);
+    }
 
-        //--- set up histograms
-        for (int bin=0; bin<bins::n_pt_bins+2; bin++)
-            this->hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
+    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
+    TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
+    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
 
+    void initHistograms() {
+        /**
+         * Set up photon and Z METl histograms, and smeared METl histograms, all binned in pT.
+         * Set up Z mll histograms, binned in pT and METl.
+         */
+        TH1::SetDefaultSumw2();
         for (int bin=0; bin<bins::n_pt_bins+2; bin++) {
-            this->hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
-            this->hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+            this->hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",
+                bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+            this->hist_g_metl_bin_pt[bin] = new TH1D(TString("hist_g_metl_")+TString::Itoa(bin,10),"",
+                bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
+
+            this->hist_g_smeared_metl_bin_pt[bin] = new TH1D(TString("hist_g_smeared_metl_")+TString::Itoa(bin,10),
+                "",bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
 
             vector<TH1D*> hist_z_mll_bin_pt_metl_pt_bin;
             for (int bin1=0; bin1<bins::n_METl_bins+2; bin1++) {
-                hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)+TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin));
+                hist_z_mll_bin_pt_metl_pt_bin.push_back(new TH1D(TString("hist_z_Mll_dPt_")+TString::Itoa(bin,10)
+                    +TString("_")+TString::Itoa(bin1,10),"",bins::n_mll_bins,bins::mll_bin));
             }
             this->hist_z_mll_bin_pt_metl.push_back(hist_z_mll_bin_pt_metl_pt_bin);
         }
+    }
 
+    TH1F* h_lep_cm_theta;
+    std::vector<float> lep_cm_theta_bin_bounds;
+    std::discrete_distribution<int> *lep_cm_theta_distribution;
+    map<int, pair<float, float>> smearing_gaussians;
+
+    PhotonToZConverter(SmearingOptions options) {
+        this->options = options;
+
+        //--- open files
+        this->openPhotonFile(options);
+        this->openOutputFile(options);
+
+        //--- set up random generators
+        this->initRandomGenerators();
+
+        //--- set up histograms
+        this->initHistograms();
+
+        //--- get lepton histograms and smearing Gaussians
         this->getLepThetaHistograms();
         this->getSmearingGaussians();
     }
@@ -89,6 +115,8 @@ public:
     //------------
     // UNIT TESTS
     //------------
+
+    map<string, map<int, TH1F*>> unit_test_plots;
 
     void fillUnitTestPlots(TTree* ttree_data, TTree* ttree_tt, TTree* ttree_vv, TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
         //--- initialize histograms
@@ -161,15 +189,13 @@ public:
     //------------------
 
     int rebinHistogram(TH1D* hist, int rebin) {
-
         /**
-         * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd number of bins.
-         * This means having abs(negative_yield/positive_yield)<0.005 and core_yield/positive_yield>0.4.
-         * Else, rebin by #(rebin).
+         * If rebin=0, rebin histogram by factors of 2, up to 32, until it looks reasonable or there are an odd
+         * number of bins. This means having abs(negative_yield/positive_yield)<0.005 and
+         * core_yield/positive_yield>0.4. Else, rebin by #(rebin).
          * Finally, set all negative bins values in the histogram to 0.
          * Return the final rebinning factor for the histogram.
          */
-
         float negative_yield = 0.; // sum of bins with negative values
         float positive_yield = 0.001; // sum of bins with positive values
         float core_yield = 0.; // sum of bins within one sigma of axis center
@@ -181,7 +207,8 @@ public:
                 else negative_yield += hist->GetBinContent(bin);
             }
             int has_odd_nbins = hist->GetNbinsX() % 2;
-            while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) && has_odd_nbins==0 && rebin<=32) {
+            while ((abs(negative_yield/positive_yield)>0.005 || core_yield/positive_yield<0.4) &&
+            has_odd_nbins==0 && rebin<=32) {
                 hist->Rebin(2);
                 rebin = rebin*2;
                 has_odd_nbins = hist->GetNbinsX() % 2;
@@ -759,6 +786,7 @@ void performUnitTests(SmearingOptions options) {
 
     //--- open photon files
     string photon_file_name;
+    cout << options.in_file_path << endl;
     if (options.is_data) photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
     else photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
     TFile *photon_file = new TFile(photon_file_name.c_str());
