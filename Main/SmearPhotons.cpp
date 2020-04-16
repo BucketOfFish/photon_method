@@ -263,7 +263,8 @@ public:
         TH1F* hz = new TH1F("hz", "", 1, 0, 1);
 
         ttree_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
+        cout << "Z+jets integral        : " << hz->Integral() << endl;
+        cout << "Z+jets integral overflow check : " << hz->Integral(0, 2) << endl;
 
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
@@ -717,6 +718,7 @@ public:
 
 SmearingOptions setUnitTestOptions(SmearingOptions options) {
     options.in_file_path = options.unit_test_folder + "ReducedNtuples/";
+    //options.in_file_path = "/public/data/Photon/Samples/ReducedNtuples/";
     options.out_file_name = "unit_test.root";
     options.in_tree_name = "BaselineTree";
     options.out_tree_name = "BaselineTree";
@@ -788,16 +790,46 @@ void performUnitTests(SmearingOptions options) {
 
     //--- draw and save comparison plots
     for (auto& [key, hist] : zmc_plots) {
+        THStack *zmc_stack = new THStack("zmc_stack","");
+        THStack *photon_stack = new THStack("gmc_stack","");;
+
         for (int i=0; i<bins::n_pt_bins+2; i++) {
             zmc_plots[key][i]->Draw("hist");
             float z_yield = zmc_plots[key][i]->Integral();
             float g_yield = photon_plots[key][i]->Integral();
+            //cout << z_yield << " " << g_yield << endl;
             float scale = g_yield != 0 ? z_yield/g_yield : 0;
             photon_plots[key][i]->Scale(scale);
             photon_plots[key][i]->SetLineColor(kRed);
             photon_plots[key][i]->Draw("hist same");
+
+            TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
+            leg->AddEntry(zmc_plots[key][i], "Zjets", "f");
+            leg->AddEntry(photon_plots[key][i], "photon smeared", "f");
+            leg->SetBorderSize(0);
+            leg->SetFillColor(0);
+            leg->Draw();
+
             can->Print("Diagnostics/Smearing/" + key + "_pt_bin_" + i + ".eps");
+
+            if (z_yield > 0) zmc_stack->Add(zmc_plots[key][i]);
+            if (g_yield > 0) photon_stack->Add(photon_plots[key][i]);
         }
+
+        zmc_stack->GetStack()->Last()->Draw("hist");
+        photon_stack->GetStack()->Last()->Draw("hist same");
+        //photon_stack->GetStack()->Last()->Draw("hist");
+        //photon_stack->SetLineColor(kRed);
+
+        TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
+        leg->AddEntry(zmc_plots[key][0], "Zjets", "f");
+        leg->AddEntry(photon_plots[key][0], "photon smeared", "f");
+        leg->SetBorderSize(0);
+        leg->SetFillColor(0);
+        leg->Draw();
+
+        can->Print(("Diagnostics/Smearing/" + key + ".eps").c_str());
+
         passTest("Comparison plots for " + key + " produced");
     }
 
