@@ -11,11 +11,29 @@ class PhotonToZConverter {
 public:
     SmearingOptions options;
 
+    string photon_file_name;
+    string Vgamma_file_name;
+    TChain *inputTree;
+
+    TFile* outputFile;
+    TTree *outputTree;
+
+    std::default_random_engine *random_generator;
+    TRandom1 myRandom;
+
+    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
+    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
+    TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
+    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
+
+    TH1F* h_lep_cm_theta;
+    std::vector<float> lep_cm_theta_bin_bounds;
+    std::discrete_distribution<int> *lep_cm_theta_distribution;
+    map<int, normal_distribution<float>> smearing_gaussians;
+
     //----------------
     // INITIALIZATION
     //----------------
-
-    TChain *inputTree;
 
     void openPhotonFile(SmearingOptions options) {
         /// Open unsmeared photon file.
@@ -26,20 +44,16 @@ public:
 
         TH1::SetDefaultSumw2();
 
-        string photon_file_name;
-        if (options.is_data) photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
-        else photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
+        if (options.is_data) this->photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
+        else this->photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
 
         this->inputTree = new TChain("BaselineTree");
-        this->inputTree->Add(photon_file_name.c_str());
+        this->inputTree->Add(this->photon_file_name.c_str());
 
         cout << endl;
-        cout << "Opening read file      : " << photon_file_name        << endl;
+        cout << "Opening read file      : " << this->photon_file_name << endl;
         cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
     }
-
-    TFile* outputFile;
-    TTree *outputTree;
 
     void openOutputFile(SmearingOptions options) {
         /// Open smeared output file.
@@ -51,26 +65,17 @@ public:
         cout << endl;
     }
 
-    std::default_random_engine *random_generator;
-    TRandom1 myRandom;
-
     void initRandomGenerators() {
         unsigned random_seed = std::chrono::system_clock::now().time_since_epoch().count();
         this->random_generator = new default_random_engine(random_seed);
         myRandom.SetSeed(0);
     }
 
-    TH1D* hist_z_metl_bin_pt[bins::n_pt_bins+2];  // 0 = underflow, n_pt_bins + 1 = overflow
-    TH1D* hist_g_metl_bin_pt[bins::n_pt_bins+2];
-    TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
-    vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
-
     void initHistograms() {
         /**
          * Set up photon and Z METl histograms, and smeared METl histograms, all binned in pT.
          * Set up Z mll histograms, binned in pT and METl.
          */
-        TH1::SetDefaultSumw2();
         for (int bin=0; bin<bins::n_pt_bins+2; bin++) {
             this->hist_z_metl_bin_pt[bin] = new TH1D(TString("hist_z_metl_")+TString::Itoa(bin,10),"",
                 bins::n_smearing_bins,bins::smearing_low,bins::smearing_high);
@@ -89,11 +94,6 @@ public:
         }
     }
 
-    TH1F* h_lep_cm_theta;
-    std::vector<float> lep_cm_theta_bin_bounds;
-    std::discrete_distribution<int> *lep_cm_theta_distribution;
-    map<int, pair<float, float>> smearing_gaussians;
-
     PhotonToZConverter(SmearingOptions options) {
         this->options = options;
 
@@ -109,7 +109,7 @@ public:
 
         //--- get lepton histograms and smearing Gaussians
         this->getLepThetaHistograms();
-        this->getSmearingGaussians();
+        this->smearing_gaussians = this->getSmearingGaussians();
     }
 
     //---------------
@@ -263,8 +263,7 @@ public:
         TH1F* hz = new TH1F("hz", "", 1, 0, 1);
 
         ttree_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral() << endl;
-        cout << "Z+jets integral overflow check : " << hz->Integral(0, 2) << endl;
+        cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
 
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
@@ -357,11 +356,7 @@ public:
         TFile* ttbar_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_ttbar.root").c_str());
         TFile* diboson_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_diboson.root").c_str());
         TFile* Z_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_Zjets.root").c_str());
-        TFile* photon_file;
-        if (this->options.is_data)
-            photon_file = new TFile((this->options.in_file_path + this->options.data_period + "_data_photon.root").c_str());
-        else
-            photon_file = new TFile((this->options.in_file_path + this->options.mc_period + "_SinglePhoton222.root").c_str());
+        TFile* photon_file = new TFile(this->photon_file_name.c_str());
 
         //--- z samples
         if (true) { // lazy scoping
@@ -424,8 +419,8 @@ public:
         photon_file->Close();
     };
 
-    void makeSmearingDiagnosticPlots(map<int, pair<float, float>> smearing_gaussians) {
-        for (auto const& [pt_bin, gaussian] : smearing_gaussians) {
+    void makeSmearingDiagnosticPlots(map<int, normal_distribution<float>> smearing_gaussians) {
+        for (auto const& [pt_bin, _] : smearing_gaussians) {
             //cout << "Pt bin " << pt_bin << " has a smearing mean, std of " << gaussian.first << ", " << gaussian.second << endl;
 
             TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
@@ -462,7 +457,7 @@ public:
         }
     }
 
-    void getSmearingGaussians() {
+    map<int, normal_distribution<float>> getSmearingGaussians() {
         /**
          * Returns map with key = photon pt bin, value = (mean, std).
          * For a photon in a given pt bin, smear the event's MET using the given Gaussian numbers.
@@ -474,26 +469,35 @@ public:
         //--- perform smearing
         cout << PBLU("Calculating smearing Gaussians") << endl;
 
-        map<int, pair<float, float>> smearing_gaussians;
+        map<int, normal_distribution<float>> smearing_gaussians;
         for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
-            //--- Rebin METl histograms to look reasonable
-            int rebin_factor = rebinHistogram(this->hist_z_metl_bin_pt[pt_bin], 0);
-            rebinHistogram(this->hist_g_metl_bin_pt[pt_bin], rebin_factor);
-            for (int met_bin=0; met_bin<bins::n_METl_bins+2; met_bin++)
-                rebinHistogram(this->hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
-            int n_hist_bins = bins::n_smearing_bins/rebin_factor;
+            float smear_mean = 0;
+            float smear_rms = 0;
 
-            //--- Save smearing value
-            float smear_mean = this->hist_z_metl_bin_pt[pt_bin]->GetMean() -
-                               this->hist_g_metl_bin_pt[pt_bin]->GetMean();
-            float smear_rms = sqrt(pow(this->hist_z_metl_bin_pt[pt_bin]->GetRMS(), 2) -
-                              pow(this->hist_g_metl_bin_pt[pt_bin]->GetRMS(), 2));
-            if (isnan(smear_rms)) smear_rms = 0.0;
+            float z_int = this->hist_z_metl_bin_pt[pt_bin]->Integral(
+                0, this->hist_z_metl_bin_pt[pt_bin]->GetNbinsX()+1);
+            float g_int = this->hist_g_metl_bin_pt[pt_bin]->Integral(
+                0, this->hist_g_metl_bin_pt[pt_bin]->GetNbinsX()+1);
+            if (z_int > 0 && g_int > 0) {
+                //--- Rebin METl histograms to look reasonable
+                int rebin_factor = rebinHistogram(this->hist_z_metl_bin_pt[pt_bin], 0);
+                rebinHistogram(this->hist_g_metl_bin_pt[pt_bin], rebin_factor);
+                for (int met_bin=0; met_bin<bins::n_METl_bins+2; met_bin++)
+                    rebinHistogram(this->hist_z_mll_bin_pt_metl[pt_bin][met_bin], 0);
+                int n_hist_bins = bins::n_smearing_bins/rebin_factor;
+
+                //--- Save smearing value
+                this->hist_z_metl_bin_pt[pt_bin]->Fit("gaus", "Q");
+                this->hist_g_metl_bin_pt[pt_bin]->Fit("gaus", "Q");
+                TF1 *z_fit = (TF1*)this->hist_z_metl_bin_pt[pt_bin]->GetFunction("gaus");
+                TF1 *g_fit = (TF1*)this->hist_g_metl_bin_pt[pt_bin]->GetFunction("gaus");
+                smear_mean = z_fit->GetParameter(1) - g_fit->GetParameter(1);
+                smear_rms = sqrt(pow(z_fit->GetParameter(2),2) - pow(g_fit->GetParameter(2),2));
+                if (isnan(smear_rms)) smear_rms = 0;
+            }
             
-            pair<float, float> gaussian = make_pair(0.0, 0.0);
-            if (this->options.channel=="ee") gaussian = make_pair(smear_mean, 0.0);
-            else gaussian = make_pair(smear_mean, smear_rms);
-            smearing_gaussians.insert(pair<int, pair<float, float>>(pt_bin, gaussian));
+            if (this->options.channel=="ee") smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, 0.0);
+            else smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, smear_rms);
         }
 
         if (this->options.diagnostic_plots) {
@@ -507,20 +511,21 @@ public:
 
     tuple<float, float> smearMETlAndMll(float METl, float gamma_pt) {
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
-        auto gaussian_vals = this->smearing_gaussians.find(pt_bin);
+        auto smearing_gaussian = this->smearing_gaussians[pt_bin];
             
         float METl_smeared;
         if (this->options.turn_off_shifting_and_smearing)
             METl_smeared = METl;
         else {
-            normal_distribution<float> smearing_gaussian(gaussian_vals->second.first, gaussian_vals->second.second);
             METl_smeared = METl + smearing_gaussian(*random_generator);
         }
         this->hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
 
         int METl_bin = bins::hist_METl_bins->FindBin(METl_smeared);
-        float mll = 0;
-        if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral(0, bins::n_mll_bins+1)>0)
+        float mll = 91.188;
+        // fix for zero integral error
+        //if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral(0, bins::n_mll_bins+1)>0)
+        if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral()>0)
             mll = this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->GetRandom();
 
         return make_tuple(METl_smeared, mll);
@@ -750,6 +755,7 @@ void performUnitTests(SmearingOptions options) {
     for (int i=0; i<bins::n_pt_bins+2; i++) {
         photon_plots["lep_cm_theta"][i] = new TH1F("", "", 100, 0, 3);
         photon_plots["lepEta"][i] = new TH1F("", "", 100, -3, 3);
+        photon_plots["METl_raw"][i] = new TH1F("", "", 100, -100, 100);
         photon_plots["METl"][i] = new TH1F("", "", 100, -100, 100);
         photon_plots["mll"][i] = new TH1F("", "", 100, 0, 150);
     }
@@ -784,6 +790,7 @@ void performUnitTests(SmearingOptions options) {
         }
 
         auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
+        photon_plots["METl_raw"][pt_bin]->Fill(METl_unsmeared, totalWeight);
         photon_plots["METl"][pt_bin]->Fill(METl, totalWeight);
         photon_plots["mll"][pt_bin]->Fill(mll, totalWeight);
     }
@@ -795,17 +802,29 @@ void performUnitTests(SmearingOptions options) {
 
         for (int i=0; i<bins::n_pt_bins+2; i++) {
             zmc_plots[key][i]->Draw("hist");
-            float z_yield = zmc_plots[key][i]->Integral();
-            float g_yield = photon_plots[key][i]->Integral();
+            float z_yield = zmc_plots[key][i]->Integral(0, zmc_plots[key][i]->GetNbinsX()+1);
+            float g_yield = photon_plots[key][i]->Integral(0, photon_plots[key][i]->GetNbinsX()+1);
             //cout << z_yield << " " << g_yield << endl;
             float scale = g_yield != 0 ? z_yield/g_yield : 0;
+
+            if (key == "METl") {
+                float g_yield_raw = photon_plots[key][i]->Integral(0, photon_plots[key][i]->GetNbinsX()+1);
+                float scale_raw = g_yield_raw != 0 ? z_yield/g_yield_raw : 0;
+
+                photon_plots["METl_raw"][i]->Scale(scale_raw);
+                photon_plots["METl_raw"][i]->SetLineColor(kBlue);
+                photon_plots["METl_raw"][i]->Draw("hist same");
+            }
+
             photon_plots[key][i]->Scale(scale);
             photon_plots[key][i]->SetLineColor(kRed);
             photon_plots[key][i]->Draw("hist same");
 
             TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
             leg->AddEntry(zmc_plots[key][i], "Zjets", "f");
-            leg->AddEntry(photon_plots[key][i], "photon smeared", "f");
+            if (key == "METl")
+                leg->AddEntry(photon_plots["METl_raw"][i], "photon raw", "f");
+            leg->AddEntry(photon_plots[key][i], "photon corrected", "f");
             leg->SetBorderSize(0);
             leg->SetFillColor(0);
             leg->Draw();
@@ -823,7 +842,7 @@ void performUnitTests(SmearingOptions options) {
 
         TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
         leg->AddEntry(zmc_plots[key][0], "Zjets", "f");
-        leg->AddEntry(photon_plots[key][0], "photon smeared", "f");
+        leg->AddEntry(photon_plots[key][0], "photon corrected", "f");
         leg->SetBorderSize(0);
         leg->SetFillColor(0);
         leg->Draw();
