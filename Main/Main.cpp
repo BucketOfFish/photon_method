@@ -349,18 +349,11 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
     options.mc_period = getMCPeriod(options.period);
     options.channel = settings.channel;
     options.is_data = settings.is_data;
-    options.in_file_path = settings.reduction_folder;
 
+    options.in_file_path = settings.reduction_folder;
+    options.out_file_path = settings.smearing_folder;
     options.unit_test_folder = settings.unit_test_folder;
 
-    if (settings.is_data) {
-        options.in_file_name = settings.reduction_folder + options.data_period + "_data_photon.root";
-        options.out_file_name = settings.smearing_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
-    }
-    else {
-        options.in_file_name = settings.reduction_folder + options.mc_period + "_SinglePhoton222.root";
-        options.out_file_name = settings.smearing_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
-    }
     options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
 
@@ -407,8 +400,8 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
         //make_tuple("channel", to_string(channel)),
     //};
 
-    //--- smear photons
     options.unit_testing = unit_testing;
+
     SmearPhotons(options);
 }
 
@@ -427,7 +420,7 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     options.is_data = settings.is_data;
     options.in_file_path = settings.reweighting_folder;
     options.reduction_folder = settings.reduction_folder;
-    options.reweight_var = "Ptll";
+    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30"};
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon_" + settings.channel + ".root";
@@ -560,9 +553,9 @@ void Main() {
 
     bool unit_testing = false;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (unit_testing) {
@@ -620,7 +613,7 @@ void Main() {
 
             //vector<bool> is_datas{true, false};
             vector<string> channels{"ee", "mm"};
-            vector<bool> is_datas{false};
+            vector<bool> is_datas{true};
             //vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {

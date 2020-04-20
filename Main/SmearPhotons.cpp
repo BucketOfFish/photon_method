@@ -11,10 +11,10 @@ class PhotonToZConverter {
 public:
     SmearingOptions options;
 
-    string photon_file_name;
-    string Vgamma_file_name;
+    string in_file_name;
     TChain *inputTree;
 
+    string out_file_name;
     TFile* outputFile;
     TTree *outputTree;
 
@@ -36,32 +36,45 @@ public:
     //----------------
 
     void openPhotonFile(SmearingOptions options) {
-        /// Open unsmeared photon file.
-        cout << "channel                : " << options.channel         << endl;
-        cout << "period                 : " << options.period          << endl;
-        cout << "is data?               : " << options.is_data          << endl;
-        cout << "smearing output        : " << options.out_file_name   << endl;
-
         TH1::SetDefaultSumw2();
 
-        if (options.is_data) this->photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
-        else this->photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
+        if (options.run_vgamma) {
+            this->in_file_name = options.in_file_path + options.mc_period + "_Vgamma.root";
+            this->out_file_name = options.out_file_path + options.mc_period + "_Vgamma_" + options.channel + ".root";
+        }
+        else {
+            if (options.is_data) {
+                this->in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
+                this->out_file_name = options.out_file_path + options.data_period + "_data_photon_" + options.channel + ".root"; 
+            }
+            else {
+                this->in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
+                this->out_file_name = options.out_file_path + options.mc_period + "_SinglePhoton222_" + options.channel + ".root";
+            }
+        }
+
+        cout << "channel                : " << options.channel         << endl;
+        cout << "period                 : " << options.period          << endl;
+        cout << "data-based photons?    : " << options.is_data          << endl;
+        cout << "smearing output        : " << this->out_file_name   << endl;
+
+        // run on MC Vgamma if option is set
+        if (options.run_vgamma) this->in_file_name = options.in_file_path + options.mc_period + "_Vgamma.root";
 
         this->inputTree = new TChain("BaselineTree");
-        this->inputTree->Add(this->photon_file_name.c_str());
+        this->inputTree->Add(this->in_file_name.c_str());
 
         cout << endl;
-        cout << "Opening read file      : " << this->photon_file_name << endl;
+        cout << "Opening read file      : " << this->in_file_name << endl;
         cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
     }
 
     void openOutputFile(SmearingOptions options) {
-        /// Open smeared output file.
-        this->outputFile = new TFile(options.out_file_name.c_str(), "recreate");          
+        this->outputFile = new TFile(this->out_file_name.c_str(), "recreate");          
         this->outputTree = new TTree("BaselineTree", "baseline tree");
         this->outputTree->SetDirectory(outputFile);
 
-        cout << "Opening write file     : " << options.out_file_name << endl;
+        cout << "Opening write file     : " << this->out_file_name << endl;
         cout << endl;
     }
 
@@ -356,7 +369,7 @@ public:
         TFile* ttbar_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_ttbar.root").c_str());
         TFile* diboson_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_diboson.root").c_str());
         TFile* Z_mc_file = new TFile((this->options.in_file_path + this->options.mc_period + "_Zjets.root").c_str());
-        TFile* photon_file = new TFile(this->photon_file_name.c_str());
+        TFile* photon_file = new TFile(this->in_file_name.c_str());
 
         //--- z samples
         if (true) { // lazy scoping
@@ -421,8 +434,6 @@ public:
 
     void makeSmearingDiagnosticPlots(map<int, normal_distribution<float>> smearing_gaussians) {
         for (auto const& [pt_bin, _] : smearing_gaussians) {
-            //cout << "Pt bin " << pt_bin << " has a smearing mean, std of " << gaussian.first << ", " << gaussian.second << endl;
-
             TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
             canvas->cd();
             canvas->SetLogy();
@@ -723,8 +734,8 @@ public:
 
 SmearingOptions setUnitTestOptions(SmearingOptions options) {
     options.in_file_path = options.unit_test_folder + "ReducedNtuples/";
-    //options.in_file_path = "/public/data/Photon/Samples/ReducedNtuples/";
-    options.out_file_name = "unit_test.root";
+    options.out_file_path = "./";
+
     options.in_tree_name = "BaselineTree";
     options.out_tree_name = "BaselineTree";
 
@@ -737,6 +748,9 @@ SmearingOptions setUnitTestOptions(SmearingOptions options) {
 
     options.turn_off_shifting_and_smearing = false;
     options.diagnostic_plots = false;
+
+    options.unit_testing = true;
+    options.run_vgamma = false;
 
     return options;
 }
@@ -761,10 +775,10 @@ void performUnitTests(SmearingOptions options) {
     }
 
     //--- open photon files
-    string photon_file_name;
-    if (options.is_data) photon_file_name = options.in_file_path + options.data_period + "_data_photon.root";
-    else photon_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
-    TFile *photon_file = new TFile(photon_file_name.c_str());
+    string in_file_name;
+    if (options.is_data) in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
+    else in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
+    TFile *photon_file = new TFile(in_file_name.c_str());
     TTree *photon_tree = (TTree*)photon_file->Get("BaselineTree");
 
     float gamma_pt; photon_tree->SetBranchAddress("gamma_pt", &gamma_pt);
@@ -852,7 +866,7 @@ void performUnitTests(SmearingOptions options) {
         passTest("Comparison plots for " + key + " produced");
     }
 
-    remove(options.out_file_name.c_str());
+    remove(converter.out_file_name.c_str());
     delete can;
 
     passTest("Passed all unit tests");
@@ -874,8 +888,19 @@ void SmearPhotons(SmearingOptions options) {
     else {
         cout << BOLD(PBLU("Performing smearing")) << endl;
         cout << endl;
-        PhotonToZConverter converter(options);
-        converter.convertEvents();
-        if (options.diagnostic_plots) converter.drawMETlDistributions();
+
+        //--- smear photons
+        options.run_vgamma = false;
+        PhotonToZConverter photon_converter(options);
+        photon_converter.convertEvents();
+        if (options.diagnostic_plots) photon_converter.drawMETlDistributions();
+
+        //--- smear Vgamma - this MC component must be subtracted from photon data
+        if (options.is_data) {
+            options.run_vgamma = true;
+            PhotonToZConverter vgamma_converter(options);
+            vgamma_converter.convertEvents();
+            if (options.diagnostic_plots) vgamma_converter.drawMETlDistributions();
+        }
     }
 }

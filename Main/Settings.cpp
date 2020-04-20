@@ -514,10 +514,10 @@ struct ReductionOptions {
 };
 
 struct SmearingOptions {
-    string in_file_name;
     string in_file_path;
     string in_tree_name;
-    string out_file_name;
+
+    string out_file_path;
     string out_tree_name;
 
     string unit_test_folder;
@@ -534,6 +534,8 @@ struct SmearingOptions {
     bool unit_testing;
     bool turn_off_shifting_and_smearing;
     bool diagnostic_plots;
+
+    bool run_vgamma;
 };
 
 struct ReweightingOptions {
@@ -548,7 +550,7 @@ struct ReweightingOptions {
     string mc_period;
     bool is_data;
     string channel;
-    string reweight_var;
+    vector<string> reweight_vars;
 
     string reduction_folder;
 
