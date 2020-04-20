@@ -2,7 +2,7 @@
 
 using namespace std;
 
-TH1F* GetSimpleReweightingHistograms(ReweightingOptions options) {
+map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
     gStyle->SetOptStat(0);
 
     //--- open files and create TChains
@@ -57,41 +57,45 @@ TH1F* GetSimpleReweightingHistograms(ReweightingOptions options) {
     TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, reweighting_bins);
     TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, reweighting_bins);    
 
-    if (options.is_data) {
-        tch_data->Draw((options.reweight_var+">>hdata").c_str(), reweight_region, "goff");
-        tch_tt->Draw((options.reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
-        tch_vv->Draw((options.reweight_var+">>hvv").c_str(), reweight_region*cuts::bkg_weight, "goff");
-        cout << "data integral          : " << hdata->Integral(0, n_reweighting_bins+1) << endl;
-        cout << "ttbar integral         : " << htt->Integral(0, n_reweighting_bins+1) << endl;
-        cout << "diboson integral       : " << hvv->Integral(0, n_reweighting_bins+1) << endl;
-    }
-    else {
-        tch_zjets->Draw((options.reweight_var+">>hz").c_str(), reweight_region*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral(0, n_reweighting_bins+1) << endl;
-    }
-
-    tch_photon->Draw((options.reweight_var+">>histoG").c_str(), reweight_region*cuts::photon_weight, "goff");
-    cout << "photon integral      " << histoG->Integral(0, n_reweighting_bins+1) << endl;
-    cout << endl;
-
-    //--- calculate reweighting ratios
+    //--- and calculate reweighting ratios
     TH1F* histoZ;
-    if (options.is_data) {
-        histoZ = (TH1F*) hdata->Clone("histoZ");
-        histoZ->Add(htt, -1.0);
-        histoZ->Add(hvv, -1.0);
+    map<string, TH1F*> hratios;
+
+    for (auto reweight_var : options.reweight_vars) {
+        if (options.is_data) {
+            tch_data->Draw((reweight_var+">>hdata").c_str(), reweight_region, "goff");
+            tch_tt->Draw((reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            tch_vv->Draw((reweight_var+">>hvv").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            cout << "data integral          : " << hdata->Integral(0, n_reweighting_bins+1) << endl;
+            cout << "ttbar integral         : " << htt->Integral(0, n_reweighting_bins+1) << endl;
+            cout << "diboson integral       : " << hvv->Integral(0, n_reweighting_bins+1) << endl;
+        }
+        else {
+            tch_zjets->Draw((reweight_var+">>hz").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            cout << "Z+jets integral        : " << hz->Integral(0, n_reweighting_bins+1) << endl;
+        }
+
+        tch_photon->Draw((reweight_var+">>histoG").c_str(), reweight_region*cuts::photon_weight, "goff");
+        cout << "photon integral      " << histoG->Integral(0, n_reweighting_bins+1) << endl;
+        cout << endl;
+
+        if (options.is_data) {
+            histoZ = (TH1F*) hdata->Clone("histoZ");
+            histoZ->Add(htt, -1.0);
+            histoZ->Add(hvv, -1.0);
+        }
+        else histoZ = (TH1F*) hz->Clone("histoZ");
+
+        hratios[reweight_var] = (TH1F*) histoZ->Clone(("hratio_" + reweight_var).c_str());
+        hratios[reweight_var]->Divide(histoG);
+
+        cout << "photon integral        : " << histoG->Integral(0, n_reweighting_bins+1) << endl;
+        cout << "bkg integral           : " << histoZ->Integral(0, n_reweighting_bins+1) << endl;
+        cout << "scaling factor         : " << hratios[reweight_var]->Integral(0, n_reweighting_bins+1) << endl;
+        cout << endl;
     }
-    else histoZ = (TH1F*) hz->Clone("histoZ");
 
-    TH1F* hratio = (TH1F*) histoZ->Clone("hratio");
-    hratio->Divide(histoG);
-
-    cout << "photon integral        : " << histoG->Integral(0, n_reweighting_bins+1) << endl;
-    cout << "bkg integral           : " << histoZ->Integral(0, n_reweighting_bins+1) << endl;
-    cout << "scaling factor         : " << hratio->Integral(0, n_reweighting_bins+1) << endl;
-    cout << endl;
-
-    return hratio;
+    return hratios;
 }
 
 void ReweightPhotons(ReweightingOptions options) {
@@ -117,30 +121,36 @@ void ReweightPhotons(ReweightingOptions options) {
     //---------------------------------------------
     // 1-d reweighting histogram 
     //---------------------------------------------
-    TH1F* h_reweight = GetSimpleReweightingHistograms(options);
+    map<string, TH1F*> reweight_hists = GetSimpleReweightingHistograms(options);
 
     //-----------------------------
     // loop over events and fill new branch
     //-----------------------------
-    float gamma_var = 0.; SetInputBranch(outputTree, options.reweight_var, &gamma_var);
+    map<string, float> var_vals;
+    map<string, Float_t> reweight_vals;
+    map<string, TBranch*> reweight_branches;
 
-    Float_t reweight = 0.;
-    TBranch *b_reweight;
-    b_reweight = outputTree->Branch(("reweight_"+options.reweight_var).c_str(), &reweight, ("reweight_"+options.reweight_var+"/F").c_str());
+    for (auto reweight_var : options.reweight_vars) {
+        var_vals[reweight_var] = 0.0;
+        reweight_vals[reweight_var] = 0.0;
+        SetInputBranch(outputTree, reweight_var, &var_vals[reweight_var]);
+        reweight_branches[reweight_var] = outputTree->Branch(("reweight_"+reweight_var).c_str(),
+            &reweight_vals[reweight_var], ("reweight_"+reweight_var+"/F").c_str());
+    }
 
     Long64_t nentries = outputTree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
-
         if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
         outputTree->GetEntry(i);
 
-        //float gamma_var_truncated = gamma_var;
+        //float gamma_var_truncated = var_vals;
         //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
         //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
-        int var_bin = h_reweight->FindBin(gamma_var);
-        reweight = h_reweight->GetBinContent(var_bin);
-
-        b_reweight->Fill();
+        for (auto reweight_var : options.reweight_vars) {
+            int var_bin = reweight_hists[reweight_var]->FindBin(var_vals[reweight_var]);
+            reweight_vals[reweight_var] = reweight_hists[reweight_var]->GetBinContent(var_bin);
+            reweight_branches[reweight_var]->Fill();
+        }
     }
     cout << endl;
 

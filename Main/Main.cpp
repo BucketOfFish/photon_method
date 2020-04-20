@@ -553,8 +553,8 @@ void Main() {
 
     bool unit_testing = false;
     bool do_reduction = false;
-    bool do_smearing = true;
-    bool do_reweighting = false;
+    bool do_smearing = false;
+    bool do_reweighting = true;
     bool do_plotting = false;
 
     //--- unit testing
@@ -632,7 +632,7 @@ void Main() {
             settings.period = period;
 
             //vector<bool> is_datas{true, false};
-            vector<bool> is_datas{false};
+            vector<bool> is_datas{true};
             vector<string> channels{"ee", "mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
