@@ -4,8 +4,8 @@
 #include <string>
 #include "../../Main/Settings.cpp"
 
-string oldpath = "/public/data/Photon/Samples/ReducedNtuples/";
-string newpath = "/public/data/Photon/VRDPhiSamples/ReducedNtuples/";
+string oldpath = "/public/data/Photon/Samples/ReweightedNtuples/";
+string newpath = "/public/data/Photon/VRDPhiSamples/ReweightedNtuples/";
 string treename = "BaselineTree";
 
 map<string, string> selections = {
@@ -19,6 +19,10 @@ map<string, vector<string>> filename_sets {
         "data15-16_data_photon_mm.root", "data18_data_photon_mm.root", "mc16cd_SinglePhoton222_mm.root",
         "data17_data_photon_ee.root", "mc16a_SinglePhoton222_ee.root", "mc16e_SinglePhoton222_ee.root",
         "data17_data_photon_mm.root", "mc16a_SinglePhoton222_mm.root", "mc16e_SinglePhoton222_mm.root",}},
+    {"reweighted_noMC",
+        {"data15-16_data_photon_ee.root", "data18_data_photon_ee.root",
+        "data15-16_data_photon_mm.root", "data18_data_photon_mm.root",
+        "data17_data_photon_ee.root", "data17_data_photon_mm.root",}},
     {"reduced",
         {
         "data15-16_data_bkg.root", "mc16a_singleTop.root", "mc16e_lowMassDY.root",
@@ -33,7 +37,7 @@ map<string, vector<string>> filename_sets {
         "mc16cd_lowMassDY.root", "mc16e_higgs.root",
         }},
 };
-vector<string> filenames = filename_sets["reduced"];
+vector<string> filenames = filename_sets["reweighted_noMC"];
 
 void skim_ntuples_with_selection() {
     TreeCreator *reducer = new TreeCreator();

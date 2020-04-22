@@ -418,18 +418,10 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     options.mc_period = getMCPeriod(options.period);
     options.channel = settings.channel;
     options.is_data = settings.is_data;
-    options.in_file_path = settings.reweighting_folder;
+    options.reweighting_folder = settings.reweighting_folder;
     options.reduction_folder = settings.reduction_folder;
-    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30"};
+    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30"};
 
-    if (settings.is_data) {
-        options.in_file_name = options.in_file_path + options.data_period + "_data_photon_" + settings.channel + ".root";
-        options.out_file_name = settings.reweighting_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
-    }
-    else {
-        options.in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
-        options.out_file_name = settings.reweighting_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
-    }
     options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
 
@@ -458,17 +450,17 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
 
     options.unit_test_folder = settings.unit_test_folder;
 
-    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
-                                     //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
-                                     //"SRMedZ6", "SRHighZ6",
-                                     //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
-                                     //"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
-                                     //"VRMedZ6", "VRHighZ6",
-                                     //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
-                                     //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-    options.regions = vector<string>{"VRC"};
-    options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
-    //options.plot_features = vector<string>{"mll"};
+    options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
+                                     "SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
+                                     "SRMedZ6", "SRHighZ6",
+                                     "VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
+                                     "VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
+                                     "VRMedZ6", "VRHighZ6",
+                                     "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
+                                     "VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+    //options.regions = vector<string>{"VRC"};
+    //options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
+    options.plot_features = vector<string>{"mll"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
 
@@ -500,7 +492,7 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
                              {"higgs", "Higgs"}};
 
     options.blinded = true;
-    options.print_photon_yield_only = false;
+    options.print_photon_yield_only = true;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -554,8 +546,8 @@ void Main() {
     bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
-    bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_reweighting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (unit_testing) {

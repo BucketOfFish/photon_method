@@ -224,10 +224,20 @@ namespace bins {
     double smearing_high = 2000;
 
     const int n_pt_bins = 23;
-    //double pt_bins[] = {50,75,100,125,150,175,200,250,300,400,500,700,1000,1200,1400,1600,1e10};
     double pt_bins[] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1000,1e10};
     double MET_bins[] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
     double dphi_bin[] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
+
+    map<string, int> n_reweighting_bins;
+    map<string, double> reweighting_bins[];
+    n_reweighting_bins["Ptll"] = 23;
+    reweighting_bins["Ptll"] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1e10};
+    n_reweighting_bins["nBJet20_MV2c10_FixedCutBEff_77"] = 10;
+    reweighting_bins["nBJet20_MV2c10_FixedCutBEff_77"] = {0,1,2,3,4,5,6,7,8,9,10,100};
+    n_reweighting_bins["nJet30"] = 10;
+    reweighting_bins["nJet30"] = {0,1,2,3,4,5,6,7,8,9,10,100};
+    n_reweighting_bins["Ht30"] = 23;
+    reweighting_bins["Ht30"] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1e10};
 
     const int n_METl_bins = 25;
     double METl_bins[] = {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10};
@@ -540,7 +550,7 @@ struct SmearingOptions {
 
 struct ReweightingOptions {
     string in_file_name;
-    string in_file_path;
+    string reweighting_folder;
     string in_tree_name;
     string out_file_name;
     string out_tree_name;

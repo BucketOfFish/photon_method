@@ -46,22 +46,22 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
     cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
     cout << endl;
 
-    //--- set reweighting variable
-    int n_reweighting_bins = bins::n_pt_bins;
-    double *reweighting_bins = bins::pt_bins;
-
-    //--- fill reweighting histograms
-    TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, reweighting_bins);
-    TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, reweighting_bins);
-    TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, reweighting_bins);
-    TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, reweighting_bins);
-    TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, reweighting_bins);    
-
-    //--- and calculate reweighting ratios
+    //--- store reweighting histograms
     TH1F* histoZ;
     map<string, TH1F*> hratios;
 
     for (auto reweight_var : options.reweight_vars) {
+        //--- set reweighting properties based on variable
+        int n_reweighting_bins = bins::n_reweighting_bins[reweight_var];
+        double *reweighting_bins = bins::reweighting_bins[reweight_var];
+
+        TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, reweighting_bins);
+        TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, reweighting_bins);
+        TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, reweighting_bins);
+        TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, reweighting_bins);
+        TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, reweighting_bins);    
+
+        //--- fill reweighting histograms
         if (options.is_data) {
             tch_data->Draw((reweight_var+">>hdata").c_str(), reweight_region, "goff");
             tch_tt->Draw((reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
@@ -79,6 +79,7 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
         cout << "photon integral      " << histoG->Integral(0, n_reweighting_bins+1) << endl;
         cout << endl;
 
+        //--- get ratio
         if (options.is_data) {
             histoZ = (TH1F*) hdata->Clone("histoZ");
             histoZ->Add(htt, -1.0);
@@ -93,13 +94,15 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
         cout << "bkg integral           : " << histoZ->Integral(0, n_reweighting_bins+1) << endl;
         cout << "scaling factor         : " << hratios[reweight_var]->Integral(0, n_reweighting_bins+1) << endl;
         cout << endl;
+
+        //--- delete pointers
+        delete hdata, htt, hvv, hz, histoG;
     }
 
     return hratios;
 }
 
-void ReweightPhotons(ReweightingOptions options) {
-
+void ReweightSample(ReweightingOptions options) {
     //---------------------------------------------
     // open file, get Tree and EventCountHist
     //---------------------------------------------
@@ -158,4 +161,21 @@ void ReweightPhotons(ReweightingOptions options) {
 
     cout << PBLU("Finished reweighting") << endl;
     delete smeared_file;
+}
+
+void ReweightPhotons(ReweightingOptions options) {
+    if (options.is_data) {
+        //options.in_file_name = options.reweighting_folder + options.data_period + "_data_photon_" + options.channel + ".root";
+        //options.out_file_name = options.in_file_name;
+        //ReweightSample(options);
+
+        options.in_file_name = options.reweighting_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
+        options.out_file_name = options.in_file_name;
+        ReweightSample(options);
+    }
+    else {
+        options.in_file_name = options.reweighting_folder + options.mc_period + "_SinglePhoton222_" + options.channel + ".root";
+        options.out_file_name = options.in_file_name;
+        ReweightSample(options);
+    }
 }
