@@ -51,15 +51,26 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
     map<string, TH1F*> hratios;
 
     for (auto reweight_var : options.reweight_vars) {
-        //--- set reweighting properties based on variable
-        int n_reweighting_bins = bins::n_reweighting_bins[reweight_var];
-        double *reweighting_bins = bins::reweighting_bins[reweight_var];
+        //--- split variable by ":"
+        std::stringstream unsplit_vars(reweight_var);
+        std::string segment;
+        std::vector<std::string> split_vars;
+        while(std::getline(unsplit_vars, segment, ':')) {
+           split_vars.push_back(segment);
+        }
 
-        TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, reweighting_bins);
-        TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, reweighting_bins);
-        TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, reweighting_bins);
-        TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, reweighting_bins);
-        TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, reweighting_bins);    
+        //--- single variable reweighting
+        reweight_var = split_vars[0];
+
+        //--- set reweighting properties based on variable
+        int n_reweighting_bins = bins::n_reweighting_bins.at(reweight_var);
+        vector<double> reweighting_bins = bins::reweighting_bins.at(reweight_var);
+
+        TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, &reweighting_bins[0]);
+        TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, &reweighting_bins[0]);
+        TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, &reweighting_bins[0]);
+        TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, &reweighting_bins[0]);
+        TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, &reweighting_bins[0]);    
 
         //--- fill reweighting histograms
         if (options.is_data) {
@@ -102,6 +113,132 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
     return hratios;
 }
 
+map<string, TH2F*> GetSimple2DReweightingHistograms(ReweightingOptions options) {
+    gStyle->SetOptStat(0);
+
+    //--- open files and create TChains
+    string data_filename = options.reduction_folder + options.period + "_data_bkg.root";
+    string tt_filename = options.reduction_folder + options.mc_period + "_ttbar.root";
+    string vv_filename = options.reduction_folder + options.mc_period + "_diboson.root";
+    string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
+
+    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets, *tch_photon;
+
+    if (options.is_data) {
+        cout << "Opening data file      : " << data_filename << endl;
+        tch_data = new TChain(options.out_tree_name.c_str()); tch_data->Add(data_filename.c_str());
+        cout << "data entries           : " << tch_data->GetEntries() << endl;
+        cout << "Opening ttbar file     : " << tt_filename << endl;
+        tch_tt = new TChain(options.out_tree_name.c_str()); tch_tt->Add(tt_filename.c_str());
+        cout << "ttbar entries          : " << tch_tt->GetEntries() << endl;
+        cout << "Opening diboson file   : " << vv_filename << endl;
+        tch_vv = new TChain(options.out_tree_name.c_str()); tch_vv->Add(vv_filename.c_str());
+        cout << "diboson entries        : " << tch_vv->GetEntries() << endl;
+    }
+    else {
+        cout << "Opening Z+jets file    : " << zjets_filename << endl;
+        tch_zjets = new TChain(options.out_tree_name.c_str()); tch_zjets->Add(zjets_filename.c_str());
+        cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
+    }
+    cout << "Opening photon file    : " << options.in_file_name << endl;
+    tch_photon = new TChain(options.out_tree_name.c_str()); tch_photon->Add(options.in_file_name.c_str());
+    cout << "photon entries         : " << tch_photon->GetEntries() << endl;
+    cout << endl;
+
+    //--- modify event selections and weights
+    TCut reweight_region = cuts::reweight_region;
+    if (TString(options.channel).EqualTo("ee")) reweight_region += cuts::ee;
+    else if (TString(options.channel).EqualTo("mm")) reweight_region += cuts::mm;
+    else failTest("Unrecognized channel " + options.channel);
+
+    cout << "bkg selection          : " << reweight_region.GetTitle() << endl;
+    cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
+    cout << "photon selection       : " << reweight_region.GetTitle() << endl;
+    cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
+    cout << endl;
+
+    //--- store reweighting histograms
+    TH2F* histoZ;
+    map<string, TH2F*> hratios;
+
+    for (auto reweight_var : options.reweight_vars) {
+        //--- split variable by ":"
+        std::stringstream unsplit_vars(reweight_var);
+        std::string segment;
+        std::vector<std::string> split_vars;
+        while(std::getline(unsplit_vars, segment, ':')) {
+           split_vars.push_back(segment);
+        }
+
+        //--- set reweighting properties based on variables
+        vector<int> n_reweighting_bins;
+        vector<vector<double>> reweighting_bins;
+        int var_n = 0;
+        for (auto reweight_var : split_vars) {
+            n_reweighting_bins[var_n] = bins::n_reweighting_bins.at(reweight_var);
+            reweighting_bins[var_n] = bins::reweighting_bins.at(reweight_var);
+            var_n++;
+        }
+
+        TH2F* hdata  = new TH2F("hdata", "", n_reweighting_bins[0], &(reweighting_bins[0])[0],
+                                n_reweighting_bins[1], &(reweighting_bins[1])[0]);
+        TH2F* htt    = new TH2F("htt", "", n_reweighting_bins[0], &(reweighting_bins[0])[0],
+                                n_reweighting_bins[1], &(reweighting_bins[1])[0]);
+        TH2F* hvv    = new TH2F("hvv", "", n_reweighting_bins[0], &(reweighting_bins[0])[0],
+                                n_reweighting_bins[1], &(reweighting_bins[1])[0]);
+        TH2F* hz     = new TH2F("hz", "", n_reweighting_bins[0], &(reweighting_bins[0])[0],
+                                n_reweighting_bins[1], &(reweighting_bins[1])[0]);
+        TH2F* histoG = new TH2F("histoG", "", n_reweighting_bins[0], &(reweighting_bins[0])[0],
+                                n_reweighting_bins[1], &(reweighting_bins[1])[0]);
+
+        //--- fill reweighting histograms
+        vector<tuple<string, TChain*, TH2F*>> histogram_fills;
+        if (options.is_data) {
+            histogram_fills.push_back(make_tuple("data", tch_data, hdata));
+            histogram_fills.push_back(make_tuple("ttbar", tch_tt, htt));
+            histogram_fills.push_back(make_tuple("diboson", tch_vv, hvv));
+        }
+        else {
+            histogram_fills.push_back(make_tuple("Z+jets", tch_zjets, hz));
+        }
+        histogram_fills.push_back(make_tuple("photon", tch_photon, histoG));
+
+        for (auto histogram_fill : histogram_fills) {
+            string hist_name = get<0>(histogram_fill);
+            TChain *tchain = get<1>(histogram_fill);
+            TH2F *hist = get<2>(histogram_fill);
+            Long64_t nentries = tchain->GetEntries();
+            vector<float> var_val = {0, 0};
+            float weight;
+            tchain->SetBranchAddress(split_vars[0].c_str(), &var_val[0]);
+            tchain->SetBranchAddress(split_vars[1].c_str(), &var_val[1]);
+            tchain->SetBranchAddress(cuts::bkg_weight, &weight);
+            for (Long64_t i=0; i<nentries; i++) {
+                tchain->GetEntry(i);
+                hist->Fill(var_val[0], var_val[1], weight);
+            }
+            cout << padString(hist_name + " integral") << ": " << hist->Integral() << endl;
+        }
+        cout << endl;
+
+        //--- get ratio
+        if (options.is_data) {
+            histoZ = (TH2F*) hdata->Clone("histoZ");
+            histoZ->Add(htt, -1.0);
+            histoZ->Add(hvv, -1.0);
+        }
+        else histoZ = (TH2F*) hz->Clone("histoZ");
+
+        hratios[reweight_var] = (TH2F*) histoZ->Clone(("hratio_" + reweight_var).c_str());
+        hratios[reweight_var]->Divide(histoG);
+
+        //--- delete pointers
+        delete hdata, htt, hvv, hz, histoG;
+    }
+
+    return hratios;
+}
+
 void ReweightSample(ReweightingOptions options) {
     //---------------------------------------------
     // open file, get Tree and EventCountHist
@@ -122,9 +259,14 @@ void ReweightSample(ReweightingOptions options) {
     cout << endl;
 
     //---------------------------------------------
-    // 1-d reweighting histogram 
+    // 1D reweighting histogram 
     //---------------------------------------------
     map<string, TH1F*> reweight_hists = GetSimpleReweightingHistograms(options);
+
+    //---------------------------------------------
+    // 2D reweighting histogram 
+    //---------------------------------------------
+    //map<string, TH2F*> reweight_hists = GetSimple2DReweightingHistograms(options);
 
     //-----------------------------
     // loop over events and fill new branch
