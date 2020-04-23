@@ -380,7 +380,7 @@ void failTest(string msg) {
 string padString(string unpadded_string) {
     int pad_len = 23;
     string padded_string = unpadded_string + string(pad_len - unpadded_string.length(), ' ');
-    return padded_string;
+    return (padded_string + ": ");
 }
 
 //-------------------------
@@ -563,6 +563,9 @@ struct ReweightingOptions {
     bool is_data;
     string channel;
     vector<string> reweight_vars;
+
+    vector<string> processes;
+    TCut reweight_region;
 
     string reduction_folder;
 
