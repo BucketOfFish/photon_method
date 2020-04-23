@@ -2,39 +2,31 @@
 
 using namespace std;
 
-map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
-    gStyle->SetOptStat(0);
-
+map<string, TChain*> getTChains(ReweightingOptions options) {
     //--- open files and create TChains
-    string data_filename = options.reduction_folder + options.period + "_data_bkg.root";
-    string tt_filename = options.reduction_folder + options.mc_period + "_ttbar.root";
-    string vv_filename = options.reduction_folder + options.mc_period + "_diboson.root";
-    string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
+    map<string, string> filenames;
+    filenames["data"] = options.reduction_folder + options.period + "_data_bkg.root";
+    filenames["tt"] = options.reduction_folder + options.mc_period + "_ttbar.root";
+    filenames["vv"] = options.reduction_folder + options.mc_period + "_diboson.root";
+    filenames["zjets"] = options.reduction_folder + options.mc_period + "_Zjets.root";
+    filenames["photon"] = options.in_file_name;
 
-    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets, *tch_photon;
+    map<string, TChain*> tchains;
 
-    if (options.is_data) {
-        cout << "Opening data file      : " << data_filename << endl;
-        tch_data = new TChain(options.out_tree_name.c_str()); tch_data->Add(data_filename.c_str());
-        cout << "data entries           : " << tch_data->GetEntries() << endl;
-        cout << "Opening ttbar file     : " << tt_filename << endl;
-        tch_tt = new TChain(options.out_tree_name.c_str()); tch_tt->Add(tt_filename.c_str());
-        cout << "ttbar entries          : " << tch_tt->GetEntries() << endl;
-        cout << "Opening diboson file   : " << vv_filename << endl;
-        tch_vv = new TChain(options.out_tree_name.c_str()); tch_vv->Add(vv_filename.c_str());
-        cout << "diboson entries        : " << tch_vv->GetEntries() << endl;
+    if (options.is_data) vector<string> processes = {"data", "tt", "vv", "photon"};
+    else vector<string> processes = {"zjets", "photon"};
+    for (auto process : processes) {
+        cout << padString("Opening " + process + "file") << ": " << filenames[process] << endl;
+        tchains[process] = new TChain(options.out_tree_name.c_str());
+        tchains[process]->Add(filenames[process].c_str());
+        cout << padString(process + " entries") << ": " << tchains[process]->GetEntries() << endl;
     }
-    else {
-        cout << "Opening Z+jets file    : " << zjets_filename << endl;
-        tch_zjets = new TChain(options.out_tree_name.c_str()); tch_zjets->Add(zjets_filename.c_str());
-        cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
-    }
-    cout << "Opening photon file    : " << options.in_file_name << endl;
-    tch_photon = new TChain(options.out_tree_name.c_str()); tch_photon->Add(options.in_file_name.c_str());
-    cout << "photon entries         : " << tch_photon->GetEntries() << endl;
     cout << endl;
 
-    //--- modify event selections and weights
+    return tchains;
+}
+
+TCut getReweightRegion(ReweightingOptions options) {
     TCut reweight_region = cuts::reweight_region;
     if (TString(options.channel).EqualTo("ee")) reweight_region += cuts::ee;
     else if (TString(options.channel).EqualTo("mm")) reweight_region += cuts::mm;
@@ -46,9 +38,19 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
     cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
     cout << endl;
 
+    return reweight_region;
+}
+
+map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
+    //--- get TChains and modify event selections and weights
+    gStyle->SetOptStat(0);
+    map<string, TChain*> tchains = getTChains(options);
+    TCut reweight_region = getReweightRegion(options);
+
     //--- store reweighting histograms
     TH1F* histoZ;
     map<string, TH1F*> hratios;
+    vector<string> processes = {"data", "tt", "vv", "zjets", "photon"};
 
     for (auto reweight_var : options.reweight_vars) {
         //--- split variable by ":"
@@ -66,96 +68,56 @@ map<string, TH1F*> GetSimpleReweightingHistograms(ReweightingOptions options) {
         int n_reweighting_bins = bins::n_reweighting_bins.at(reweight_var);
         vector<double> reweighting_bins = bins::reweighting_bins.at(reweight_var);
 
-        TH1F* hdata  = new TH1F("hdata", "", n_reweighting_bins, &reweighting_bins[0]);
-        TH1F* htt    = new TH1F("htt", "", n_reweighting_bins, &reweighting_bins[0]);
-        TH1F* hvv    = new TH1F("hvv", "", n_reweighting_bins, &reweighting_bins[0]);
-        TH1F* hz     = new TH1F("hz", "", n_reweighting_bins, &reweighting_bins[0]);
-        TH1F* histoG = new TH1F("histoG", "", n_reweighting_bins, &reweighting_bins[0]);    
+        map<string, TH1F*> hists;
+        for (auto process : processes)
+            hists[process] = new TH1F(process.c_str(), "", n_reweighting_bins, &reweighting_bins[0]);
 
         //--- fill reweighting histograms
         if (options.is_data) {
-            tch_data->Draw((reweight_var+">>hdata").c_str(), reweight_region, "goff");
-            tch_tt->Draw((reweight_var+">>htt").c_str(), reweight_region*cuts::bkg_weight, "goff");
-            tch_vv->Draw((reweight_var+">>hvv").c_str(), reweight_region*cuts::bkg_weight, "goff");
-            cout << "data integral          : " << hdata->Integral(0, n_reweighting_bins+1) << endl;
-            cout << "ttbar integral         : " << htt->Integral(0, n_reweighting_bins+1) << endl;
-            cout << "diboson integral       : " << hvv->Integral(0, n_reweighting_bins+1) << endl;
+            tchains["data"]->Draw((reweight_var+">>data").c_str(), reweight_region, "goff");
+            tchains["tt"]->Draw((reweight_var+">>tt").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            tchains["vv"]->Draw((reweight_var+">>vv").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            cout << "data integral          : " << hists["data"]->Integral(0, n_reweighting_bins+1) << endl;
+            cout << "ttbar integral         : " << hists["tt"]->Integral(0, n_reweighting_bins+1) << endl;
+            cout << "diboson integral       : " << hists["vv"]->Integral(0, n_reweighting_bins+1) << endl;
         }
         else {
-            tch_zjets->Draw((reweight_var+">>hz").c_str(), reweight_region*cuts::bkg_weight, "goff");
-            cout << "Z+jets integral        : " << hz->Integral(0, n_reweighting_bins+1) << endl;
+            tchains["zjets"]->Draw((reweight_var+">>zjets").c_str(), reweight_region*cuts::bkg_weight, "goff");
+            cout << "Z+jets integral        : " << hists["zjets"]->Integral(0, n_reweighting_bins+1) << endl;
         }
 
-        tch_photon->Draw((reweight_var+">>histoG").c_str(), reweight_region*cuts::photon_weight, "goff");
-        cout << "photon integral      " << histoG->Integral(0, n_reweighting_bins+1) << endl;
+        tchains["photon"]->Draw((reweight_var+">>photon").c_str(), reweight_region*cuts::photon_weight, "goff");
+        cout << "photon integral      " << hists["photon"]->Integral(0, n_reweighting_bins+1) << endl;
         cout << endl;
 
         //--- get ratio
         if (options.is_data) {
-            histoZ = (TH1F*) hdata->Clone("histoZ");
-            histoZ->Add(htt, -1.0);
-            histoZ->Add(hvv, -1.0);
+            histoZ = (TH1F*) hists["data"]->Clone("zjets");
+            histoZ->Add(hists["tt"], -1.0);
+            histoZ->Add(hists["vv"], -1.0);
         }
-        else histoZ = (TH1F*) hz->Clone("histoZ");
+        else histoZ = (TH1F*) hists["zjets"]->Clone("zjets");
 
         hratios[reweight_var] = (TH1F*) histoZ->Clone(("hratio_" + reweight_var).c_str());
-        hratios[reweight_var]->Divide(histoG);
+        hratios[reweight_var]->Divide(hists["photon"]);
 
-        cout << "photon integral        : " << histoG->Integral(0, n_reweighting_bins+1) << endl;
+        cout << "photon integral        : " << hists["photon"]->Integral(0, n_reweighting_bins+1) << endl;
         cout << "bkg integral           : " << histoZ->Integral(0, n_reweighting_bins+1) << endl;
         cout << "scaling factor         : " << hratios[reweight_var]->Integral(0, n_reweighting_bins+1) << endl;
         cout << endl;
 
         //--- delete pointers
-        delete hdata, htt, hvv, hz, histoG;
+        for (auto &[key, hist] : hists) delete hist;
     }
 
     return hratios;
 }
 
 map<string, TH2F*> GetSimple2DReweightingHistograms(ReweightingOptions options) {
+    //--- get TChains and modify event selections and weights
     gStyle->SetOptStat(0);
-
-    //--- open files and create TChains
-    string data_filename = options.reduction_folder + options.period + "_data_bkg.root";
-    string tt_filename = options.reduction_folder + options.mc_period + "_ttbar.root";
-    string vv_filename = options.reduction_folder + options.mc_period + "_diboson.root";
-    string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
-
-    TChain *tch_data, *tch_tt, *tch_vv, *tch_zjets, *tch_photon;
-
-    if (options.is_data) {
-        cout << "Opening data file      : " << data_filename << endl;
-        tch_data = new TChain(options.out_tree_name.c_str()); tch_data->Add(data_filename.c_str());
-        cout << "data entries           : " << tch_data->GetEntries() << endl;
-        cout << "Opening ttbar file     : " << tt_filename << endl;
-        tch_tt = new TChain(options.out_tree_name.c_str()); tch_tt->Add(tt_filename.c_str());
-        cout << "ttbar entries          : " << tch_tt->GetEntries() << endl;
-        cout << "Opening diboson file   : " << vv_filename << endl;
-        tch_vv = new TChain(options.out_tree_name.c_str()); tch_vv->Add(vv_filename.c_str());
-        cout << "diboson entries        : " << tch_vv->GetEntries() << endl;
-    }
-    else {
-        cout << "Opening Z+jets file    : " << zjets_filename << endl;
-        tch_zjets = new TChain(options.out_tree_name.c_str()); tch_zjets->Add(zjets_filename.c_str());
-        cout << "Z+jets entries         : " << tch_zjets->GetEntries() << endl;
-    }
-    cout << "Opening photon file    : " << options.in_file_name << endl;
-    tch_photon = new TChain(options.out_tree_name.c_str()); tch_photon->Add(options.in_file_name.c_str());
-    cout << "photon entries         : " << tch_photon->GetEntries() << endl;
-    cout << endl;
-
-    //--- modify event selections and weights
-    TCut reweight_region = cuts::reweight_region;
-    if (TString(options.channel).EqualTo("ee")) reweight_region += cuts::ee;
-    else if (TString(options.channel).EqualTo("mm")) reweight_region += cuts::mm;
-    else failTest("Unrecognized channel " + options.channel);
-
-    cout << "bkg selection          : " << reweight_region.GetTitle() << endl;
-    cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "photon selection       : " << reweight_region.GetTitle() << endl;
-    cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
-    cout << endl;
+    map<string, TChain*> tchains = getTChains(options);
+    TCut reweight_region = getReweightRegion(options);
 
     //--- store reweighting histograms
     TH2F* histoZ;
@@ -194,14 +156,14 @@ map<string, TH2F*> GetSimple2DReweightingHistograms(ReweightingOptions options) 
         //--- fill reweighting histograms
         vector<tuple<string, TChain*, TH2F*>> histogram_fills;
         if (options.is_data) {
-            histogram_fills.push_back(make_tuple("data", tch_data, hdata));
-            histogram_fills.push_back(make_tuple("ttbar", tch_tt, htt));
-            histogram_fills.push_back(make_tuple("diboson", tch_vv, hvv));
+            histogram_fills.push_back(make_tuple("data", tchains["data"], hdata));
+            histogram_fills.push_back(make_tuple("ttbar", tchains["tt"], htt));
+            histogram_fills.push_back(make_tuple("diboson", tchains["vv"], hvv));
         }
         else {
-            histogram_fills.push_back(make_tuple("Z+jets", tch_zjets, hz));
+            histogram_fills.push_back(make_tuple("Z+jets", tchains["zjets"], hz));
         }
-        histogram_fills.push_back(make_tuple("photon", tch_photon, histoG));
+        histogram_fills.push_back(make_tuple("photon", tchains["photon"], histoG));
 
         for (auto histogram_fill : histogram_fills) {
             string hist_name = get<0>(histogram_fill);
