@@ -412,7 +412,6 @@ void SmearingStep(GlobalOptions settings, bool unit_testing) {
 void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     ReweightingOptions options;
 
-    options.unit_testing = unit_testing;
     options.period = settings.period;
     options.data_period = DataPeriod(options.period);
     options.mc_period = getMCPeriod(options.period);
@@ -420,13 +419,18 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     options.is_data = settings.is_data;
     options.reweighting_folder = settings.reweighting_folder;
     options.reduction_folder = settings.reduction_folder;
-    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll:Ht30"};
+    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll+Ht30"};
 
     options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
 
-    //--- reweight photons
     options.unit_testing = unit_testing;
+    options.unit_test_folder = settings.unit_test_folder;
+
+    if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
+    else options.processes = {"zjets", "photon"};
+
+    //--- reweight photons
     ReweightPhotons(options);
 }
 
@@ -546,14 +550,15 @@ void Main() {
     bool unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = false;
-    bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_reweighting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (unit_testing) {
-        ReductionStep(settings, unit_testing);
-        SmearingStep(settings, unit_testing); 
-        PlottingStep(settings, unit_testing); 
+        if (do_reduction) ReductionStep(settings, unit_testing);
+        if (do_smearing) SmearingStep(settings, unit_testing); 
+        if (do_reweighting) ReweightingStep(settings, unit_testing); 
+        if (do_plotting) PlottingStep(settings, unit_testing); 
         return;
     }
 
