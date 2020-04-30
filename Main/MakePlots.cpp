@@ -146,7 +146,7 @@ dataFrameMap getRDataFrames(PlottingOptions options) {
     dataFrameMap RDataFrames;
     for (auto process : options.processes) {
         RDataFrames[process] = new ROOT::RDataFrame(*tchains[process]);
-        cout << padString(process + " entries") << ": " << *(RDataFrames[process]->Count()) << endl;
+        cout << padString(process + " entries") << *(RDataFrames[process]->Count()) << endl;
     }
     cout << endl;
 
@@ -159,7 +159,7 @@ weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, PlottingOptions 
         plot_weights[process] = cuts::bkg_weight;
     plot_weights["data_bkg"] = "1";
     plot_weights["photon_raw"] = cuts::photon_weight;
-    plot_weights["photon_reweighted"] = cuts::photon_weight_rw;
+    plot_weights["photon_reweighted"] = cuts::photon_weight * options.reweight_branch.c_str();
 
     weightedDataFrameMap weighted_dataframes;
     for (auto process : options.processes) {
@@ -216,9 +216,9 @@ tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, P
     for (string region : options.regions) {
         for (string channel : options.channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
-            cout << "\t" << padString("region name") << ": " << region_name << endl;
-            cout << "\t" << padString("plot region") << ": " << plot_region << endl;
-            cout << "\t" << padString("normalization reg.") << ": " << plot_CR << endl;
+            cout << "\t" << padString("region name") << region_name << endl;
+            cout << "\t" << padString("plot region") << plot_region << endl;
+            cout << "\t" << padString("normalization reg.") << plot_CR << endl;
             cout << endl;
 
             for (auto plot_feature : options.plot_features) {
@@ -267,7 +267,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
     for (string region : options.regions) {
         for (string channel : options.channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
-            cout << "\t" << padString("region name") << ": " << region_name << endl;
+            cout << "\t" << padString("region name") << region_name << endl;
 
             auto prh = plot_region_histograms[region_name];
             auto crh = control_region_histograms[region_name];
@@ -284,18 +284,18 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
             float mc_bkg_PR_integral = 0.0;
             for (auto process : options.processes) {
                 if (process == "photon") {
-                    cout << "\t" << padString("photon raw integral") << ": ";
+                    cout << "\t" << padString("photon raw integral");
                     CR_integrals["photon_raw"] = crh0["photon_raw"]->Integral(0, nbins+1);
                     PR_integrals["photon_raw"] = prh0["photon_raw"]->Integral(0, nbins+1);
                     cout << PR_integrals["photon_raw"] << endl;
 
-                    cout << "\t" << padString("photon reweight int.") << ": ";
+                    cout << "\t" << padString("photon reweight int.");
                     CR_integrals["photon_reweighted"] = crh0["photon_reweighted"]->Integral(0, nbins+1);
                     PR_integrals["photon_reweighted"] = prh0["photon_reweighted"]->Integral(0, nbins+1);
                     cout << PR_integrals["photon_reweighted"] << endl;
                 }
                 else {
-                    cout << "\t" << padString(process + " integral") << ": ";
+                    cout << "\t" << padString(process + " integral");
                     CR_integrals[process] = crh0[process]->Integral(0, nbins+1);
                     PR_integrals[process] = prh0[process]->Integral(0, nbins+1);
                     cout << PR_integrals[process] << endl;
@@ -780,8 +780,8 @@ void run_quickDraw(PlottingOptions options) {
     cout << BOLD(PBLU("Making plots")) << endl;
     cout << endl;
 
-    cout << padString("period") << ": " << options.data_period << endl;
-    cout << padString("is data?") << ": " << options.is_data << endl;
+    cout << padString("period") << options.data_period << endl;
+    cout << padString("is data?") << options.is_data << endl;
     cout << endl;
 
     //--- get input data in the form of RDataFrames

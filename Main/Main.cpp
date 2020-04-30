@@ -451,7 +451,8 @@ void PlottingStep(GlobalOptions settings, bool unit_testing) {
     options.reduction_folder = settings.reduction_folder;
     options.reweighting_folder = settings.reweighting_folder;
     options.plots_folder = settings.plots_folder;
-    options.reweight_var = "Ptll";
+
+    options.reweight_branch = "reweight_Ptll+Ht30";
 
     options.unit_test_folder = settings.unit_test_folder;
 
@@ -551,8 +552,8 @@ void Main() {
     bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
-    bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_reweighting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (unit_testing) {

@@ -600,7 +600,8 @@ struct PlottingOptions {
     string data_period;
     string mc_period;
     bool is_data;
-    string reweight_var;
+
+    string reweight_branch;
 
     vector<string> regions;
     vector<string> plot_features;
