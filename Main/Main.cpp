@@ -418,6 +418,7 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     options.channel = settings.channel;
     options.is_data = settings.is_data;
     options.reweighting_folder = settings.reweighting_folder;
+    options.smearing_folder = settings.smearing_folder;
     options.reduction_folder = settings.reduction_folder;
     options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll+Ht30"};
 
@@ -547,7 +548,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = true;
+    bool unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = true;

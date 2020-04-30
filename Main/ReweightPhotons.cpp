@@ -63,7 +63,7 @@ string combineVars(vector<string> split_vars) {
 // PREP FOR READING
 //------------------
 
-TTree* cloneTree(ReweightingOptions options) {
+tuple<TFile*, TTree*> cloneTree(ReweightingOptions options) {
     //--- open files and make TChains
     TH1::SetDefaultSumw2();
     gStyle->SetOptStat(0);
@@ -77,16 +77,16 @@ TTree* cloneTree(ReweightingOptions options) {
     cout << padString("Reading tree") << options.out_tree_name << endl;
     cout << padString("Saving reweighted file") << options.out_file_name << endl;
 
-    TFile* input_file = new TFile(options.in_file_name.c_str(),"update");          
+    TFile* input_file = new TFile(options.in_file_name.c_str(), "read");          
     TTree* input_tree = (TTree*)input_file->Get(options.in_tree_name.c_str());
 
-    TFile* output_file = new TFile(options.out_file_name.c_str(),"recreate");          
+    TFile* output_file = new TFile(options.out_file_name.c_str(), "recreate");          
     TTree* output_tree = input_tree->CloneTree();
 
     cout << padString("Events in ntuple") << output_tree->GetEntries() << endl;
     cout << endl;
 
-    return output_tree;
+    return make_tuple(output_file, output_tree);
 }
 
 map<string, TChain*> getTChains(ReweightingOptions options) {
@@ -289,7 +289,7 @@ void RunUnitTests(ReweightingOptions options) {
     options.reweight_vars = {"Ptll", "nJet30", "Ptll+Ht30"};
 
     //--- tree cloning test
-    TTree* output_tree = cloneTree(options);
+    auto [output_file, output_tree] = cloneTree(options);
     map<string, vector<float>> check_branch_vals;
     check_branch_vals["Ptll"] = {243.606, 138.736, 40.529, 70.656, 257.859, 82.166, 107.491, 476.676, 55.058, 134.012};
     check_branch_vals["Ht30"] = {224.067, 136.098, 50.745, 84.949, 203.888, 84.017, 123.265, 914.663, 39.261, 194.367};
@@ -422,6 +422,7 @@ void RunUnitTests(ReweightingOptions options) {
 
     passTest("All reweighting tests passed");
     cout << endl;
+    output_file->Close();
     remove(options.out_file_name.c_str());
 }
 
@@ -430,7 +431,7 @@ void RunUnitTests(ReweightingOptions options) {
 //----------------------
 
 void ReweightSample(ReweightingOptions options) {
-    TTree* output_tree = cloneTree(options);
+    auto [output_file, output_tree] = cloneTree(options);
     map<string, TChain*> tchains = getTChains(options);
 
     options.reweight_region = getReweightRegion(options);
@@ -442,6 +443,7 @@ void ReweightSample(ReweightingOptions options) {
     }
 
     fillReweightingBranches(options, output_tree, reweight_hists);
+    output_file->Close();
 
     cout << PBLU("Finished reweighting") << endl;
 }
@@ -451,12 +453,12 @@ void ReweightPhotons(ReweightingOptions options) {
         RunUnitTests(options);
     else {
         if (options.is_data) {
-            options.in_file_name = options.reweighting_folder + options.data_period + "_data_photon_" + options.channel + ".root";
-            options.out_file_name = options.in_file_name;
+            options.in_file_name = options.smearing_folder + options.data_period + "_data_photon_" + options.channel + ".root";
+            options.out_file_name = options.reweighting_folder + options.data_period + "_data_photon_" + options.channel + ".root";
             ReweightSample(options);
 
-            options.in_file_name = options.reweighting_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
-            options.out_file_name = options.in_file_name;
+            options.in_file_name = options.smearing_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
+            options.out_file_name = options.reweighting_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
             ReweightSample(options);
         }
         else {

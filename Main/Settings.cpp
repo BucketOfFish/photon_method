@@ -560,7 +560,6 @@ struct SmearingOptions {
 
 struct ReweightingOptions {
     string in_file_name;
-    string reweighting_folder;
     string in_tree_name;
     string out_file_name;
     string out_tree_name;
@@ -576,6 +575,8 @@ struct ReweightingOptions {
     TCut reweight_region;
 
     string reduction_folder;
+    string smearing_folder;
+    string reweighting_folder;
 
     vector<string> branches_to_copy;
     BranchAddOptions branches_to_add;
