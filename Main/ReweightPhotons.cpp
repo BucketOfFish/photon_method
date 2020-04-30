@@ -38,12 +38,14 @@ TCut getReweightRegion(ReweightingOptions options) {
 }
 
 vector<string> splitVars(string reweight_var) {
-    /// Split variable by "+".
-    stringstream unsplit_vars(reweight_var);
-    string segment;
     vector<string> split_vars;
-    while(std::getline(unsplit_vars, segment, '+')) {
-       split_vars.push_back(segment);
+    string delimiter = "__";
+    string segment;
+    size_t pos = 0;
+    while ((pos = reweight_var.find(delimiter)) != string::npos) {
+        segment = reweight_var.substr(0, pos);
+        split_vars.push_back(segment);
+        reweight_var.erase(0, pos + delimiter.length());
     }
 
     return split_vars;
@@ -289,7 +291,7 @@ void RunUnitTests(ReweightingOptions options) {
     options.in_file_name = options.unit_test_folder + "SmearedNtuples/" + options.data_period + "_data_photon_" + options.channel + ".root";
     options.out_file_name = "test.root";
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
-    options.reweight_vars = {"Ptll", "nJet30", "Ptll+Ht30"};
+    options.reweight_vars = {"Ptll", "nJet30", "Ptll__Ht30"};
 
     //--- tree cloning test
     auto [output_file, output_tree] = cloneTree(options);
@@ -336,8 +338,8 @@ void RunUnitTests(ReweightingOptions options) {
         abs(hists["Ptll"]["vv"].h1d->GetBinContent(8) - 248.56230) < 0.001 &&
         abs(hists["Ptll"]["vv"].h1d->GetBinContent(23) - 3.4948041) < 0.001 &&
         abs(hists["nJet30"]["data"].h1d->GetBinContent(3) - 84967.000) < 1 &&
-        abs(hists["Ptll+Ht30"]["tt"].h2d->GetBinContent(1, 8) - 32.0249) < 0.001 &&
-        abs(hists["Ptll+Ht30"]["photon"].h2d->GetBinContent(5, 9) - 205209.000) < 1)
+        abs(hists["Ptll__Ht30"]["tt"].h2d->GetBinContent(1, 8) - 32.0249) < 0.001 &&
+        abs(hists["Ptll__Ht30"]["photon"].h2d->GetBinContent(5, 9) - 205209.000) < 1)
         passTest("Passed feature histogram test");
     else failTest("Failed feature histogram test");
     cout << endl;
@@ -350,8 +352,8 @@ void RunUnitTests(ReweightingOptions options) {
     if (abs(reweight_hists["Ptll"].h1d->GetBinContent(2) - 0.000830079) < 0.00001 &&
         abs(reweight_hists["Ptll"].h1d->GetBinContent(5) - 0.0023039) < 0.00001 &&
         abs(reweight_hists["nJet30"].h1d->GetBinContent(5) - 0.00282705) < 0.00001 &&
-        abs(reweight_hists["Ptll+Ht30"].h2d->GetBinContent(2, 8) - 0.00088203) < 0.00001 &&
-        abs(reweight_hists["Ptll+Ht30"].h2d->GetBinContent(5, 9) - 0.00260129) < 0.00001)
+        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(2, 8) - 0.00088203) < 0.00001 &&
+        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(5, 9) - 0.00260129) < 0.00001)
         passTest("Passed histogram ratio test");
     else failTest("Failed histogram ratio test");
     cout << endl;
@@ -363,7 +365,7 @@ void RunUnitTests(ReweightingOptions options) {
     rw_weight_checks["Ptll"] = {0.0373285, 0.0152829, 0.0012275, 0.0052744, 0.0373285, 0.0070094, 0.0106032, 0.0405640,
                                     0.0031431, 0.0152829};
     rw_weight_checks["nJet30"] = {0, 0, 0, 0, 0, 0, 0, 0.00315326, 0, 0};
-    rw_weight_checks["Ptll+Ht30"] = {0.056162, 0.0196737, 0, 0.0077757, 0.0518713, 0.0114504, 0.0123719, 0.0355054, 0, 0.0139699};
+    rw_weight_checks["Ptll__Ht30"] = {0.056162, 0.0196737, 0, 0.0077757, 0.0518713, 0.0114504, 0.0123719, 0.0355054, 0, 0.0139699};
 
     map<string, Float_t> rw_weights;
     for (auto unsplit_vars : options.reweight_vars) {

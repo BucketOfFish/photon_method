@@ -420,7 +420,7 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
     options.reweighting_folder = settings.reweighting_folder;
     options.smearing_folder = settings.smearing_folder;
     options.reduction_folder = settings.reduction_folder;
-    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll+Ht30"};
+    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30"};
 
     options.in_tree_name = settings.save_tree_name;
     options.out_tree_name = settings.save_tree_name;
