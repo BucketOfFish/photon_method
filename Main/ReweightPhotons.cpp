@@ -192,6 +192,7 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
         cout << "\t" << padString("photon integral") << hists["photon"].h1d->Integral(0, hists["photon"].h1d->GetNbinsX()+1) << endl;
         cout << "\t" << padString("bkg integral") << hratio.h1d->Integral(0, hratio.h1d->GetNbinsX()+1) << endl;
         hratio.h1d->Divide(hists["photon"].h1d);
+        hratio.h1d->Write(("ratio_" + reweight_var).c_str());
     }
     else if (hratio.dim == 2) {
         cout << "\t" << padString("photon integral") << hists["photon"].h2d->Integral(0, hists["photon"].h2d->GetNbinsX()+1,
@@ -199,8 +200,10 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
         cout << "\t" << padString("bkg integral") << hratio.h2d->Integral(0, hratio.h2d->GetNbinsX()+1,
                                                             0, hratio.h2d->GetNbinsY()+1) << endl;
         hratio.h2d->Divide(hists["photon"].h2d);
+        hratio.h2d->Write(("ratio_" + reweight_var).c_str());
     }
     cout << endl;
+
 
     return hratio;
 }
@@ -249,10 +252,10 @@ void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map
                 int feature_bin = 0;
                 while (true) {
                     if (bins::reweighting_type.at(reweight_var) == INT) {
-                        if (bins::reweighting_bins.at(reweight_var)[feature_bin+1] >= rw_feature_vals[reweight_var].int_val) break;
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] > rw_feature_vals[reweight_var].int_val) break;
                     }
                     else if (bins::reweighting_type.at(reweight_var) == FLOAT) {
-                        if (bins::reweighting_bins.at(reweight_var)[feature_bin+1] >= rw_feature_vals[reweight_var].float_val) break;
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] > rw_feature_vals[reweight_var].float_val) break;
                     }
                     feature_bin++;
                     if (feature_bin >= bins::n_reweighting_bins.at(reweight_var)) break;
@@ -267,6 +270,9 @@ void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map
             //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
             //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
             rw_branches[unsplit_var]->Fill();
+
+            cout << unsplit_var << ", " << rw_feature_vals[unsplit_var].int_val << ", " << rw_feature_vals[unsplit_var].float_val <<
+                ", " << rw_weight_vals[unsplit_var] << endl;
         }
     }
     cout << endl << endl;
