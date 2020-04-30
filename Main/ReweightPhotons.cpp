@@ -202,11 +202,6 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
     }
     cout << endl;
 
-    //--- delete pointers and return
-    for (auto &[key, hist] : hists) {
-        delete hist.h1d;
-        delete hist.h2d;
-    }
     return hratio;
 }
 
@@ -215,57 +210,66 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
 //-------------------------
 
 void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map<string, ReweightHist> reweight_hists) {
-    map<string, BranchType> var_vals;
-    map<string, Float_t> reweight_vals;
-    map<string, TBranch*> reweight_branches;
+    map<string, BranchType> rw_feature_vals;
+    map<string, Float_t> rw_weight_vals;
+    map<string, TBranch*> rw_branches;
 
-    for (auto reweight_var : options.reweight_vars) {
-        cout << reweight_var << endl;
-        if (bins::reweighting_type.at(reweight_var) == INT) {
-            var_vals[reweight_var].type = INT;
-            var_vals[reweight_var].int_val = 0;
-            SetInputBranch(output_tree, reweight_var, &var_vals[reweight_var].int_val);
+    //--- set variables to read features from input branches, and write weights to new branches
+    for (auto unsplit_var : options.reweight_vars) {
+        vector<string> split_vars = splitVars(unsplit_var);
+        for (auto reweight_var : split_vars) {
+            BranchType newBranch;
+            rw_feature_vals[reweight_var] = newBranch;
+            if (bins::reweighting_type.at(reweight_var) == INT) {
+                rw_feature_vals[reweight_var].type = INT;
+                rw_feature_vals[reweight_var].int_val = 0;
+                SetInputBranch(output_tree, reweight_var, &rw_feature_vals[reweight_var].int_val);
+            }
+            else if (bins::reweighting_type.at(reweight_var) == FLOAT) {
+                rw_feature_vals[reweight_var].type = FLOAT;
+                rw_feature_vals[reweight_var].float_val = 0.0;
+                SetInputBranch(output_tree, reweight_var, &rw_feature_vals[reweight_var].float_val);
+            }
         }
-        else if (bins::reweighting_type.at(reweight_var) == FLOAT) {
-            var_vals[reweight_var].type = FLOAT;
-            var_vals[reweight_var].float_val = 0.0;
-            SetInputBranch(output_tree, reweight_var, &var_vals[reweight_var].float_val);
-        }
-        reweight_vals[reweight_var] = 0.0;
-        reweight_branches[reweight_var] = output_tree->Branch(("reweight_"+reweight_var).c_str(),
-            &reweight_vals[reweight_var], ("reweight_"+reweight_var+"/F").c_str());
-        cout << reweight_var << endl;
+        rw_weight_vals[unsplit_var] = 0.0;
+        string branch_name = "reweight_" + unsplit_var;
+        rw_branches[unsplit_var] = output_tree->Branch(branch_name.c_str(), &rw_weight_vals[unsplit_var], (branch_name + "/F").c_str());
     }
 
+    //--- fill new branches
     Long64_t nentries = output_tree->GetEntries();
     for (Long64_t i=0; i<nentries; i++) {
         if (fmod(i,1e5)==0) cout << i << " events processed.\r" << flush;
         output_tree->GetEntry(i);
 
-        //float gamma_var_truncated = var_vals;
-        //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
-        //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
-        for (auto reweight_var : options.reweight_vars) {
-            if (reweight_hists[reweight_var].dim == 1) {
-                int var_bin;
-                if (bins::reweighting_type.at(reweight_var) == INT)
-                    var_bin = reweight_hists[reweight_var].h1d->FindBin(var_vals[reweight_var].int_val);
-                else if (bins::reweighting_type.at(reweight_var) == FLOAT)
-                    var_bin = reweight_hists[reweight_var].h1d->FindBin(var_vals[reweight_var].float_val);
-                reweight_vals[reweight_var] = reweight_hists[reweight_var].h1d->GetBinContent(var_bin);
+        for (auto unsplit_var : options.reweight_vars) {
+            vector<string> split_vars = splitVars(unsplit_var);
+            vector<int> feature_bins;
+            for (auto reweight_var : split_vars) {
+                int feature_bin = 0;
+                while (true) {
+                    if (bins::reweighting_type.at(reweight_var) == INT) {
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin+1] >= rw_feature_vals[reweight_var].int_val) break;
+                    }
+                    else if (bins::reweighting_type.at(reweight_var) == FLOAT) {
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin+1] >= rw_feature_vals[reweight_var].float_val) break;
+                    }
+                    feature_bin++;
+                    if (feature_bin >= bins::n_reweighting_bins.at(reweight_var)) break;
+                }
+                feature_bins.push_back(feature_bin);
             }
-            else if (reweight_hists[reweight_var].dim == 2) {
-                int var_bin;
-                if (bins::reweighting_type.at(reweight_var) == INT)
-                    var_bin = reweight_hists[reweight_var].h2d->FindBin(var_vals[reweight_var].int_val);
-                else if (bins::reweighting_type.at(reweight_var) == FLOAT)
-                    var_bin = reweight_hists[reweight_var].h2d->FindBin(var_vals[reweight_var].float_val);
-                reweight_vals[reweight_var] = reweight_hists[reweight_var].h2d->GetBinContent(var_bin);
-            }
-            reweight_branches[reweight_var]->Fill();
+            if (split_vars.size() == 1)
+                rw_weight_vals[unsplit_var] = reweight_hists[unsplit_var].h1d->GetBinContent(feature_bins[0]);
+            else if (split_vars.size() == 2)
+                rw_weight_vals[unsplit_var] = reweight_hists[unsplit_var].h2d->GetBinContent(feature_bins[0], feature_bins[1]);
+            //float gamma_var_truncated = rw_branches[unsplit_var];
+            //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
+            //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
+            rw_branches[unsplit_var]->Fill();
         }
     }
-    cout << endl;
+    cout << endl << endl;
 
     output_tree->Write();
 }
@@ -352,48 +356,72 @@ void RunUnitTests(ReweightingOptions options) {
     //--- branch filling test
     fillReweightingBranches(options, output_tree, reweight_hists);
 
-    map<string, BranchType> reweight_vals;
-    map<string, TBranch*> reweight_branches;
-    for (auto reweight_var : options.reweight_vars) {
-        if (bins::reweighting_type.at(reweight_var) == INT) {
-            reweight_vals[reweight_var].int_val = 0;
-        }
-        if (bins::reweighting_type.at(reweight_var) == FLOAT) {
-            reweight_vals[reweight_var].float_val = 0.0;
-        }
-        SetInputBranch(output_tree, "reweight_"+reweight_var, &reweight_vals[reweight_var]);
+    map<string, vector<float>> rw_weight_checks;
+    rw_weight_checks["Ptll"] = {0.0373285, 0.0152829, 0.0012275, 0.0052744, 0.0373285, 0.0070094, 0.0106032, 0.0405640,
+                                    0.0031431, 0.0152829};
+    rw_weight_checks["nJet30"] = {0, 0, 0, 0, 0, 0, 0, 0.00315326, 0, 0};
+    rw_weight_checks["Ptll+Ht30"] = {0.056162, 0.0196737, 0, 0.0077757, 0.0518713, 0.0114504, 0.0123719, 0.0355054, 0, 0.0139699};
+
+    map<string, Float_t> rw_weights;
+    for (auto unsplit_vars : options.reweight_vars) {
+        rw_weights[unsplit_vars] = 0.0;
+        SetInputBranch(output_tree, "reweight_"+unsplit_vars, &rw_weights[unsplit_vars]);
     }
     
-    map<string, vector<float>> reweight_val_checks;
-    reweight_val_checks["nBJet20_MV2c10_FixedCutBEff_77"] = {0.0035225, 0.0035225, 0.0035225, 0.0035225,
-        0.0035225, 0.0035225, 0.0035225, 0.0035225, 0.0035225, 0.0035225};
-    reweight_val_checks["nJet30"] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    reweight_val_checks["Ht30"] = {0.0048719, 0.0029835, 0, 0.0026327, 0.0042127, 0.0026327, 0.0029835,
-        0.0177291, 0, 0.0035925};
-    reweight_val_checks["Ptll"] = {0.0401233, 0.0201950, 0.0018142, 0.0070094, 0.0401233, 0.0106032, 0.0152829,
-        0.0483039, 0.0039253, 0.0201950};
-    reweight_val_checks["Ptll+Ht30"] = {0.0401233, 0.0201950, 0.0018142, 0.0070094, 0.0401233, 0.0106032,
-        0.0152829, 0.0483039, 0.0039253, 0.0201950};
-
     all_match = true;
     for (Long64_t i=0; i<10; i++) {
         output_tree->GetEntry(i);
 
-        for (auto reweight_var : options.reweight_vars) {
-            if (reweight_vals[reweight_var].type == INT) {
-                if (reweight_vals[reweight_var].int_val != reweight_val_checks[reweight_var][i]) all_match = false;
-            }
-            else if (reweight_vals[reweight_var].type == FLOAT) {
-                if (reweight_vals[reweight_var].int_val != reweight_val_checks[reweight_var][i]) all_match = false;
-            }
-            //cout << reweight_var << ": " << reweight_vals[reweight_var] << " " << 
-            //  reweight_val_checks[reweight_var][i] << endl;
+        for (auto unsplit_vars : options.reweight_vars) {
+            if (abs(rw_weights[unsplit_vars] - rw_weight_checks[unsplit_vars][i]) > 0.01) all_match = false;
+            //cout << unsplit_vars << ": " << rw_weights[unsplit_vars] << " " << rw_weight_checks[unsplit_vars][i] << endl;
         }
     }
     if (all_match) passTest("Passed branch filling test");
     else failTest("Failed branch filling test");
+    cout << endl;
+
+    ////--- save diagnostic histograms
+    //for (auto unsplit_vars : options.reweight_vars) {
+        //TCanvas *can = new TCanvas("can","can",600,600);
+        //can->cd();
+        //TPad* namepad = new TPad("namepad","namepad",0.0,0.0,1.0,1.0);
+        //namepad->Draw();
+        //namepad->cd();
+
+        //THStack *hs_bkg = new THStack("hs_bkg","");
+        //if (hists[unsplit_vars]["photon"].dim == 1) {
+            //hs_bkg->Add(hists[unsplit_vars]["data"].h1d);
+            ////hists[unsplit_vars]["tt"].h1d->Scale(-1);
+            ////hs_bkg->Add(hists[unsplit_vars]["tt"].h1d);
+            ////hists[unsplit_vars]["vv"].h1d->Scale(-1);
+            ////hs_bkg->Add(hists[unsplit_vars]["vv"].h1d);
+        //}
+        //else if (hists[unsplit_vars]["photon"].dim == 2) {
+            //hs_bkg->Add(hists[unsplit_vars]["data"].h2d);
+            ////hists[unsplit_vars]["tt"].h2d->Scale(-1);
+            ////hs_bkg->Add(hists[unsplit_vars]["tt"].h2d);
+            ////hists[unsplit_vars]["vv"].h2d->Scale(-1);
+            ////hs_bkg->Add(hists[unsplit_vars]["vv"].h2d);
+        //}
+        //hs_bkg->Draw("hist");
+
+        //string name = unsplit_vars + "_photon";
+        //output_tree->Draw((unsplit_vars + ">>" + name).c_str(), options.reweight_region * cuts::photon_weight *
+            //("reweight_"+unsplit_vars).c_str(), "goff");
+        //if (hists[unsplit_vars]["photon"].dim == 1)
+            //hists[unsplit_vars]["photon"].h1d->Draw("samehist");
+        //else if (hists[unsplit_vars]["photon"].dim == 2)
+            //hists[unsplit_vars]["photon"].h2d->Draw("samehist");
+
+        //can->Write((unsplit_vars + "_compare.eps").c_str());
+        //delete can, namepad, hs_bkg;
+    //}
+    //passTest("Saved diagnostic histograms");
+    //cout << endl;
 
     passTest("All reweighting tests passed");
+    cout << endl;
     remove(options.out_file_name.c_str());
 }
 
