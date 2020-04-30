@@ -270,9 +270,6 @@ void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map
             //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
             //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
             rw_branches[unsplit_var]->Fill();
-
-            cout << unsplit_var << ", " << rw_feature_vals[unsplit_var].int_val << ", " << rw_feature_vals[unsplit_var].float_val <<
-                ", " << rw_weight_vals[unsplit_var] << endl;
         }
     }
     cout << endl << endl;
