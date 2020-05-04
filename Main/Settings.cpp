@@ -146,7 +146,7 @@ namespace cuts {
         {"VRMedZ6", strong_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
         {"VRHighZ6", strong_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
 
-        {"VRDPhi", strong_VRDPhi_preselection};
+        {"VRDPhi", strong_VRDPhi_preselection},
         {"VRDPhiLow2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
         {"VRDPhiMed2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
         {"VRDPhiHigh2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},
@@ -486,16 +486,19 @@ public:
 // OPTIONS
 //---------
 
-struct GlobalOptions {
+struct Options {
     bool is_photon; // vs. bkg
     bool is_data; // vs. MC
-    string period;
     string sampleID;
 
     string photon_mc_path;
     string photon_data_path;
     string bkg_mc_path;
     string bkg_data_path;
+
+    string period;
+    string data_period;
+    string mc_period;
 
     string my_samples_folder;
     string sampling_method;
@@ -504,12 +507,18 @@ struct GlobalOptions {
     string reweighting_folder;
     string plots_folder;
 
+    bool unit_testing;
     string unit_test_folder;
 
     string channel;
     string type;
 
     string save_tree_name;
+
+    //--- smearing options
+    bool turn_off_shifting_and_smearing;
+    bool diagnostic_plots;
+    bool run_vgamma;
 };
 
 struct ReductionOptions {
@@ -528,31 +537,6 @@ struct ReductionOptions {
     string final_cut;
 
     bool unit_testing;
-};
-
-struct SmearingOptions {
-    string in_file_path;
-    string in_tree_name;
-
-    string out_file_path;
-    string out_tree_name;
-
-    string unit_test_folder;
-
-    string period;
-    string data_period;
-    string mc_period;
-    bool is_data;
-    string channel;
-
-    vector<string> branches_to_copy;
-    BranchAddOptions branches_to_add;
-
-    bool unit_testing;
-    bool turn_off_shifting_and_smearing;
-    bool diagnostic_plots;
-
-    bool run_vgamma;
 };
 
 struct ReweightingOptions {

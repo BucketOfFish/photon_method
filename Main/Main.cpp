@@ -158,7 +158,7 @@ void initFillingFunctions() {
         gInterpreter->Declare(val.c_str());
 }
 
-void ReductionStep(GlobalOptions settings, bool unit_testing) {
+void ReductionStep(Options settings, bool unit_testing) {
     ReductionOptions options;
 
     string in_folder;
@@ -312,104 +312,16 @@ void initSmearingFunctions() {
             "vector<int> lepCharges{charge, -charge};"
             "return lepCharges;"
         "}";
-    //smearing_functions["getZCMLepTheta"] =
-        //"vector<float> getZCMLepTheta(rvecf lep_pT, rvecf lep_eta, rvecf lep_phi, float Z_pt, float Z_eta, float Z_phi) {"
-            //"TLorentzVector l0_cm_4vec, l1_cm_4vec;"
-            //"l0_cm_4vec.SetPtEtaPhiM(lep_pT[0],lep_eta[0],lep_phi[0],0);"
-            //"l1_cm_4vec.SetPtEtaPhiM(lep_pT[1],lep_eta[1],lep_phi[1],0);"
-            //""
-            //"TLorentzVector z_4vec;"
-            //"float Z_m = 91.1876;"
-            //"z_4vec.SetPtEtaPhiM(Z_pt,Z_eta,Z_phi,Z_m);"
-            //"TVector3 boost_vec(0, 0, -z_4vec.BoostVector().Mag());"
-            //""
-            //"l0_cm_4vec.RotateZ(-z_4vec.Phi());"
-            //"l0_cm_4vec.RotateY(-z_4vec.Theta());"
-            //"l0_cm_4vec.Boost(boost_vec);"
-            //"l1_cm_4vec.RotateZ(-z_4vec.Phi());"
-            //"l1_cm_4vec.RotateY(-z_4vec.Theta());"
-            //"l1_cm_4vec.Boost(boost_vec);"
-            //""
-            //"vector<float> Z_cm_lep_theta;"
-            //"Z_cm_lep_theta.push_back(l0_cm_4vec.Theta());"
-            //"Z_cm_lep_theta.push_back(l1_cm_4vec.Theta());"
-            //"return Z_cm_lep_theta;"
-        //"}";
 
     for (auto const& [key, val] : smearing_functions)
         gInterpreter->Declare(val.c_str());
-}
-
-void SmearingStep(GlobalOptions settings, bool unit_testing) {
-    SmearingOptions options;
-
-    options.unit_testing = unit_testing;
-    options.period = settings.period;
-    options.data_period = DataPeriod(options.period);
-    options.mc_period = getMCPeriod(options.period);
-    options.channel = settings.channel;
-    options.is_data = settings.is_data;
-
-    options.in_file_path = settings.reduction_folder;
-    options.out_file_path = settings.smearing_folder;
-    options.unit_test_folder = settings.unit_test_folder;
-
-    options.in_tree_name = settings.save_tree_name;
-    options.out_tree_name = settings.save_tree_name;
-
-    ////--- branches to copy from old tree to new tree
-    //options.branches_to_copy = vector<string> {
-        //"PhotonConversionType",
-        //"met_Phi",
-        //"nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "jetM", "jetPt", "Ht30",
-        //"dPhiMetJet1", "minDPhi2JetsMet", // dPhiMetJet1 is not abs()
-        //"genWeight", "eventWeight", "leptonWeight", "jvtWeight", "bTagWeight", "pileupWeight", "globalDiLepTrigSF",
-        //"RunNumber", "RandomRunNumber",
-        //"dPhiMetJet",
-        //"METt_unsmeared", "METl_unsmeared", "trigMatch_2LTrig", "trigMatch_2LTrigOR", "met_Et_unsmeared",
-        //"gamma_pt", "gamma_eta", "gamma_phi", "totalWeight",
-        //"DatasetNumber", "H2PP", "H5PP", "H5PP_VR", "METOverPtISR", "METOverPtW", "METOverPtZ",
-        //"MJ", "MJ_VR", "MZ", "MZ_VR", "NjISR", "NjS", "PTCM", "PTCM_VR",
-        //"PTI", "PTISR", "PTISR_VR", "PTI_VR", "RISR", "RISR_VR", "RPT_HT5PP", "RPT_HT5PP_VR", "R_minH2P_minH3P",
-        //"R_minH2P_minH3P_VR", "Rjj", "Rll", "dPhiMetISR", "dPhiPjjMet", "dPhiPllMet", "dphiISRI", "dphiISRI_VR", 
-        //"dphiVP", "dphiVP_VR", "lept1Pt_VR", "lept2Pt_VR", "mTl3", "minDphi", "mjj",
-        //"mll_RJ", "mll_RJ_VR",
-        //"bjet_n", "jet_eta", "jet_phi", "met_Sign",
-        //"dPhiMetJet2", "dPhiMetJet12Min", "lumi",
-    //};
-
-    //int flavor, channel;
-    //if (settings.channel == "ee") {
-        //flavor = 1;
-        //channel = 1;
-    //}
-    //else if (settings.channel == "mm") {
-        //flavor = 2;
-        //channel = 0;
-    //}
-    //options.branches_to_add = BranchAddOptions {
-        ////"met_Et", "mll", "Ptll", "Z_eta", "Z_phi", "METt", "METl", "Z_cm_lep_theta", "DR_2Lep",
-        ////"DPhi_2Lep", "DPhi_METZPhoton", "DPhi_METLepLeading", "DPhiMETLepSecond", "DPhi_METLepMin",
-        ////"lepPt", "lepEta", "lepPhi", "lepM", "lepFlavor", "lepCharge",
-        ////"lepIsoFCTight", "lepIsPR",
-        //make_tuple("is_OS", "1"),
-        //make_tuple("nLep_base", "2"),
-        //make_tuple("nLep_signal", "2"),
-        //make_tuple("lepFlavor", "getLepFlavors(" + to_string(flavor) + ")"),
-        //make_tuple("lepCharge", "getLepCharges()"),
-        //make_tuple("channel", to_string(channel)),
-    //};
-
-    options.unit_testing = unit_testing;
-
-    SmearPhotons(options);
 }
 
 //--------------------
 // PHOTON REWEIGHTING
 //--------------------
 
-void ReweightingStep(GlobalOptions settings, bool unit_testing) {
+void ReweightingStep(Options settings, bool unit_testing) {
     ReweightingOptions options;
 
     options.period = settings.period;
@@ -439,7 +351,7 @@ void ReweightingStep(GlobalOptions settings, bool unit_testing) {
 // PLOTTING
 //----------
 
-void PlottingStep(GlobalOptions settings, bool unit_testing) {
+void PlottingStep(Options settings, bool unit_testing) {
     PlottingOptions options;
 
     options.unit_testing = unit_testing;
@@ -526,7 +438,7 @@ void Main() {
     bins::init_binning_histograms(); // prepare histograms
     TH1::SetDefaultSumw2(); // histogram summing option
 
-    GlobalOptions settings;
+    Options settings;
 
     string SUSY_folder = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/";
     settings.photon_mc_path = SUSY_folder + "JETM4/JETM4_";
@@ -549,18 +461,18 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    bool unit_testing = false;
+    settings.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
-    if (unit_testing) {
-        if (do_reduction) ReductionStep(settings, unit_testing);
-        if (do_smearing) SmearingStep(settings, unit_testing); 
-        if (do_reweighting) ReweightingStep(settings, unit_testing); 
-        if (do_plotting) PlottingStep(settings, unit_testing); 
+    if (settings.unit_testing) {
+        if (do_reduction) ReductionStep(settings, settings.unit_testing);
+        if (do_smearing) SmearPhotons(settings);
+        if (do_reweighting) ReweightingStep(settings, settings.unit_testing); 
+        if (do_plotting) PlottingStep(settings, settings.unit_testing); 
         return;
     }
 
@@ -595,7 +507,7 @@ void Main() {
                         else if (settings.period == "data18") settings.period = "mc16e";
                     }
 
-                    ReductionStep(settings, unit_testing);
+                    ReductionStep(settings, settings.unit_testing);
                 }
             }
         }
@@ -606,9 +518,10 @@ void Main() {
         initSmearingFunctions();
 
         vector<string> periods{"data15-16", "data17", "data18"};
-        //vector<string> periods{"data18"};
         for (auto period : periods) {
             settings.period = period;
+            settings.data_period = DataPeriod(settings.period);
+            settings.mc_period = getMCPeriod(settings.period);
 
             //vector<bool> is_datas{true, false};
             vector<string> channels{"ee", "mm"};
@@ -618,7 +531,7 @@ void Main() {
                 for (auto channel : channels) {
                     settings.channel = channel;
                     settings.is_data = is_data;
-                    SmearingStep(settings, unit_testing); 
+                    SmearPhotons(settings);
                 }
             }
         }
@@ -637,7 +550,7 @@ void Main() {
                 for (auto channel : channels) {
                     settings.channel = channel;
                     settings.is_data = is_data;
-                    ReweightingStep(settings, unit_testing); 
+                    ReweightingStep(settings, settings.unit_testing); 
                 }
             }
         }
@@ -653,7 +566,7 @@ void Main() {
             settings.period = period;
             for (auto is_data : is_datas) {
                 settings.is_data = is_data;
-                PlottingStep(settings, unit_testing); 
+                PlottingStep(settings, settings.unit_testing); 
             }
         }
     }
