@@ -385,7 +385,6 @@ public:
             int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
 
-            //tree->Draw(">>event_list", cuts::reweight_region);
             tree->Draw(">>event_list", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25");
             //tree->Draw(">>event_list", "nJet30>=2");
             auto event_list = (TEventList*) gDirectory->Get("event_list");
@@ -413,7 +412,6 @@ public:
             int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             float METl; SetInputBranch(tree, "METl_unsmeared", &METl);
 
-            //tree->Draw(">>event_list", cuts::reweight_region);
             tree->Draw(">>event_list", "nJet30>=2");
             auto event_list = (TEventList*) gDirectory->Get("event_list");
             for (int entry=0; entry<event_list->GetN(); entry++) {

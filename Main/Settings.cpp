@@ -92,7 +92,6 @@ namespace cuts {
     TCut photon_weight("totalWeight");
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
-    TCut reweight_region("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2");
 
     TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
     TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4";
@@ -102,6 +101,8 @@ namespace cuts {
         {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
         {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
+
+        {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
 
         {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},

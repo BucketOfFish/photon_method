@@ -84,6 +84,8 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["jet_eta"] = ROOT::RDF::TH1DModel("", "jet_{#eta}", 30, -3, 3);
     plot_settings["jet_phi"] = ROOT::RDF::TH1DModel("", "jet_{#phi}", 20, 0, 3.14);
     plot_settings["jetPt"] = ROOT::RDF::TH1DModel("", "jet_{p_{T}} [GeV]", 20, 0, 300);
+    plot_settings["jetPt[0]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},1} [GeV]", 20, 0, 300);
+    plot_settings["jetPt[1]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},2} [GeV]", 20, 0, 300);
     plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
     plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 15, 0, 1500);
     plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
