@@ -74,13 +74,6 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    //TCut bkg_baseline("nJet30>=2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1]");
-    //TCut photon_baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
-    TCut bkg_baseline("nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR");
-    TCut photon_baseline_ntuples("nJet30>=1 && PhotonPt>15 && nLep_base==0");
-    TCut photon_baseline("nJet30>=1 && gamma_pt>15 && nLep_base==0");
-    TCut baseline("nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0");
-
     TCut mm("channel==0");
     TCut ee("channel==1");
     TCut em("channel==2");
@@ -92,11 +85,13 @@ namespace cuts {
     TCut photon_weight("totalWeight");
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
-
     TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
     TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4";
+
+    TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
+
     std::unordered_map<std::string, TCut> plot_regions = {
-        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR"},
+        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR" + not_diboson_2L},
         {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0"},
         {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
         {"photon_comparison", "nJet30>=1 && gamma_pt>15"},

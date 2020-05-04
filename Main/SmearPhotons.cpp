@@ -262,8 +262,10 @@ public:
 
         //--- modify event selections and weights
         TCut bkg_baseline_with_channel;
-        if (TString(options.channel).EqualTo("ee")) bkg_baseline_with_channel = cuts::bkg_baseline + cuts::ee;
-        else if (TString(options.channel).EqualTo("mm")) bkg_baseline_with_channel = cuts::bkg_baseline + cuts::mm;
+        if (TString(options.channel).EqualTo("ee"))
+            bkg_baseline_with_channel = cuts::plot_regions["bkg_baseline"] + cuts::ee;
+        else if (TString(options.channel).EqualTo("mm"))
+            bkg_baseline_with_channel = cuts::plot_regions["bkg_baseline"] + cuts::mm;
         else {
             cout << "Unrecognized channel! quitting   " << options.channel << endl;
             exit(0);
