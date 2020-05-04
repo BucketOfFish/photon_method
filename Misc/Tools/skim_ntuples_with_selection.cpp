@@ -8,7 +8,7 @@ string oldpath = "/public/data/Photon/Samples/ReducedNtuples/";
 string newpath = "/public/data/Photon/Samples/ReducedNtuples/New/";
 string treename = "BaselineTree";
 
-string selection = cuts::selections["VRDPhi"];
+string selection = cuts::selections["bkg_baseline"].GetTitle();
 
 map<string, vector<string>> filename_sets {
     {"reweighted",
@@ -33,8 +33,12 @@ map<string, vector<string>> filename_sets {
         "mc16a_lowMassDY.root", "mc16cd_higgs.root", "mc16e_diboson.root", "mc16e_Zjets.root",
         "mc16cd_lowMassDY.root", "mc16e_higgs.root",
         }},
+    {"reduced_diboson",
+        {
+        "mc16a_diboson.root", "mc16cd_diboson.root", "mc16e_diboson.root",
+        }},
 };
-vector<string> filenames = filename_sets["reweighted_noMC"];
+vector<string> filenames = filename_sets["reduced_diboson"];
 
 void skim_ntuples_with_selection() {
     TreeCreator *reducer = new TreeCreator();
