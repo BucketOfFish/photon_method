@@ -431,7 +431,7 @@ void Main() {
 
     settings.save_tree_name = "BaselineTree";
 
-    settings.unit_testing = true;
+    settings.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = true;
@@ -509,7 +509,8 @@ void Main() {
 
     //--- reweight photons
     if (do_reweighting) {
-        settings.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30"};
+        settings.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
+            "Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow", "Ptll__Ht30__Zwindow"};
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
             settings.period = period;

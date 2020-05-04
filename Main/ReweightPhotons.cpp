@@ -35,6 +35,10 @@ TCut getReweightRegion(Options options) {
     return reweight_region;
 }
 
+bool isInZWindow(string reweight_var) {
+    return (reweight_var.size() > 7 && reweight_var.rfind("Zwindow") == reweight_var.size()-7);
+}
+
 vector<string> splitVars(string reweight_var) {
     vector<string> split_vars;
     string delimiter = "__";
@@ -45,19 +49,9 @@ vector<string> splitVars(string reweight_var) {
         split_vars.push_back(segment);
         reweight_var.erase(0, pos + delimiter.length());
     }
-    split_vars.push_back(reweight_var);
+    if (reweight_var != "Zwindow") split_vars.push_back(reweight_var);
 
     return split_vars;
-}
-
-string combineVars(vector<string> split_vars) {
-    /// Combine variables into a single string.
-    string reweight_var = "";
-    for (auto var : split_vars)
-        reweight_var = reweight_var + "__" + var;
-    reweight_var.erase(0, 2);
-
-    return reweight_var;
 }
 
 //------------------
@@ -119,6 +113,9 @@ map<string, TChain*> getTChains(Options options) {
 map<string, ReweightHist> getReweightingHists(Options options, map<string, TChain*> tchains, string unsplit_vars) {
     /// Fill histograms for all relevant processes.
     vector<string> reweight_vars = splitVars(unsplit_vars);
+    bool in_z_window = isInZWindow(unsplit_vars);
+    TCut reweight_region = options.reweight_region;
+    if (in_z_window) reweight_region += "(mll>81 && mll<101)";
 
     //--- set reweighting properties for each reweighting variable
     vector<int> n_reweighting_bins;
@@ -138,7 +135,7 @@ map<string, ReweightHist> getReweightingHists(Options options, map<string, TChai
         if (hists[process].dim == 1) {
             string name = unsplit_vars + "_" + process;
             hists[process].h1d = new TH1F(name.c_str(), "", n_reweighting_bins[0], &(reweighting_bins[0][0]));
-            tchains[process]->Draw((reweight_vars[0] + ">>" + name).c_str(), options.reweight_region * weight, "goff");
+            tchains[process]->Draw((reweight_vars[0] + ">>" + name).c_str(), reweight_region * weight, "goff");
             hists[process].h1d->Write(("reweight_" + name).c_str());
         }
         else if (hists[process].dim == 2) {
@@ -146,8 +143,7 @@ map<string, ReweightHist> getReweightingHists(Options options, map<string, TChai
             // for some reason, the first variable given goes on the y axis
             hists[process].h2d = new TH2F(name.c_str(), "", n_reweighting_bins[1], &(reweighting_bins[1][0]),
                                     n_reweighting_bins[0], &(reweighting_bins[0][0]));
-            tchains[process]->Draw((reweight_vars[1] + ":" + reweight_vars[0] + ">>" + name).c_str(),
-                                    options.reweight_region * weight, "goff");
+            tchains[process]->Draw((reweight_vars[1] + ":" + reweight_vars[0] + ">>" + name).c_str(), reweight_region * weight, "goff");
             hists[process].h2d->Write(("reweight_" + name).c_str());
         }
     }
@@ -297,7 +293,7 @@ void RunUnitTests(Options options) {
     options.smearing_file_name = options.unit_test_folder + "SmearedNtuples/" + options.data_period + "_data_photon_" + options.channel + ".root";
     options.reweighting_file_name = "test.root";
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
-    options.reweight_vars = {"Ptll", "nJet30", "Ptll__Ht30"};
+    options.reweight_vars = {"Ptll", "nJet30", "Ptll__Ht30", "Ptll__Zwindow"};
 
     //--- tree cloning test
     auto [output_file, output_tree] = cloneTree(options);
@@ -334,6 +330,12 @@ void RunUnitTests(Options options) {
     else failTest("Failed reweighting region test");
     cout << endl;
 
+    //--- Zwindow detection test
+    if (!isInZWindow("nJet30") && isInZWindow("Ptll__Zwindow") && !isInZWindow("Ptll__Ht30") && isInZWindow("Ptll__Ht30__Zwindow"))
+        passTest("Passed Z window detection test");
+    else failTest("Failed Z window detection test");
+    cout << endl;
+
     //--- reweighting histograms test
     map<string, map<string, ReweightHist>> hists;
     for (auto vars : options.reweight_vars) {
@@ -345,7 +347,8 @@ void RunUnitTests(Options options) {
         abs(hists["Ptll"]["vv"].h1d->GetBinContent(23) - 3.4948041) < 0.001 &&
         abs(hists["nJet30"]["data"].h1d->GetBinContent(3) - 84967.000) < 1 &&
         abs(hists["Ptll__Ht30"]["tt"].h2d->GetBinContent(1, 8) - 32.0249) < 0.001 &&
-        abs(hists["Ptll__Ht30"]["photon"].h2d->GetBinContent(5, 9) - 205209.000) < 1)
+        abs(hists["Ptll__Ht30"]["photon"].h2d->GetBinContent(5, 9) - 205209.000) < 1 &&
+        abs(hists["Ptll__Zwindow"]["vv"].h1d->GetBinContent(23) - 3.1094) < 0.001)
         passTest("Passed feature histogram test");
     else failTest("Failed feature histogram test");
     cout << endl;
@@ -359,7 +362,8 @@ void RunUnitTests(Options options) {
         abs(reweight_hists["Ptll"].h1d->GetBinContent(5) - 0.728115) < 0.00001 &&
         abs(reweight_hists["nJet30"].h1d->GetBinContent(5) - 0.892541) < 0.00001 &&
         abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(2, 8) - 0.278756) < 0.00001 &&
-        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(5, 9) - 0.822111) < 0.00001)
+        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(5, 9) - 0.822111) < 0.00001 &&
+        abs(reweight_hists["Ptll__Zwindow"].h1d->GetBinContent(5) - 0.768134) < 0.00001)
         passTest("Passed histogram ratio test");
     else failTest("Failed histogram ratio test");
     cout << endl;
@@ -371,6 +375,7 @@ void RunUnitTests(Options options) {
     rw_weight_checks["Ptll"] = {12.6804, 6.38236, 0.573366, 2.21522, 12.6804, 3.35102, 4.82996, 15.2658, 1.24056, 6.38236};
     rw_weight_checks["nJet30"] = {0.99553, 0, 0, 0, 0, 0, 0, 1.09558, 0, 0};
     rw_weight_checks["Ptll__Ht30"] = {16.9965, 8.06162, 0, 2.99799, 19.043, 4.94791, 5.8982, 17.0231, 0, 5.4536};
+    rw_weight_checks["Ptll__Zwindow"] = {11.6063, 6.82505, 0.59245, 2.48084, 11.6063, 3.75864, 5.35801, 15.0041, 1.2998, 6.82505};
 
     map<string, Float_t> rw_weights;
     for (auto unsplit_vars : options.reweight_vars) {
