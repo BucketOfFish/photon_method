@@ -23,7 +23,7 @@ struct ReweightHist {
 //------------------
 
 TCut getReweightRegion(ReweightingOptions options) {
-    TCut reweight_region = cuts::plot_regions["reweight"];
+    TCut reweight_region = cuts::selections["reweight"];
     if (TString(options.channel).EqualTo("ee")) reweight_region += cuts::ee;
     else if (TString(options.channel).EqualTo("mm")) reweight_region += cuts::mm;
     else failTest("Unrecognized channel " + options.channel);

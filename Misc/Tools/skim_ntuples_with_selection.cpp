@@ -4,14 +4,11 @@
 #include <string>
 #include "../../Main/Settings.cpp"
 
-string oldpath = "/public/data/Photon/Samples/ReweightedNtuples/";
-string newpath = "/public/data/Photon/VRDPhiSamples/ReweightedNtuples/";
+string oldpath = "/public/data/Photon/Samples/ReducedNtuples/";
+string newpath = "/public/data/Photon/Samples/ReducedNtuples/New/";
 string treename = "BaselineTree";
 
-map<string, string> selections = {
-    {"VRDPhi", "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrig && is_OS && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4 && Ht30>250 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
-};
-string selection = selections["VRDPhi"];
+string selection = cuts::selections["VRDPhi"];
 
 map<string, vector<string>> filename_sets {
     {"reweighted",

@@ -91,10 +91,10 @@ void compare_entries_and_yields() {
             TCut weight = (filename.find("data_bkg") != std::string::npos) ? "1" : "totalWeight";
             cout << "\t" << "old " << region << " yield: ";
             TH1F* hz = new TH1F("hz", "", 1, 0, 1);
-            old_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
+            old_ttree->Draw("mll>>hz", cuts::selections[region]*weight, "goff");
             cout << hz->Integral(0, 2) << endl;
             cout << "\t" << "new " << region << " yield: ";
-            new_ttree->Draw("mll>>hz", cuts::plot_regions[region]*weight, "goff");
+            new_ttree->Draw("mll>>hz", cuts::selections[region]*weight, "goff");
             cout << hz->Integral(0, 2) << endl;
         }
     }

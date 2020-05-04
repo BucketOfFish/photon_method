@@ -2,11 +2,11 @@
 
 //--- helper function
 tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
-    if (cuts::plot_regions.count(region) == 0) {
+    if (cuts::selections.count(region) == 0) {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
     }
-    TCut plot_region = cuts::plot_regions[region];
+    TCut plot_region = cuts::selections[region];
 
     if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
     else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;

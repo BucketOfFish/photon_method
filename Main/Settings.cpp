@@ -86,11 +86,11 @@ namespace cuts {
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
     TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
-    TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4";
+    TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4 && Ht30>250 && mt2leplsp_0>75 && (mll>81 && mll<101)";
 
     TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
 
-    std::unordered_map<std::string, TCut> plot_regions = {
+    std::unordered_map<std::string, TCut> selections = {
         {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR" + not_diboson_2L},
         {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0"},
         {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
@@ -146,12 +146,13 @@ namespace cuts {
         {"VRMedZ6", strong_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
         {"VRHighZ6", strong_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
 
-        {"VRDPhiLow2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"VRDPhiMed2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"VRDPhiHigh2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
-        {"VRDPhiLow6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"VRDPhiMed6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"VRDPhiHigh6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
+        {"VRDPhi", strong_VRDPhi_preselection};
+        {"VRDPhiLow2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
+        {"VRDPhiMed2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
+        {"VRDPhiHigh2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},
+        {"VRDPhiLow6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
+        {"VRDPhiMed6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
+        {"VRDPhiHigh6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75"},
     };
 
     TCut CR("met_Et<100.0");
