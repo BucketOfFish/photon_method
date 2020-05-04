@@ -22,16 +22,14 @@ struct ReweightHist {
 // HELPER FUNCTIONS
 //------------------
 
-TCut getReweightRegion(ReweightingOptions options) {
+TCut getReweightRegion(Options options) {
     TCut reweight_region = cuts::selections["reweight"];
-    if (TString(options.channel).EqualTo("ee")) reweight_region += cuts::ee;
-    else if (TString(options.channel).EqualTo("mm")) reweight_region += cuts::mm;
-    else failTest("Unrecognized channel " + options.channel);
+    reweight_region += cuts::selections[options.channel];
 
     cout << "bkg selection          : " << reweight_region.GetTitle() << endl;
     cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
-    cout << "photon selection       : " << reweight_region.GetTitle() << endl;
-    cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
+    //cout << "photon selection       : " << reweight_region.GetTitle() << endl;
+    //cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
     cout << endl;
 
     return reweight_region;
@@ -47,6 +45,7 @@ vector<string> splitVars(string reweight_var) {
         split_vars.push_back(segment);
         reweight_var.erase(0, pos + delimiter.length());
     }
+    split_vars.push_back(reweight_var);
 
     return split_vars;
 }
@@ -55,8 +54,8 @@ string combineVars(vector<string> split_vars) {
     /// Combine variables into a single string.
     string reweight_var = "";
     for (auto var : split_vars)
-        reweight_var = reweight_var + "+" + var;
-    reweight_var.erase(0);
+        reweight_var = reweight_var + "__" + var;
+    reweight_var.erase(0, 2);
 
     return reweight_var;
 }
@@ -65,7 +64,7 @@ string combineVars(vector<string> split_vars) {
 // PREP FOR READING
 //------------------
 
-tuple<TFile*, TTree*> cloneTree(ReweightingOptions options) {
+tuple<TFile*, TTree*> cloneTree(Options options) {
     //--- open files and make TChains
     TH1::SetDefaultSumw2();
     gStyle->SetOptStat(0);
@@ -75,14 +74,14 @@ tuple<TFile*, TTree*> cloneTree(ReweightingOptions options) {
 
     cout << padString("Period") << options.period << endl;
     cout << padString("Channel") << options.channel << endl;
-    cout << padString("Opening smeared file") << options.in_file_name << endl;
-    cout << padString("Reading tree") << options.out_tree_name << endl;
-    cout << padString("Saving reweighted file") << options.out_file_name << endl;
+    cout << padString("Opening smeared file") << options.smearing_file_name << endl;
+    cout << padString("Reading tree") << options.save_tree_name << endl;
+    cout << padString("Saving reweighted file") << options.reweighting_file_name << endl;
 
-    TFile* input_file = new TFile(options.in_file_name.c_str(), "read");          
-    TTree* input_tree = (TTree*)input_file->Get(options.in_tree_name.c_str());
+    TFile* input_file = new TFile(options.smearing_file_name.c_str(), "read");          
+    TTree* input_tree = (TTree*)input_file->Get(options.save_tree_name.c_str());
 
-    TFile* output_file = new TFile(options.out_file_name.c_str(), "recreate");          
+    TFile* output_file = new TFile(options.reweighting_file_name.c_str(), "recreate");          
     TTree* output_tree = input_tree->CloneTree();
 
     cout << padString("Events in ntuple") << output_tree->GetEntries() << endl;
@@ -91,20 +90,20 @@ tuple<TFile*, TTree*> cloneTree(ReweightingOptions options) {
     return make_tuple(output_file, output_tree);
 }
 
-map<string, TChain*> getTChains(ReweightingOptions options) {
+map<string, TChain*> getTChains(Options options) {
     //--- open files and create TChains
     map<string, string> filenames;
     filenames["data"] = options.reduction_folder + options.period + "_data_bkg.root";
     filenames["tt"] = options.reduction_folder + options.mc_period + "_ttbar.root";
     filenames["vv"] = options.reduction_folder + options.mc_period + "_diboson.root";
     filenames["zjets"] = options.reduction_folder + options.mc_period + "_Zjets.root";
-    filenames["photon"] = options.in_file_name;
+    filenames["photon"] = options.smearing_file_name;
 
     map<string, TChain*> tchains;
 
     for (auto process : options.processes) {
         cout << padString("Opening " + process + " file") << filenames[process] << endl;
-        tchains[process] = new TChain(options.out_tree_name.c_str());
+        tchains[process] = new TChain(options.save_tree_name.c_str());
         tchains[process]->Add(filenames[process].c_str());
         cout << padString(process + " entries") << tchains[process]->GetEntries() << endl;
     }
@@ -117,7 +116,7 @@ map<string, TChain*> getTChains(ReweightingOptions options) {
 // GET FEATURE HISTOGRAMS
 //------------------------
 
-map<string, ReweightHist> getReweightingHists(ReweightingOptions options, map<string, TChain*> tchains, string unsplit_vars) {
+map<string, ReweightHist> getReweightingHists(Options options, map<string, TChain*> tchains, string unsplit_vars) {
     /// Fill histograms for all relevant processes.
     vector<string> reweight_vars = splitVars(unsplit_vars);
 
@@ -160,7 +159,7 @@ map<string, ReweightHist> getReweightingHists(ReweightingOptions options, map<st
 // GET RATIO HISTOGRAMS
 //----------------------
 
-ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, ReweightHist> hists, string reweight_var) {
+ReweightHist getReweightingRatioHist(Options options, map<string, ReweightHist> hists, string reweight_var) {
     /// Given filled histograms for various processes, return a histogram for the Z/photon ratio.
     ReweightHist hratio;
     vector<string> split_vars = splitVars(reweight_var);
@@ -191,16 +190,20 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
     }
 
     if (hratio.dim == 1) {
-        cout << "\t" << padString("photon integral") << hists["photon"].h1d->Integral(0, hists["photon"].h1d->GetNbinsX()+1) << endl;
-        cout << "\t" << padString("bkg integral") << hratio.h1d->Integral(0, hratio.h1d->GetNbinsX()+1) << endl;
+        float photon_integral = hists["photon"].h1d->Integral(0, hists["photon"].h1d->GetNbinsX()+1);
+        float bkg_integral = hratio.h1d->Integral(0, hratio.h1d->GetNbinsX()+1);
+        cout << "\t" << padString("photon integral") << photon_integral << endl;
+        cout << "\t" << padString("bkg integral") << bkg_integral << endl;
+        hratio.h1d->Scale(photon_integral/bkg_integral);
         hratio.h1d->Divide(hists["photon"].h1d);
         hratio.h1d->Write(("ratio_" + reweight_var).c_str());
     }
     else if (hratio.dim == 2) {
-        cout << "\t" << padString("photon integral") << hists["photon"].h2d->Integral(0, hists["photon"].h2d->GetNbinsX()+1,
-                                                            0, hists["photon"].h2d->GetNbinsY()+1) << endl;
-        cout << "\t" << padString("bkg integral") << hratio.h2d->Integral(0, hratio.h2d->GetNbinsX()+1,
-                                                            0, hratio.h2d->GetNbinsY()+1) << endl;
+        float photon_integral = hists["photon"].h2d->Integral(0, hists["photon"].h2d->GetNbinsX()+1, 0, hists["photon"].h2d->GetNbinsY()+1);
+        float bkg_integral = hratio.h2d->Integral(0, hratio.h2d->GetNbinsX()+1, 0, hratio.h2d->GetNbinsY()+1);
+        cout << "\t" << padString("photon integral") << photon_integral << endl;
+        cout << "\t" << padString("bkg integral") << bkg_integral << endl;
+        hratio.h2d->Scale(photon_integral/bkg_integral);
         hratio.h2d->Divide(hists["photon"].h2d);
         hratio.h2d->Write(("ratio_" + reweight_var).c_str());
     }
@@ -214,7 +217,7 @@ ReweightHist getReweightingRatioHist(ReweightingOptions options, map<string, Rew
 // FILL REWEIGHTING BRANCH
 //-------------------------
 
-void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map<string, ReweightHist> reweight_hists) {
+void fillReweightingBranches(Options options, TTree* output_tree, map<string, ReweightHist> reweight_hists) {
     map<string, BranchType> rw_feature_vals;
     map<string, Float_t> rw_weight_vals;
     map<string, TBranch*> rw_branches;
@@ -283,13 +286,16 @@ void fillReweightingBranches(ReweightingOptions options, TTree* output_tree, map
 // UNIT TESTS
 //------------
 
-void RunUnitTests(ReweightingOptions options) {
+void RunUnitTests(Options options) {
     options.period = "data15-16";
     options.data_period = DataPeriod(options.period);
     options.mc_period = getMCPeriod(options.period);
+    options.is_data = true;
+    if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
+    else options.processes = {"zjets", "photon"};
     options.channel = "ee";
-    options.in_file_name = options.unit_test_folder + "SmearedNtuples/" + options.data_period + "_data_photon_" + options.channel + ".root";
-    options.out_file_name = "test.root";
+    options.smearing_file_name = options.unit_test_folder + "SmearedNtuples/" + options.data_period + "_data_photon_" + options.channel + ".root";
+    options.reweighting_file_name = "test.root";
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.reweight_vars = {"Ptll", "nJet30", "Ptll__Ht30"};
 
@@ -323,7 +329,7 @@ void RunUnitTests(ReweightingOptions options) {
 
     //--- reweighting region with channel test
     options.reweight_region = getReweightRegion(options);
-    if (options.reweight_region == "(nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2)&&(channel==1)")
+    if (options.reweight_region == "((nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2)&&(abs(lepFlavor[0])==abs(lepFlavor[1])))&&(channel==1)")
         passTest("Passed reweighting region test");
     else failTest("Failed reweighting region test");
     cout << endl;
@@ -349,11 +355,11 @@ void RunUnitTests(ReweightingOptions options) {
     for (auto vars : options.reweight_vars) {
         reweight_hists[vars] = getReweightingRatioHist(options, hists[vars], vars);
     }
-    if (abs(reweight_hists["Ptll"].h1d->GetBinContent(2) - 0.000830079) < 0.00001 &&
-        abs(reweight_hists["Ptll"].h1d->GetBinContent(5) - 0.0023039) < 0.00001 &&
-        abs(reweight_hists["nJet30"].h1d->GetBinContent(5) - 0.00282705) < 0.00001 &&
-        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(2, 8) - 0.00088203) < 0.00001 &&
-        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(5, 9) - 0.00260129) < 0.00001)
+    if (abs(reweight_hists["Ptll"].h1d->GetBinContent(2) - 0.262335) < 0.00001 &&
+        abs(reweight_hists["Ptll"].h1d->GetBinContent(5) - 0.728115) < 0.00001 &&
+        abs(reweight_hists["nJet30"].h1d->GetBinContent(5) - 0.892541) < 0.00001 &&
+        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(2, 8) - 0.278756) < 0.00001 &&
+        abs(reweight_hists["Ptll__Ht30"].h2d->GetBinContent(5, 9) - 0.822111) < 0.00001)
         passTest("Passed histogram ratio test");
     else failTest("Failed histogram ratio test");
     cout << endl;
@@ -362,10 +368,9 @@ void RunUnitTests(ReweightingOptions options) {
     fillReweightingBranches(options, output_tree, reweight_hists);
 
     map<string, vector<float>> rw_weight_checks;
-    rw_weight_checks["Ptll"] = {0.0373285, 0.0152829, 0.0012275, 0.0052744, 0.0373285, 0.0070094, 0.0106032, 0.0405640,
-                                    0.0031431, 0.0152829};
-    rw_weight_checks["nJet30"] = {0, 0, 0, 0, 0, 0, 0, 0.00315326, 0, 0};
-    rw_weight_checks["Ptll__Ht30"] = {0.056162, 0.0196737, 0, 0.0077757, 0.0518713, 0.0114504, 0.0123719, 0.0355054, 0, 0.0139699};
+    rw_weight_checks["Ptll"] = {12.6804, 6.38236, 0.573366, 2.21522, 12.6804, 3.35102, 4.82996, 15.2658, 1.24056, 6.38236};
+    rw_weight_checks["nJet30"] = {0.99553, 0, 0, 0, 0, 0, 0, 1.09558, 0, 0};
+    rw_weight_checks["Ptll__Ht30"] = {16.9965, 8.06162, 0, 2.99799, 19.043, 4.94791, 5.8982, 17.0231, 0, 5.4536};
 
     map<string, Float_t> rw_weights;
     for (auto unsplit_vars : options.reweight_vars) {
@@ -428,14 +433,14 @@ void RunUnitTests(ReweightingOptions options) {
     passTest("All reweighting tests passed");
     cout << endl;
     output_file->Close();
-    remove(options.out_file_name.c_str());
+    remove(options.reweighting_file_name.c_str());
 }
 
 //----------------------
 // REWEIGHTING FUNCTION
 //----------------------
 
-void ReweightSample(ReweightingOptions options) {
+void ReweightSample(Options options) {
     auto [output_file, output_tree] = cloneTree(options);
     map<string, TChain*> tchains = getTChains(options);
 
@@ -453,22 +458,22 @@ void ReweightSample(ReweightingOptions options) {
     cout << PBLU("Finished reweighting") << endl;
 }
 
-void ReweightPhotons(ReweightingOptions options) {
+void ReweightPhotons(Options options) {
     if (options.unit_testing)
         RunUnitTests(options);
     else {
         if (options.is_data) {
-            options.in_file_name = options.smearing_folder + options.data_period + "_data_photon_" + options.channel + ".root";
-            options.out_file_name = options.reweighting_folder + options.data_period + "_data_photon_" + options.channel + ".root";
+            options.smearing_file_name = options.smearing_folder + options.data_period + "_data_photon_" + options.channel + ".root";
+            options.reweighting_file_name = options.reweighting_folder + options.data_period + "_data_photon_" + options.channel + ".root";
             ReweightSample(options);
 
-            options.in_file_name = options.smearing_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
-            options.out_file_name = options.reweighting_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
+            options.smearing_file_name = options.smearing_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
+            options.reweighting_file_name = options.reweighting_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
             ReweightSample(options);
         }
         else {
-            options.in_file_name = options.reweighting_folder + options.mc_period + "_SinglePhoton222_" + options.channel + ".root";
-            options.out_file_name = options.in_file_name;
+            options.smearing_file_name = options.reweighting_folder + options.mc_period + "_SinglePhoton222_" + options.channel + ".root";
+            options.reweighting_file_name = options.smearing_file_name;
             ReweightSample(options);
         }
     }

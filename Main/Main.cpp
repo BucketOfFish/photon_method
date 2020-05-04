@@ -317,36 +317,6 @@ void initSmearingFunctions() {
         gInterpreter->Declare(val.c_str());
 }
 
-//--------------------
-// PHOTON REWEIGHTING
-//--------------------
-
-void ReweightingStep(Options settings, bool unit_testing) {
-    ReweightingOptions options;
-
-    options.period = settings.period;
-    options.data_period = DataPeriod(options.period);
-    options.mc_period = getMCPeriod(options.period);
-    options.channel = settings.channel;
-    options.is_data = settings.is_data;
-    options.reweighting_folder = settings.reweighting_folder;
-    options.smearing_folder = settings.smearing_folder;
-    options.reduction_folder = settings.reduction_folder;
-    options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30"};
-
-    options.in_tree_name = settings.save_tree_name;
-    options.out_tree_name = settings.save_tree_name;
-
-    options.unit_testing = unit_testing;
-    options.unit_test_folder = settings.unit_test_folder;
-
-    if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
-    else options.processes = {"zjets", "photon"};
-
-    //--- reweight photons
-    ReweightPhotons(options);
-}
-
 //----------
 // PLOTTING
 //----------
@@ -452,9 +422,9 @@ void Main() {
     //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
 
     settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
-    settings.smearing_folder = settings.my_samples_folder + "/SmearedNtuples/";
-    settings.reweighting_folder = settings.my_samples_folder + "/ReweightedNtuples/";
-    settings.plots_folder = settings.my_samples_folder + "/Plots/";
+    settings.smearing_folder = settings.my_samples_folder + "SmearedNtuples/";
+    settings.reweighting_folder = settings.my_samples_folder + "ReweightedNtuples/";
+    settings.plots_folder = settings.my_samples_folder + "Plots/";
 
     settings.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
     //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
@@ -463,15 +433,15 @@ void Main() {
 
     settings.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = true;
-    bool do_reweighting = false;
+    bool do_smearing = false;
+    bool do_reweighting = true;
     bool do_plotting = false;
 
     //--- unit testing
     if (settings.unit_testing) {
         if (do_reduction) ReductionStep(settings, settings.unit_testing);
         if (do_smearing) SmearPhotons(settings);
-        if (do_reweighting) ReweightingStep(settings, settings.unit_testing); 
+        if (do_reweighting) ReweightPhotons(settings);
         if (do_plotting) PlottingStep(settings, settings.unit_testing); 
         return;
     }
@@ -539,9 +509,12 @@ void Main() {
 
     //--- reweight photons
     if (do_reweighting) {
+        settings.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30"};
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
             settings.period = period;
+            settings.data_period = DataPeriod(settings.period);
+            settings.mc_period = getMCPeriod(settings.period);
 
             //vector<bool> is_datas{true, false};
             vector<bool> is_datas{true};
@@ -550,7 +523,10 @@ void Main() {
                 for (auto channel : channels) {
                     settings.channel = channel;
                     settings.is_data = is_data;
-                    ReweightingStep(settings, settings.unit_testing); 
+                    if (settings.is_data) settings.processes = {"data", "tt", "vv", "photon"};
+                    else settings.processes = {"zjets", "photon"};
+                    //ReweightingStep(settings, settings.unit_testing); 
+                    ReweightPhotons(settings);
                 }
             }
         }

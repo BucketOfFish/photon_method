@@ -47,16 +47,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
     }
     TCut plot_region = cuts::selections[region];
 
-    if (TString(channel).EqualTo("ee")) plot_region += cuts::ee;
-    else if (TString(channel).EqualTo("mm")) plot_region += cuts::mm;
-    else if (TString(channel).EqualTo("em")) plot_region += cuts::em;
-    else if (TString(channel).EqualTo("me")) plot_region += cuts::me;
-    else if (TString(channel).EqualTo("SF")) plot_region += cuts::SF;
-    else if (TString(channel).EqualTo("DF")) plot_region += cuts::DF;
-    else {
-        cout << "Unrecognized channel " << channel << "! Exiting." << endl;
-        exit(0);
-    }
+    plot_region += cuts::selections[channel];
 
     TCut plot_CR = plot_region + cuts::CR;
     plot_region += cuts::plot_region_met_portions[region];

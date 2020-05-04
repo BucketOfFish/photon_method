@@ -107,6 +107,20 @@ public:
         }
     }
 
+    Options getSmearingSelectionsWithChannel(Options options) {
+        //--- modify event selections and weights
+        options.bkg_smearing_selection = cuts::selections["bkg_baseline"] + cuts::selections[options.channel];
+        options.photon_smearing_selection = cuts::selections["photon_baseline"];
+
+        cout << padString("bkg selection") << options.bkg_smearing_selection.GetTitle() << endl;
+        cout << padString("bkg weight") << cuts::bkg_weight.GetTitle() << endl;
+        cout << padString("photon selection") << options.photon_smearing_selection.GetTitle() << endl;
+        cout << padString("photon weight") << cuts::photon_weight.GetTitle() << endl;
+        cout << endl;
+
+        return options;
+    }
+
     PhotonToZConverter(Options options) {
         this->options = options;
 
@@ -121,8 +135,9 @@ public:
         this->initHistograms();
 
         //--- get lepton histograms and smearing Gaussians
-        this->getLepThetaHistograms();
-        this->smearing_gaussians = this->getSmearingGaussians();
+        options = getSmearingSelectionsWithChannel(options);
+        this->getLepThetaHistograms(options);
+        this->smearing_gaussians = this->getSmearingGaussians(options);
     }
 
     //---------------
@@ -233,7 +248,7 @@ public:
     // LEPTON SPLITTING
     //------------------
 
-    void getLepThetaHistograms() {
+    void getLepThetaHistograms(Options options) {
         cout << PBLU("Getting Z lepton CM theta distribution histogram") << endl;
         cout << endl;
         gStyle->SetOptStat(0);
@@ -260,32 +275,17 @@ public:
         cout << "Z+jets entries         : " << ttree_zjets->GetEntries() << endl;
         cout << endl;
 
-        //--- modify event selections and weights
-        TCut bkg_baseline_with_channel;
-        if (TString(options.channel).EqualTo("ee"))
-            bkg_baseline_with_channel = cuts::selections["bkg_baseline"] + cuts::ee;
-        else if (TString(options.channel).EqualTo("mm"))
-            bkg_baseline_with_channel = cuts::selections["bkg_baseline"] + cuts::mm;
-        else {
-            cout << "Unrecognized channel! quitting   " << options.channel << endl;
-            exit(0);
-        }
-
-        cout << "bkg selection          : " << bkg_baseline_with_channel.GetTitle() << endl;
-        cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
-
         //--- fill lep theta histogram
         TH1F* hz = new TH1F("hz", "", 1, 0, 1);
 
-        ttree_zjets->Draw("Z_cm_lep_theta>>hz", bkg_baseline_with_channel*cuts::bkg_weight, "goff");
+        ttree_zjets->Draw("Z_cm_lep_theta>>hz", options.bkg_smearing_selection*cuts::bkg_weight, "goff");
         cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
 
         this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
 
         if (options.diagnostic_plots || options.unit_testing) {
-            this->fillZMCFeatureHists(ttree_zjets, bkg_baseline_with_channel);
+            this->fillZMCFeatureHists(ttree_zjets, options.bkg_smearing_selection);
         }
-        cout << endl;
 
         //--- get lep theta histogram bin boundaries
         std::vector<int> h_lep_cm_bin_counts;
@@ -387,7 +387,8 @@ public:
             int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             vector<float>* lep_pT = new vector<float>(10); SetInputBranch(tree, "lepPt", &lep_pT);
 
-            tree->Draw(">>event_list", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25");
+            tree->Draw(">>event_list", this->options.bkg_smearing_selection);
+            //tree->Draw(">>event_list", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25");
             //tree->Draw(">>event_list", "nJet30>=2");
             auto event_list = (TEventList*) gDirectory->Get("event_list");
             for (int entry=0; entry<event_list->GetN(); entry++) {
@@ -414,7 +415,8 @@ public:
             int nLep_signal; SetInputBranch(tree, "nLep_signal", &nLep_signal);
             float METl; SetInputBranch(tree, "METl_unsmeared", &METl);
 
-            tree->Draw(">>event_list", "nJet30>=2");
+            tree->Draw(">>event_list", this->options.photon_smearing_selection);
+            //tree->Draw(">>event_list", "nJet30>=2");
             auto event_list = (TEventList*) gDirectory->Get("event_list");
             for (int entry=0; entry<event_list->GetN(); entry++) {
                 tree->GetEntry(event_list->GetEntry(entry));
@@ -468,7 +470,7 @@ public:
         }
     }
 
-    map<int, normal_distribution<float>> getSmearingGaussians() {
+    map<int, normal_distribution<float>> getSmearingGaussians(Options options) {
         /**
          * Returns map with key = photon pt bin, value = (mean, std).
          * For a photon in a given pt bin, smear the event's MET using the given Gaussian numbers.
@@ -507,11 +509,11 @@ public:
                 if (isnan(smear_rms)) smear_rms = 0;
             }
             
-            if (this->options.channel=="ee") smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, 0.0);
+            if (options.channel=="ee") smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, 0.0);
             else smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, smear_rms);
         }
 
-        if (this->options.diagnostic_plots) {
+        if (options.diagnostic_plots) {
             cout << PBLU("Saving diagnostic smearing plots") << endl;
             this->makeSmearingDiagnosticPlots(smearing_gaussians);
         }

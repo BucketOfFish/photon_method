@@ -74,30 +74,30 @@ namespace cuts {
     double leading_lep_pt_cut = 25.; // also used for smearing
     double second_lep_pt_cut = 25.; // also used for smearing
 
-    TCut mm("channel==0");
-    TCut ee("channel==1");
-    TCut em("channel==2");
-    TCut me("channel==3");
-    TCut SF("channel==0 || channel==1");
-    TCut DF("channel==2 || channel==3");
-
     TCut bkg_weight("totalWeight");
     TCut photon_weight("totalWeight");
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
     TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
     TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4 && Ht30>250 && mt2leplsp_0>75 && (mll>81 && mll<101)";
-
     TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
+    TCut is_SF = "abs(lepFlavor[0])==abs(lepFlavor[1])";
 
     std::unordered_map<std::string, TCut> selections = {
+        {"mm", "channel==0"},
+        {"ee", "channel==1"},
+        {"em", "channel==2"},
+        {"me", "channel==3"},
+        {"SF", "channel==0 || channel==1"},
+        {"DF", "channel==2 || channel==3"},
+
         {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR" + not_diboson_2L},
         {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0"},
         {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
         {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
 
-        {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
+        {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
 
         {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
@@ -487,18 +487,11 @@ public:
 //---------
 
 struct Options {
-    bool is_photon; // vs. bkg
-    bool is_data; // vs. MC
-    string sampleID;
-
-    string photon_mc_path;
-    string photon_data_path;
+    //--- filepaths
     string bkg_mc_path;
     string bkg_data_path;
-
-    string period;
-    string data_period;
-    string mc_period;
+    string photon_mc_path;
+    string photon_data_path;
 
     string my_samples_folder;
     string sampling_method;
@@ -506,19 +499,42 @@ struct Options {
     string smearing_folder;
     string reweighting_folder;
     string plots_folder;
-
-    bool unit_testing;
     string unit_test_folder;
+
+    //--- run info
+    string period;
+    string data_period;
+    string mc_period;
 
     string channel;
     string type;
 
     string save_tree_name;
 
+    bool is_photon; // vs. bkg
+    bool is_data; // vs. MC
+
+    bool unit_testing;
+
+    //--- reduction options
+    string sampleID;
+
     //--- smearing options
+    TCut bkg_smearing_selection;
+    TCut photon_smearing_selection;
+
     bool turn_off_shifting_and_smearing;
     bool diagnostic_plots;
     bool run_vgamma;
+
+    //--- reweighting options
+    string smearing_file_name;
+    string reweighting_file_name;
+
+    vector<string> reweight_vars;
+    vector<string> processes;
+
+    TCut reweight_region;
 };
 
 struct ReductionOptions {
@@ -537,35 +553,6 @@ struct ReductionOptions {
     string final_cut;
 
     bool unit_testing;
-};
-
-struct ReweightingOptions {
-    string in_file_name;
-    string in_tree_name;
-    string out_file_name;
-    string out_tree_name;
-
-    string period;
-    string data_period;
-    string mc_period;
-    bool is_data;
-    string channel;
-    vector<string> reweight_vars;
-
-    vector<string> processes;
-    TCut reweight_region;
-
-    string reduction_folder;
-    string smearing_folder;
-    string reweighting_folder;
-
-    vector<string> branches_to_copy;
-    BranchAddOptions branches_to_add;
-
-    bool unit_testing;
-    string unit_test_folder;
-    bool turn_off_shifting_and_smearing;
-    bool diagnostic_plots;
 };
 
 struct PlottingOptions {
