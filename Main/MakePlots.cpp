@@ -661,12 +661,12 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
                 mainpad->Draw();
                 mainpad->cd();
 
-                float max_y = 15;
+                float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 1.5;
                 float min_y = 0;
                 vector<string> log_features = {"met_Et", "met_Sign"};
                 if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
                     mainpad->SetLogy();
-                    max_y = pow(10.0, 4);
+                    float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 50;
                     min_y = pow(10.0, -2);
                 }
 
@@ -790,9 +790,9 @@ void run_quickDraw(PlottingOptions options) {
                                         "allRegions", options.plots_folder);
     string type = options.is_data ? "Data" : "MC";
     printPhotonYieldTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                           type + "_yields.txt", options.blinded);
+                           type + "_yields_" + options.reweight_branch + ".txt", options.blinded);
     printPhotonScaleFactorTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                                 type + "_scale_factors.txt");
+                                 type + "_scale_factors_" + options.reweight_branch + ".txt");
 
     //--- draw and save plot
     if (!options.print_photon_yield_only)

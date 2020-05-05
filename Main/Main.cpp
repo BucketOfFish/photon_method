@@ -334,21 +334,21 @@ void PlottingStep(Options settings, bool unit_testing) {
     options.reweighting_folder = settings.reweighting_folder;
     options.plots_folder = settings.plots_folder;
 
-    options.reweight_branch = "reweight_Ptll+Ht30";
+    options.reweight_branch = "reweight_Ptll__Ht30";
 
     options.unit_test_folder = settings.unit_test_folder;
 
-    options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
-                                     "SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
-                                     "SRMedZ6", "SRHighZ6",
-                                     "VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
-                                     "VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
-                                     "VRMedZ6", "VRHighZ6",
-                                     "VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
-                                     "VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-    //options.regions = vector<string>{"VRC"};
-    //options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
-    options.plot_features = vector<string>{"mll"};
+    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
+                                     //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
+                                     //"SRMedZ6", "SRHighZ6",
+                                     //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
+                                     //"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
+                                     //"VRMedZ6", "VRHighZ6",
+                                     //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
+                                     //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+    options.regions = vector<string>{"VRDPhiLow2"};
+    options.plot_features = vector<string>{"Ptll", "met_Et", "Ht30"};
+    //options.plot_features = vector<string>{"mll"};
     //options.channels = vector<string>{"ee", "mm", "SF"};
     options.channels = vector<string>{"SF"};
 
@@ -380,7 +380,7 @@ void PlottingStep(Options settings, bool unit_testing) {
                              {"higgs", "Higgs"}};
 
     options.blinded = true;
-    options.print_photon_yield_only = true;
+    options.print_photon_yield_only = false;
 
     if (settings.is_data) {
         options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
@@ -434,8 +434,8 @@ void Main() {
     settings.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
-    bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_reweighting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (settings.unit_testing) {
