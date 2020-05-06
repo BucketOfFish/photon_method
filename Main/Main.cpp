@@ -8,9 +8,9 @@
 using namespace std;
 using rvecf = ROOT::VecOps::RVec<float>;
 
-//------------------
-// NTUPLE REDUCTION
-//------------------
+//----------------------------------
+// REDUCTION AND SMEARING FUNCTIONS
+//----------------------------------
 
 void initFillingFunctions() {
     unordered_map<string, string> filling_functions;
@@ -158,35 +158,29 @@ void initFillingFunctions() {
         gInterpreter->Declare(val.c_str());
 }
 
-void ReductionStep(Options settings, bool unit_testing) {
-    ReductionOptions options;
-
+void ReductionStep(Options options) {
     string in_folder;
-    if (settings.is_data)
-        if (settings.is_photon) in_folder = settings.photon_data_path;
-        else in_folder = settings.bkg_data_path;
+    if (options.is_data)
+        if (options.is_photon) in_folder = options.photon_data_path;
+        else in_folder = options.bkg_data_path;
     else
-        if (settings.is_photon) in_folder = settings.photon_mc_path;
-        else in_folder = settings.bkg_mc_path;
+        if (options.is_photon) in_folder = options.photon_mc_path;
+        else in_folder = options.bkg_mc_path;
 
-    if (settings.is_data) options.in_file_name = Form("%s/%s_merged_processed.root", in_folder.c_str(), settings.period.c_str()); 
-    else options.in_file_name = Form("%s%s/%s_merged_processed.root", in_folder.c_str(), settings.period.c_str(), settings.sampleID.c_str()); 
+    if (options.is_data) options.in_file_name = Form("%s/%s_merged_processed.root", in_folder.c_str(), options.period.c_str()); 
+    else options.in_file_name = Form("%s%s/%s_merged_processed.root", in_folder.c_str(), options.period.c_str(), options.sampleID.c_str()); 
 
-    if (settings.is_data) {
-       if (settings.is_photon) options.in_tree_name = settings.period;
+    if (options.is_data) {
+       if (options.is_photon) options.in_tree_name = options.period;
        else options.in_tree_name = "data";
     }
-    else options.in_tree_name = settings.sampleID + "_NoSys";
+    else options.in_tree_name = options.sampleID + "_NoSys";
 
-    if (settings.is_data) {
-       if (settings.is_photon) options.out_file_name = settings.reduction_folder + "/" + settings.period.c_str() + "_data_photon.root";
-       else options.out_file_name = settings.reduction_folder + "/" + settings.period.c_str() + "_data_bkg.root";
+    if (options.is_data) {
+       if (options.is_photon) options.out_file_name = options.reduction_folder + "/" + options.period.c_str() + "_data_photon.root";
+       else options.out_file_name = options.reduction_folder + "/" + options.period.c_str() + "_data_bkg.root";
     }
-    else options.out_file_name = settings.reduction_folder + "/" + settings.period.c_str() + "_" + settings.sampleID.c_str() + ".root";
-
-    options.out_tree_name = settings.save_tree_name;
-
-    options.unit_test_folder = settings.unit_test_folder;
+    else options.out_file_name = options.reduction_folder + "/" + options.period.c_str() + "_" + options.sampleID.c_str() + ".root";
 
     //--- branches to copy from old tree to new tree
     options.branches_to_copy = vector<string> {
@@ -217,7 +211,7 @@ void ReductionStep(Options settings, bool unit_testing) {
         make_tuple("dPhiMetJet", "getDPhiMetJet(jetPt, jetEta, jetPhi, nJet30, met_Et, met_Phi)"),
         make_tuple("dPhiMetJet2", "dPhiMetJet[1]"),
         make_tuple("dPhiMetJet12Min", "std::min(dPhiMetJet[0], dPhiMetJet[1])"),
-        make_tuple("lumi", to_string(GetLumi(settings.period))), //if (TString(settings.sampleID).Contains("Vg")) lumi *= -1;
+        make_tuple("lumi", to_string(GetLumi(options.period))), //if (TString(options.sampleID).Contains("Vg")) lumi *= -1;
     };
     
     //--- photon/bkg specific branches
@@ -225,7 +219,7 @@ void ReductionStep(Options settings, bool unit_testing) {
     BranchRenameOptions additional_rename;
     BranchAddOptions additional_add;
 
-    if (settings.is_photon) {
+    if (options.is_photon) {
         additional_rename = BranchRenameOptions {
             make_tuple("met_Et", "met_Et_unsmeared"),
             make_tuple("PhotonPt", "gamma_pt"),
@@ -238,7 +232,7 @@ void ReductionStep(Options settings, bool unit_testing) {
             make_tuple("trigMatch_2LTrig", "1"),
             make_tuple("trigMatch_2LTrigOR", "1"),
         };
-        if (settings.is_data)
+        if (options.is_data)
             additional_add.push_back(make_tuple("totalWeight", "getPhotonDataWeight(trigMatch_HLT_g15_loose_L1EM7,"
                 "trigPrescale_HLT_g15_loose_L1EM7, trigMatch_HLT_g25_loose_L1EM15, trigPrescale_HLT_g25_loose_L1EM15, trigMatch_HLT_g35_loose_L1EM15,"
                 "trigPrescale_HLT_g35_loose_L1EM15, trigMatch_HLT_g40_loose_L1EM15, trigPrescale_HLT_g40_loose_L1EM15, trigMatch_HLT_g45_loose_L1EM15,"
@@ -272,7 +266,7 @@ void ReductionStep(Options settings, bool unit_testing) {
             make_tuple("DPhi_METLepSecond", "getDPhiMETLepSecond(lepPt, lepEta, lepPhi, met_Et, met_Phi)"),
             make_tuple("DPhi_METLepMin", "std::min(DPhi_METLepLeading, DPhi_METLepSecond)"),
         };
-        if (settings.is_data)
+        if (options.is_data)
             additional_add.push_back(make_tuple("totalWeight", "1.0"));
         else
             additional_add.push_back(make_tuple("totalWeight", "lumi*genWeight*eventWeight*leptonWeight*jvtWeight*bTagWeight*pileupWeight*FFWeight"));
@@ -283,20 +277,15 @@ void ReductionStep(Options settings, bool unit_testing) {
     options.branches_to_add.insert(options.branches_to_add.end(), additional_add.begin(), additional_add.end());
 
     //--- set selection cut
-    if (settings.is_photon)
+    if (options.is_photon)
         options.cut = cuts::selections["photon_baseline_ntuples"];
     else
         options.cut = cuts::selections["bkg_baseline"];
     options.final_cut = "totalWeight!=0";
 
     //--- make reduced ntuples
-    options.unit_testing = unit_testing;
     ReduceNtuples(options);
 }
-
-//-----------------
-// PHOTON SMEARING
-//-----------------
 
 void initSmearingFunctions() {
     unordered_map<string, string> smearing_functions;
@@ -317,87 +306,6 @@ void initSmearingFunctions() {
         gInterpreter->Declare(val.c_str());
 }
 
-//----------
-// PLOTTING
-//----------
-
-void PlottingStep(Options settings, bool unit_testing) {
-    PlottingOptions options;
-
-    options.unit_testing = unit_testing;
-    options.period = settings.period;
-    options.data_period = DataPeriod(options.period);
-    options.mc_period = getMCPeriod(options.period);
-    options.is_data = settings.is_data;
-    options.in_file_path = settings.reweighting_folder;
-    options.reduction_folder = settings.reduction_folder;
-    options.reweighting_folder = settings.reweighting_folder;
-    options.plots_folder = settings.plots_folder;
-
-    options.reweight_branch = "reweight_Ptll__Ht30";
-
-    options.unit_test_folder = settings.unit_test_folder;
-
-    //options.regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
-                                     //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
-                                     //"SRMedZ6", "SRHighZ6",
-                                     //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
-                                     //"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
-                                     //"VRMedZ6", "VRHighZ6",
-                                     //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
-                                     //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-    options.regions = vector<string>{"VRDPhiLow2"};
-    options.plot_features = vector<string>{"Ptll", "met_Et", "Ht30"};
-    //options.plot_features = vector<string>{"mll"};
-    //options.channels = vector<string>{"ee", "mm", "SF"};
-    options.channels = vector<string>{"SF"};
-
-    options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
-                         "Wjets", "triboson"};
-    options.process_colors = {{"data_bkg", kBlack},
-                             {"photon_raw", kYellow+2},
-                             {"photon_reweighted", kGreen-1},
-                             {"Zjets", kYellow-1},
-                             {"Wjets", kSpring+1},
-                             {"ttbar", kBlue+3},
-                             {"diboson", kOrange+1},
-                             {"lowMassDY", kGreen+4},
-                             {"topOther", kAzure-9},
-                             {"singleTop", kAzure+2},
-                             {"triboson", kOrange-9},
-                             {"higgs", kRed-10}};
-    options.process_latex = {{"data_bkg", "Data"},
-                             {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
-                             {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
-                             {"Zjets", "Z+jets (from MC)"},
-                             {"Wjets", "W+jets"},
-                             {"ttbar", "t#bar{t}"},
-                             {"diboson", "Diboson"},
-                             {"lowMassDY", "Low mass DY"},
-                             {"topOther", "Top other"},
-                             {"singleTop", "Single top"},
-                             {"triboson", "Triboson"},
-                             {"higgs", "Higgs"}};
-
-    options.blinded = true;
-    options.print_photon_yield_only = false;
-
-    if (settings.is_data) {
-        options.in_file_name = options.in_file_path + options.data_period + "_data_photon.root";
-        options.out_file_name = settings.reweighting_folder + options.data_period + "_data_photon_" + settings.channel + ".root"; 
-    }
-    else {
-        options.in_file_name = options.in_file_path + options.mc_period + "_SinglePhoton222.root";
-        options.out_file_name = settings.reweighting_folder + options.mc_period + "_SinglePhoton222_" + settings.channel + ".root";
-    }
-    options.in_tree_name = settings.save_tree_name;
-    options.out_tree_name = settings.save_tree_name;
-
-    //--- make plots
-    options.unit_testing = unit_testing;
-    MakePlots(options);
-}
-
 //---------------
 // MAIN FUNCTION
 //---------------
@@ -408,41 +316,41 @@ void Main() {
     bins::init_binning_histograms(); // prepare histograms
     TH1::SetDefaultSumw2(); // histogram summing option
 
-    Options settings;
+    Options options;
 
     string SUSY_folder = "/eos/atlas/atlascerngroupdisk/phys-susy/2L2J-ANA-SUSY-2018-05/SusySkim2LJets/v1.7/";
-    settings.photon_mc_path = SUSY_folder + "JETM4/JETM4_";
-    settings.photon_data_path = SUSY_folder + "JETM4/JETM4_Data/";
-    settings.bkg_mc_path = SUSY_folder + "SUSY2/SUSY2_Bkgs_";
-    settings.bkg_data_path = SUSY_folder + "SUSY2/SUSY2_Data/SUSY2_Data_v1.7/merged/";
-    //settings.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
-    //settings.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
+    options.photon_mc_path = SUSY_folder + "JETM4/JETM4_";
+    options.photon_data_path = SUSY_folder + "JETM4/JETM4_Data/";
+    options.bkg_mc_path = SUSY_folder + "SUSY2/SUSY2_Bkgs_";
+    options.bkg_data_path = SUSY_folder + "SUSY2/SUSY2_Data/SUSY2_Data_v1.7/merged/";
+    //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
+    //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
-    settings.my_samples_folder = "/public/data/Photon/Samples/";
-    //settings.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+    options.my_samples_folder = "/public/data/Photon/Samples/";
+    //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
 
-    settings.reduction_folder = settings.my_samples_folder + "ReducedNtuples/";
-    settings.smearing_folder = settings.my_samples_folder + "SmearedNtuples/";
-    settings.reweighting_folder = settings.my_samples_folder + "ReweightedNtuples/";
-    settings.plots_folder = settings.my_samples_folder + "Plots/";
+    options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
+    options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
+    options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
+    options.plots_folder = options.my_samples_folder + "DiagnosticPlots/";
 
-    settings.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
-    //settings.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
+    options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
+    //options.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
 
-    settings.save_tree_name = "BaselineTree";
+    options.tree_name = "BaselineTree";
 
-    settings.unit_testing = false;
+    options.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
-    if (settings.unit_testing) {
-        if (do_reduction) ReductionStep(settings, settings.unit_testing);
-        if (do_smearing) SmearPhotons(settings);
-        if (do_reweighting) ReweightPhotons(settings);
-        if (do_plotting) PlottingStep(settings, settings.unit_testing); 
+    if (options.unit_testing) {
+        if (do_reduction) ReductionStep(options);
+        if (do_smearing) SmearPhotons(options);
+        if (do_reweighting) ReweightPhotons(options);
+        if (do_plotting) MakePlots(options);
         return;
     }
 
@@ -460,24 +368,24 @@ void Main() {
 
                 for (auto sampleID : sampleIDs) {
                     if (sampleID == "photon") {
-                        settings.sampleID = "data";
-                        settings.is_photon = true;
+                        options.sampleID = "data";
+                        options.is_photon = true;
                     }
                     else {
-                        settings.sampleID = sampleID;
-                        if (sampleID == "SinglePhoton222") settings.is_photon = true;
-                        else if (sampleID == "Vgamma") settings.is_photon = true;
-                        else settings.is_photon = false;
+                        options.sampleID = sampleID;
+                        if (sampleID == "SinglePhoton222") options.is_photon = true;
+                        else if (sampleID == "Vgamma") options.is_photon = true;
+                        else options.is_photon = false;
                     }
-                    settings.is_data = is_data;
-                    settings.period = period;
-                    if (!settings.is_data) {
-                        if (settings.period == "data15-16") settings.period = "mc16a";
-                        else if (settings.period == "data17") settings.period = "mc16cd";
-                        else if (settings.period == "data18") settings.period = "mc16e";
+                    options.is_data = is_data;
+                    options.period = period;
+                    if (!options.is_data) {
+                        if (options.period == "data15-16") options.period = "mc16a";
+                        else if (options.period == "data17") options.period = "mc16cd";
+                        else if (options.period == "data18") options.period = "mc16e";
                     }
 
-                    ReductionStep(settings, settings.unit_testing);
+                    ReductionStep(options);
                 }
             }
         }
@@ -489,9 +397,9 @@ void Main() {
 
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
-            settings.period = period;
-            settings.data_period = DataPeriod(settings.period);
-            settings.mc_period = getMCPeriod(settings.period);
+            options.period = period;
+            options.data_period = DataPeriod(options.period);
+            options.mc_period = getMCPeriod(options.period);
 
             //vector<bool> is_datas{true, false};
             vector<string> channels{"ee", "mm"};
@@ -499,9 +407,9 @@ void Main() {
             //vector<string> channels{"mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
-                    settings.channel = channel;
-                    settings.is_data = is_data;
-                    SmearPhotons(settings);
+                    options.channel = channel;
+                    options.is_data = is_data;
+                    SmearPhotons(options);
                 }
             }
         }
@@ -509,25 +417,26 @@ void Main() {
 
     //--- reweight photons
     if (do_reweighting) {
-        settings.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
-            "Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow", "Ptll__Ht30__Zwindow"};
+        options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
+            "Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow",
+            "Ptll__Ht30__Zwindow"};
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
-            settings.period = period;
-            settings.data_period = DataPeriod(settings.period);
-            settings.mc_period = getMCPeriod(settings.period);
+            options.period = period;
+            options.data_period = DataPeriod(options.period);
+            options.mc_period = getMCPeriod(options.period);
 
             //vector<bool> is_datas{true, false};
             vector<bool> is_datas{true};
             vector<string> channels{"ee", "mm"};
             for (auto is_data : is_datas) {
                 for (auto channel : channels) {
-                    settings.channel = channel;
-                    settings.is_data = is_data;
-                    if (settings.is_data) settings.processes = {"data", "tt", "vv", "photon"};
-                    else settings.processes = {"zjets", "photon"};
-                    //ReweightingStep(settings, settings.unit_testing); 
-                    ReweightPhotons(settings);
+                    options.channel = channel;
+                    options.is_data = is_data;
+                    if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
+                    else options.processes = {"zjets", "photon"};
+                    //ReweightingStep(options, options.unit_testing); 
+                    ReweightPhotons(options);
                 }
             }
         }
@@ -535,15 +444,64 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
+        options.reweight_branch = "reweight_Ptll__Ht30";
+
+        //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
+                                         //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
+                                         //"SRMedZ6", "SRHighZ6",
+                                         ////"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
+                                         ////"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
+                                         ////"VRMedZ6", "VRHighZ6",
+                                         //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
+                                         //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
+        options.plot_regions = vector<string>{"SRLow2"};
+        //options.plot_features = vector<string>{"Ptll", "met_Et", "Ht30"};
+        options.plot_features = vector<string>{"met_Et"};
+        //options.plot_channels = vector<string>{"ee", "mm", "SF"};
+        options.plot_channels = vector<string>{"SF"};
+
+        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
+                             "Wjets", "triboson"};
+        //options.processes = {"data_bkg", "photon", "ttbar", "diboson"};
+        options.process_colors = {{"data_bkg", kBlack},
+                                 {"photon_raw", kYellow+2},
+                                 {"photon_reweighted", kGreen-1},
+                                 {"Zjets", kYellow-1},
+                                 {"Wjets", kSpring+1},
+                                 {"ttbar", kBlue+3},
+                                 {"diboson", kOrange+1},
+                                 {"lowMassDY", kGreen+4},
+                                 {"topOther", kAzure-9},
+                                 {"singleTop", kAzure+2},
+                                 {"triboson", kOrange-9},
+                                 {"higgs", kRed-10}};
+        options.process_latex = {{"data_bkg", "Data"},
+                                 {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
+                                 {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
+                                 {"Zjets", "Z+jets (from MC)"},
+                                 {"Wjets", "W+jets"},
+                                 {"ttbar", "t#bar{t}"},
+                                 {"diboson", "Diboson"},
+                                 {"lowMassDY", "Low mass DY"},
+                                 {"topOther", "Top other"},
+                                 {"singleTop", "Single top"},
+                                 {"triboson", "Triboson"},
+                                 {"higgs", "Higgs"}};
+
+        options.blinded = true;
+        options.print_photon_yield_only = false;
+
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
         //vector<bool> is_datas{true, false};
         vector<bool> is_datas{true};
         for (auto period : periods) {
-            settings.period = period;
+            options.period = period;
+            options.data_period = DataPeriod(options.period);
+            options.mc_period = getMCPeriod(options.period);
             for (auto is_data : is_datas) {
-                settings.is_data = is_data;
-                PlottingStep(settings, settings.unit_testing); 
+                options.is_data = is_data;
+                MakePlots(options);
             }
         }
     }

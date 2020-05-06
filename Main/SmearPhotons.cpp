@@ -734,7 +734,7 @@ public:
 // UNIT TESTS
 //------------
 
-Options setUnitTestOptions(Options options) {
+Options setSmearingUnitTestOptions(Options options) {
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.smearing_folder = "./";
 
@@ -753,7 +753,7 @@ Options setUnitTestOptions(Options options) {
     return options;
 }
 
-void performUnitTests(Options options) {
+void performSmearingUnitTests(Options options) {
     cout << BOLD(PBLU("Performing unit testing on smearing step")) << endl;
     cout << endl;
 
@@ -787,7 +787,7 @@ void performUnitTests(Options options) {
 
     //--- perform photon splitting and smearing
     float Z_m = 91;
-    for (int i=0; i<1000000; i++) {
+    for (int i=0; i<photon_tree->GetEntries(); i++) {
         photon_tree->GetEntry(i);
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
 
@@ -880,8 +880,8 @@ void SmearPhotons(Options options) {
     options.diagnostic_plots = false;
 
     if (options.unit_testing) {
-        options = setUnitTestOptions(options);
-        performUnitTests(options);
+        options = setSmearingUnitTestOptions(options);
+        performSmearingUnitTests(options);
     }
     else {
         cout << BOLD(PBLU("Performing smearing")) << endl;

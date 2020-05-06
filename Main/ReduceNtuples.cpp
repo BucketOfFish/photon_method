@@ -6,11 +6,11 @@ using namespace std;
 // UNIT TESTS
 //------------
 
-ReductionOptions setUnitTestOptions(ReductionOptions options) {
+Options setReductionUnitTestOptions(Options options) {
     options.in_file_name = options.unit_test_folder + "/DAOD/data15-16_bkg.root";
     options.out_file_name = "unit_test.root";
     options.in_tree_name = "BaselineTree";
-    options.out_tree_name = "BaselineTree";
+    options.tree_name = "BaselineTree";
 
     options.branches_to_copy = vector<string> {
         "channel",
@@ -44,7 +44,7 @@ ReductionOptions setUnitTestOptions(ReductionOptions options) {
     return options;
 }
 
-void performUnitTests(TTree* out_tree) {
+void performReductionUnitTests(TTree* out_tree) {
     if (out_tree->GetEntries() == 394)
         passTest("Correct number of events after cut");
     else
@@ -86,13 +86,13 @@ void performUnitTests(TTree* out_tree) {
 // MAIN FUNCTION
 //---------------
 
-void ReduceNtuples(ReductionOptions options) {
+void ReduceNtuples(Options options) {
     TreeCreator *reducer = new TreeCreator();
 
     if (options.unit_testing) {
         cout << BOLD(PBLU("Performing unit testing on reduction step")) << endl;
         cout << endl;
-        options = setUnitTestOptions(options);
+        options = setReductionUnitTestOptions(options);
     }
 
     reducer->read(options.in_file_name, options.in_tree_name);
@@ -104,12 +104,12 @@ void ReduceNtuples(ReductionOptions options) {
     reducer->setCut(options.cut);
     reducer->setFinalCut(options.final_cut);
 
-    reducer->write(options.out_file_name, options.out_tree_name);
+    reducer->write(options.out_file_name, options.tree_name);
 
     if (options.unit_testing) {
         TFile *out_file = TFile::Open(options.out_file_name.c_str());
-        TTree *out_tree = (TTree*)out_file->Get(options.out_tree_name.c_str());
-        performUnitTests(out_tree);
+        TTree *out_tree = (TTree*)out_file->Get(options.tree_name.c_str());
+        performReductionUnitTests(out_tree);
         remove(options.out_file_name.c_str());
     }
 

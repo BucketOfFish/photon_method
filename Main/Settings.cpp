@@ -488,28 +488,17 @@ public:
 
 struct Options {
     //--- filepaths
-    string bkg_mc_path;
-    string bkg_data_path;
-    string photon_mc_path;
-    string photon_data_path;
-
-    string my_samples_folder;
-    string sampling_method;
-    string reduction_folder;
-    string smearing_folder;
-    string reweighting_folder;
-    string plots_folder;
-    string unit_test_folder;
+    string bkg_mc_path, bkg_data_path, photon_mc_path, photon_data_path;
+    string my_samples_folder, sampling_method;
+    string reduction_folder, smearing_folder, reweighting_folder, plots_folder, unit_test_folder;
 
     //--- run info
-    string period;
-    string data_period;
-    string mc_period;
+    string period, data_period, mc_period;
 
     string channel;
     string type;
 
-    string save_tree_name;
+    string tree_name;
 
     bool is_photon; // vs. bkg
     bool is_data; // vs. MC
@@ -518,6 +507,16 @@ struct Options {
 
     //--- reduction options
     string sampleID;
+    string in_file_name;
+    string in_tree_name;
+    string out_file_name;
+
+    vector<string> branches_to_copy;
+    BranchRenameOptions branches_to_rename;
+    BranchAddOptions branches_to_add;
+
+    string cut;
+    string final_cut;
 
     //--- smearing options
     TCut bkg_smearing_selection;
@@ -535,63 +534,19 @@ struct Options {
     vector<string> processes;
 
     TCut reweight_region;
-};
 
-struct ReductionOptions {
-    string in_file_name;
-    string in_tree_name;
-    string out_file_name;
-    string out_tree_name;
-
-    string unit_test_folder;
-
-    vector<string> branches_to_copy;
-    BranchRenameOptions branches_to_rename;
-    BranchAddOptions branches_to_add;
-
-    string cut;
-    string final_cut;
-
-    bool unit_testing;
-};
-
-struct PlottingOptions {
-    string in_file_name;
-    string in_file_path;
-    string in_tree_name;
-    string out_file_name;
-    string out_tree_name;
-
-    string unit_test_folder;
-
-    string period;
-    string data_period;
-    string mc_period;
-    bool is_data;
-
+    //--- plotting options
     string reweight_branch;
 
-    vector<string> regions;
+    vector<string> plot_regions;
     vector<string> plot_features;
-    vector<string> channels;
+    vector<string> plot_channels;
 
-    vector<string> processes;
     map<string, int> process_colors;
     map<string, string> process_latex;
 
     bool blinded;
     bool print_photon_yield_only;
-
-    string reduction_folder;
-    string reweighting_folder;
-    string plots_folder;
-
-    vector<string> branches_to_copy;
-    BranchAddOptions branches_to_add;
-
-    bool unit_testing;
-    bool turn_off_shifting_and_smearing;
-    bool diagnostic_plots;
 };
 
 #endif

@@ -23,9 +23,9 @@ struct Result {
     float photon_SF;
 };
 struct resultsMap {
-    vector<string> regions;
-    vector<string> features;
-    vector<string> channels;
+    vector<string> plot_regions;
+    vector<string> plot_features;
+    vector<string> plot_channels;
     string period;
     map<string, Result> results; // results by [region]
 };
@@ -50,7 +50,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
     plot_region += cuts::selections[channel];
 
     TCut plot_CR = plot_region + cuts::CR;
-    plot_region += cuts::plot_region_met_portions[region];
+    if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
 
     string region_name = region + " " + channel;
 
@@ -103,7 +103,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
 // SET UP RDATAFRAMES
 //--------------------
 
-dataFrameMap getRDataFrames(PlottingOptions options) {
+dataFrameMap getRDataFrames(Options options) {
     //--- load files
     string ntuple_path = options.reduction_folder;
     string photon_path = options.reweighting_folder;
@@ -146,7 +146,7 @@ dataFrameMap getRDataFrames(PlottingOptions options) {
     return RDataFrames;
 }
 
-weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, PlottingOptions options) {
+weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, Options options) {
     map<string, string> plot_weights;
     for (auto process : options.processes)
         plot_weights[process] = cuts::bkg_weight;
@@ -171,12 +171,12 @@ weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, PlottingOptions 
     return weighted_dataframes;
 }
 
-filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, PlottingOptions options) {
+filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, Options options) {
     filteredDataFrameMap filtered_dataframes;
 
     for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
-        for (string region : options.regions) {
-            for (string channel : options.channels) {
+        for (string region : options.plot_regions) {
+            for (string channel : options.plot_channels) {
                 auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
                 auto filtered_df_plot = weighted_dataframe->Filter(plot_region);
                 auto filtered_df_CR = weighted_dataframe->Filter(plot_CR);
@@ -199,15 +199,15 @@ filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, Pl
 // FILL HISTOGRAMS
 //-----------------
 
-tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, PlottingOptions options) {
+tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, Options options) {
     cout << PBLU("setting up histograms") << endl;
     cout << endl;
 
     histMap plot_region_histograms;
     histMap control_region_histograms;
 
-    for (string region : options.regions) {
-        for (string channel : options.channels) {
+    for (string region : options.plot_regions) {
+        for (string channel : options.plot_channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
             cout << "\t" << padString("region name") << region_name << endl;
             cout << "\t" << padString("plot region") << plot_region << endl;
@@ -247,18 +247,18 @@ tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, P
     return make_tuple(plot_region_histograms, control_region_histograms);
 };
 
-resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions options) {
+resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options) {
     cout << PBLU("making histograms") << endl;
     cout << endl;
 
     auto [plot_region_histograms, control_region_histograms] = region_hists;
     resultsMap results_map;
-    results_map.regions = options.regions;
-    results_map.features = options.plot_features;
-    results_map.channels = options.channels;
+    results_map.plot_regions = options.plot_regions;
+    results_map.plot_features = options.plot_features;
+    results_map.plot_channels = options.plot_channels;
 
-    for (string region : options.regions) {
-        for (string channel : options.channels) {
+    for (string region : options.plot_regions) {
+        for (string channel : options.plot_channels) {
             auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
             cout << "\t" << padString("region name") << region_name << endl;
 
@@ -299,10 +299,6 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
                 }
             }
 
-            PR_integrals["bkg MC"] = mc_bkg_PR_integral;
-            PR_integrals["photon + bkg MC"] = PR_integrals["photon_reweighted"] + mc_bkg_PR_integral;
-            PR_integrals["Z + bkg MC"] = PR_integrals["Zjets"] + mc_bkg_PR_integral;
-
             float zdata_integral = CR_integrals["data_bkg"] - mc_bkg_CR_integral;
             if (!options.is_data) zdata_integral = CR_integrals["Zjets"];
             float SF = CR_integrals["photon_raw"] == 0 ? 0.0 : zdata_integral / CR_integrals["photon_raw"];
@@ -315,8 +311,14 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, PlottingOptions 
                 prh[plot_feature]["photon_raw"]->Scale(SF);
                 prh[plot_feature]["photon_reweighted"]->Scale(SFrw);
             }
+            PR_integrals["photon_raw"] *= SF;
+            PR_integrals["photon_reweighted"] *= SFrw;
 
-            cout << "\tPhoton yield of " << PR_integrals["photon_reweighted"] << endl;
+            PR_integrals["bkg MC"] = mc_bkg_PR_integral;
+            PR_integrals["photon + bkg MC"] = PR_integrals["photon_reweighted"] + mc_bkg_PR_integral;
+            PR_integrals["Z + bkg MC"] = PR_integrals["Zjets"] + mc_bkg_PR_integral;
+
+            cout << "\tScaled photon yield of " << PR_integrals["photon_reweighted"] << endl;
             cout << endl;
 
             map<string, map<string, TH1D*>> region_hists;
@@ -344,16 +346,16 @@ string toString(float val) {
     return out.str();
 }
 
-string getChannelString(map<string, string> channel_values, vector<string> channels) {
+string getChannelString(map<string, string> channel_values, vector<string> plot_channels) {
     string channel_string = "";
-    for (auto channel : channels) {
+    for (auto channel : plot_channels) {
         if (channel_string.length() > 0) channel_string += " / ";
         channel_string += channel_values[channel];
     }
     return channel_string;
 }
 
-void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, string save_name, bool blinded) {
+void printPhotonYieldTables(Options options, resultsMap results_map, string save_name, bool blinded) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
@@ -370,8 +372,8 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
-    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
-    string channel_string = getChannelString(channels, options.channels);
+    map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
+    string channel_string = getChannelString(plot_channels, options.plot_channels);
     out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|gcccgg}" << endl;
@@ -379,7 +381,7 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     out_file << "region & data & bkg$_{MC}$ & photon & Zjets & photon$_{tot}$ & Zjets$_{tot}$ \\\\" << endl;
     out_file << "\\hline" << endl;
 
-    for (auto region : results_map.regions) {
+    for (auto region : results_map.plot_regions) {
         out_file << region;
         for (auto process : table_processes) {
             if (process == "photon") process = "photon_reweighted";
@@ -393,7 +395,7 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
             };
             if ((process == "data_bkg") && blinded && (region.find("SR") != std::string::npos))
                 channel_yields = {{"ee", "-"}, {"mm", "-"}, {"SF", "-"}};
-            out_file << " & " << getChannelString(channel_yields, options.channels);
+            out_file << " & " << getChannelString(channel_yields, options.plot_channels);
         }
         out_file << " \\\\" << endl;
     }
@@ -407,7 +409,7 @@ void printPhotonYieldTables(PlottingOptions options, resultsMap results_map, str
     out_file.close();
 }
 
-void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_map, string save_name) {
+void printPhotonScaleFactorTables(Options options, resultsMap results_map, string save_name) {
     //--- [region_name][feature], with a dictionary of hists by process and a photon yield value
     //--- region_name can further be split into [region][channel]
     ofstream out_file;
@@ -419,20 +421,20 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
     out_file << "\\begin{document}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
-    map<string, string> channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
-    string channel_string = getChannelString(channels, results_map.channels);
+    map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
+    string channel_string = getChannelString(plot_channels, results_map.plot_channels);
     out_file << "\\caption{Photon Method Scale Factors (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c}" << endl;
     out_file << "region & photon scale factor \\\\" << endl;
     out_file << "\\hline" << endl;
 
-    for (auto region : results_map.regions) {
+    for (auto region : results_map.plot_regions) {
         float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
         float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
         float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
         map<string, string> channel_photons = {{"ee", toString(photon_ee_sf)}, {"mm", toString(photon_mm_sf)}, {"SF", toString(photon_SF_sf)}};
-        out_file << region << " & " << getChannelString(channel_photons, results_map.channels) << " \\\\" << endl;
+        out_file << region << " & " << getChannelString(channel_photons, results_map.plot_channels) << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -448,7 +450,7 @@ void printPhotonScaleFactorTables(PlottingOptions options, resultsMap results_ma
 // MAKE PLOTS
 //------------
 
-tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, PlottingOptions options) {
+tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, Options options) {
     THStack *data_stack = new THStack("data_stack", "");
     THStack *raw_g_stack = new THStack("raw_g_stack", "");
     THStack *reweight_g_stack = new THStack("reweight_g_stack", "");
@@ -524,7 +526,7 @@ TString getPlotSaveName(string period, string channel, string plot_feature, bool
     return plot_name;
 }
 
-TLegend* getLegend(PlottingOptions options, map<string, TH1D*> histograms) {
+TLegend* getLegend(Options options, map<string, TH1D*> histograms) {
     TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
     if (options.is_data) {
         leg->AddEntry(histograms["data_bkg"], options.process_latex["data_bkg"].c_str(), "lp");
@@ -550,7 +552,7 @@ TLegend* getLegend(PlottingOptions options, map<string, TH1D*> histograms) {
     return leg;
 }
 
-string getPlotTex(PlottingOptions options) {
+string getPlotTex(Options options) {
     string tex_string;
     if (TString(options.period).Contains("all")) tex_string = "139 fb^{-1} 2015-2018 data";
     if (options.is_data) {
@@ -568,7 +570,7 @@ string getPlotTex(PlottingOptions options) {
     return tex_string;
 }
 
-tuple<TH1D*, TH1D*> getRatioPlots(PlottingOptions options, map<string, TH1D*> histograms) {
+tuple<TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms) {
     TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
 
     if (options.is_data) {
@@ -634,11 +636,11 @@ tuple<TH1D*, TH1D*> getRatioPlots(PlottingOptions options, map<string, TH1D*> hi
     return make_tuple(hratio, hratio_unreweighted);
 }
 
-void makePlot(resultsMap results_map, PlottingOptions options) {
-    for (auto region : results_map.regions) {
-        for (auto channel : options.channels) {
+void makePlot(resultsMap results_map, Options options) {
+    for (auto region : results_map.plot_regions) {
+        for (auto channel : options.plot_channels) {
             string region_name = region + " " + channel;
-            for (auto feature : results_map.features) {
+            for (auto feature : results_map.plot_features) {
                 //--- draw title
                 TCanvas *can = new TCanvas("can","can",600,600);
                 can->cd();
@@ -745,9 +747,9 @@ void makePlot(resultsMap results_map, PlottingOptions options) {
 // TEST FUNCTIONS
 //----------------
 
-void run_quickDraw(PlottingOptions options);
+void run_quickDraw(Options options);
 
-void unit_tests(PlottingOptions options) {
+void performPlottingUnitTests(Options options) {
     cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
     cout << endl;
 
@@ -757,7 +759,7 @@ void unit_tests(PlottingOptions options) {
     options.reweighting_folder = options.unit_test_folder + "ReweightedNtuples/";
     options.plots_folder = "Diagnostics/Plots/";
 
-    options.regions = vector<string>{"VRDPhiLow6"};
+    options.plot_regions = vector<string>{"VRDPhiLow6"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
 
     run_quickDraw(options);
@@ -769,7 +771,7 @@ void unit_tests(PlottingOptions options) {
 // MAIN FUNCTION
 //---------------
 
-void run_quickDraw(PlottingOptions options) {
+void run_quickDraw(Options options) {
     cout << BOLD(PBLU("Making plots")) << endl;
     cout << endl;
 
@@ -799,14 +801,14 @@ void run_quickDraw(PlottingOptions options) {
         makePlot(results_map, options);
 }
 
-void MakePlots(PlottingOptions options) {
+void MakePlots(Options options) {
     //--- set global options
     //ROOT::EnableImplicitMT();
     gStyle->SetOptStat(0);
 
     //--- either perform unit tests or run code
     if (options.unit_testing)
-        unit_tests(options);
+        performPlottingUnitTests(options);
     else
         run_quickDraw(options);
 }

@@ -69,11 +69,11 @@ tuple<TFile*, TTree*> cloneTree(Options options) {
     cout << padString("Period") << options.period << endl;
     cout << padString("Channel") << options.channel << endl;
     cout << padString("Opening smeared file") << options.smearing_file_name << endl;
-    cout << padString("Reading tree") << options.save_tree_name << endl;
+    cout << padString("Reading tree") << options.tree_name << endl;
     cout << padString("Saving reweighted file") << options.reweighting_file_name << endl;
 
     TFile* input_file = new TFile(options.smearing_file_name.c_str(), "read");          
-    TTree* input_tree = (TTree*)input_file->Get(options.save_tree_name.c_str());
+    TTree* input_tree = (TTree*)input_file->Get(options.tree_name.c_str());
 
     TFile* output_file = new TFile(options.reweighting_file_name.c_str(), "recreate");          
     TTree* output_tree = input_tree->CloneTree();
@@ -97,7 +97,7 @@ map<string, TChain*> getTChains(Options options) {
 
     for (auto process : options.processes) {
         cout << padString("Opening " + process + " file") << filenames[process] << endl;
-        tchains[process] = new TChain(options.save_tree_name.c_str());
+        tchains[process] = new TChain(options.tree_name.c_str());
         tchains[process]->Add(filenames[process].c_str());
         cout << padString(process + " entries") << tchains[process]->GetEntries() << endl;
     }
@@ -282,13 +282,12 @@ void fillReweightingBranches(Options options, TTree* output_tree, map<string, Re
 // UNIT TESTS
 //------------
 
-void RunUnitTests(Options options) {
+void performReweightingUnitTests(Options options) {
     options.period = "data15-16";
     options.data_period = DataPeriod(options.period);
     options.mc_period = getMCPeriod(options.period);
     options.is_data = true;
-    if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
-    else options.processes = {"zjets", "photon"};
+    options.processes = {"data", "tt", "vv", "photon"};
     options.channel = "ee";
     options.smearing_file_name = options.unit_test_folder + "SmearedNtuples/" + options.data_period + "_data_photon_" + options.channel + ".root";
     options.reweighting_file_name = "test.root";
@@ -465,7 +464,7 @@ void ReweightSample(Options options) {
 
 void ReweightPhotons(Options options) {
     if (options.unit_testing)
-        RunUnitTests(options);
+        performReweightingUnitTests(options);
     else {
         if (options.is_data) {
             options.smearing_file_name = options.smearing_folder + options.data_period + "_data_photon_" + options.channel + ".root";
