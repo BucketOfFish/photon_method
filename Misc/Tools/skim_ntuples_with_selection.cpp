@@ -4,11 +4,12 @@
 #include <string>
 #include "../../Main/Settings.cpp"
 
-string oldpath = "/public/data/Photon/Samples/ReducedNtuples/";
-string newpath = "/public/data/Photon/Samples/ReducedNtuples/New/";
+string oldpath = "/public/data/Photon/Samples/ReweightedNtuples/";
+string newpath = "/public/data/Photon/Samples/SkimmedNtuples/VRDPhiSamples/";
 string treename = "BaselineTree";
 
-string selection = cuts::selections["bkg_baseline"].GetTitle();
+//string selection = cuts::selections["bkg_baseline"].GetTitle();
+string selection = cuts::selections["VRDPhi"].GetTitle();
 
 map<string, vector<string>> filename_sets {
     {"reweighted",
@@ -38,7 +39,7 @@ map<string, vector<string>> filename_sets {
         "mc16a_diboson.root", "mc16cd_diboson.root", "mc16e_diboson.root",
         }},
 };
-vector<string> filenames = filename_sets["reduced_diboson"];
+vector<string> filenames = filename_sets["reweighted_noMC"];
 
 void skim_ntuples_with_selection() {
     TreeCreator *reducer = new TreeCreator();
