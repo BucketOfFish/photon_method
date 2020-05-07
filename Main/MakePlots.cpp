@@ -460,32 +460,31 @@ tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, 
 
         //--- set plotting options
         if (process == "photon") {
-            histograms["photon_raw"]->SetLineColor(1); histograms["photon_reweighted"]->SetLineColor(1);
-            histograms["photon_raw"]->SetLineWidth(0); histograms["photon_reweighted"]->SetLineWidth(0);
-            histograms["photon_raw"]->SetFillColor(options.process_colors["photon_raw"]);
+            histograms["photon_reweighted"]->SetLineColor(1);
+            histograms["photon_reweighted"]->SetLineWidth(0);
             histograms["photon_reweighted"]->SetFillColor(options.process_colors["photon_reweighted"]);
+            if (options.is_data) {
+                histograms["photon_raw"]->SetLineColor(kRed);
+                histograms["photon_raw"]->SetLineStyle(9);
+                histograms["photon_raw"]->SetLineWidth(3);
+                histograms["photon_raw"]->SetFillStyle(0);
+            }
+            else {
+                histograms["photon_raw"]->SetLineColor(4);
+                histograms["photon_raw"]->SetLineStyle(2);
+                histograms["photon_raw"]->SetFillStyle(0);
+            }
         }
+        else if (process=="Zjets" && !options.is_data) {
+            histograms[process]->SetFillColor(42);
+            histograms[process]->SetLineStyle(1);
+        }
+        else if (process == "data_bkg")
+            histograms[process]->SetMarkerStyle(20);
         else {
             histograms[process]->SetLineColor(1);
             histograms[process]->SetLineWidth(0);
             histograms[process]->SetFillColor(options.process_colors[process]);
-        }
-
-        if (process == "data_bkg")
-            histograms[process]->SetMarkerStyle(20);
-
-        if (!options.is_data) {
-            if (process == "photon") {
-                histograms["photon_raw"]->SetLineColor(4);
-                histograms["photon_raw"]->SetLineStyle(2);
-                histograms["photon_raw"]->SetFillStyle(0);
-                histograms["photon_reweighted"]->SetLineColor(kRed-2);
-                histograms["photon_reweighted"]->SetFillStyle(0);
-            }
-            else if (process == "Zjets") {
-                histograms[process]->SetFillColor(42);
-                histograms[process]->SetLineStyle(1);
-            }
         }
 
         //--- turn on overflow bin
@@ -516,12 +515,12 @@ tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, 
     return make_tuple(data_stack, raw_g_stack, reweight_g_stack);
 }
 
-TString getPlotSaveName(string period, string channel, string plot_feature, bool is_data, string region, string plots_path) {
+TString getPlotSaveName(string period, string channel, string plot_feature, string reweight_branch, bool is_data, string region, string plots_path) {
     TString plot_name;
     if (is_data)
-        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
+        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), reweight_branch.c_str(), period.c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
     else
-        plot_name = Form("%s/%s_%s_%s_%s", plots_path.c_str(), getMCPeriod(period).c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
+        plot_name = Form("%s/%s_%s_%s_%s_%s", plots_path.c_str(), reweight_branch.c_str(), getMCPeriod(period).c_str(), channel.c_str(), plot_feature.c_str(), region.c_str());
     plot_name += ".eps";
     return plot_name;
 }
@@ -532,9 +531,12 @@ TLegend* getLegend(Options options, map<string, TH1D*> histograms) {
         leg->AddEntry(histograms["data_bkg"], options.process_latex["data_bkg"].c_str(), "lp");
         for (auto process : options.processes) {
             if ((process != "data_bkg") && (process != "Zjets")) {
-                if (process == "photon")
+                if (process == "photon") {
                     leg->AddEntry(histograms["photon_reweighted"],
-                                  options.process_latex["photon_reweighted"].c_str(), "f");
+                        options.process_latex["photon_reweighted"].c_str(), "f");
+                    if (options.plot_unreweighted_photons)
+                        leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
+                }
                 else
                     leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
             }
@@ -542,7 +544,8 @@ TLegend* getLegend(Options options, map<string, TH1D*> histograms) {
     }
     else {
         leg->AddEntry(histograms["Zjets"], options.process_latex["Zjets"].c_str(), "f");
-        leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
+        if (options.plot_unreweighted_photons)
+            leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
         leg->AddEntry(histograms["photon_reweighted"], options.process_latex["photon_reweighted"].c_str(), "f");
     }
 
@@ -665,7 +668,7 @@ void makePlot(resultsMap results_map, Options options) {
 
                 float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 1.5;
                 float min_y = 0;
-                vector<string> log_features = {"met_Et", "met_Sign"};
+                vector<string> log_features = {"met_Et", "METl", "METt", "met_Sign", "Ptll", "Ht30"};
                 if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
                     mainpad->SetLogy();
                     float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 50;
@@ -679,6 +682,8 @@ void makePlot(resultsMap results_map, Options options) {
                     reweight_g_stack->Draw("hist");
                     reweight_g_stack->SetMaximum(max_y);
                     reweight_g_stack->SetMinimum(min_y);
+                    if (options.plot_unreweighted_photons)
+                        raw_g_stack->GetStack()->Last()->Draw("samehist");
                     if (!applicable_blinded)
                         data_stack->Draw("sameE1");
                     reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
@@ -688,7 +693,8 @@ void makePlot(resultsMap results_map, Options options) {
                     data_stack->Draw("hist");
                     data_stack->SetMaximum(max_y);
                     data_stack->SetMinimum(min_y);
-                    raw_g_stack->Draw("samehist");
+                    if (options.plot_unreweighted_photons)
+                        raw_g_stack->GetStack()->Last()->Draw("samehist");
                     reweight_g_stack->Draw("samehist");
                     data_stack->GetXaxis()->SetTitle(formatted_feature);
                     data_stack->GetYaxis()->SetTitle("entries / bin");
@@ -726,13 +732,13 @@ void makePlot(resultsMap results_map, Options options) {
                     tex->DrawLatex(0.42,0.42,"BLINDED");
                 }
                 else {
-                    if (!options.is_data)
+                    if (options.plot_unreweighted_photons)
                         hratio_unreweighted->Draw("E1");
                     hratio->Draw("sameE1");
                 }
 
                 //--- save plot
-                TString plot_name = getPlotSaveName(options.data_period, channel, feature, options.is_data, region, options.plots_folder);
+                TString plot_name = getPlotSaveName(options.data_period, channel, feature, options.reweight_branch, options.is_data, region, options.plots_folder);
                 can->Print(plot_name);
 
                 //--- clean up
@@ -788,13 +794,13 @@ void run_quickDraw(Options options) {
     resultsMap results_map = fillHistograms(region_hists, options);
 
     //--- print photon yield tables
-    TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", options.is_data,
-                                        "allRegions", options.plots_folder);
+    TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", options.reweight_branch,
+                            options.is_data, "allRegions", options.plots_folder);
     string type = options.is_data ? "Data" : "MC";
     printPhotonYieldTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                           type + "_yields_" + options.reweight_branch + ".txt", options.blinded);
+                            type + "_yields_" + options.reweight_branch + ".txt", options.blinded);
     printPhotonScaleFactorTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                                 type + "_scale_factors_" + options.reweight_branch + ".txt");
+                            type + "_scale_factors_" + options.reweight_branch + ".txt");
 
     //--- draw and save plot
     if (!options.print_photon_yield_only)

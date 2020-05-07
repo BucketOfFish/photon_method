@@ -547,6 +547,8 @@ struct Options {
 
     bool blinded;
     bool print_photon_yield_only;
+
+    bool plot_unreweighted_photons;
 };
 
 #endif

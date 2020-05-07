@@ -237,7 +237,8 @@ void fillReweightingBranches(Options options, TTree* output_tree, map<string, Re
         }
         rw_weight_vals[unsplit_var] = 0.0;
         string branch_name = "reweight_" + unsplit_var;
-        rw_branches[unsplit_var] = output_tree->Branch(branch_name.c_str(), &rw_weight_vals[unsplit_var], (branch_name + "/F").c_str());
+        rw_branches[unsplit_var] = output_tree->Branch(branch_name.c_str(), &rw_weight_vals[unsplit_var],
+            (branch_name + "/F").c_str());
     }
 
     //--- fill new branches
@@ -253,10 +254,12 @@ void fillReweightingBranches(Options options, TTree* output_tree, map<string, Re
                 int feature_bin = 0;
                 while (true) {
                     if (bins::reweighting_type.at(reweight_var) == INT) {
-                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] > rw_feature_vals[reweight_var].int_val) break;
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] >
+                            rw_feature_vals[reweight_var].int_val) break;
                     }
                     else if (bins::reweighting_type.at(reweight_var) == FLOAT) {
-                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] > rw_feature_vals[reweight_var].float_val) break;
+                        if (bins::reweighting_bins.at(reweight_var)[feature_bin] >
+                            rw_feature_vals[reweight_var].float_val) break;
                     }
                     feature_bin++;
                     if (feature_bin >= bins::n_reweighting_bins.at(reweight_var)) break;
@@ -266,7 +269,8 @@ void fillReweightingBranches(Options options, TTree* output_tree, map<string, Re
             if (split_vars.size() == 1)
                 rw_weight_vals[unsplit_var] = reweight_hists[unsplit_var].h1d->GetBinContent(feature_bins[0]);
             else if (split_vars.size() == 2)
-                rw_weight_vals[unsplit_var] = reweight_hists[unsplit_var].h2d->GetBinContent(feature_bins[0], feature_bins[1]);
+                rw_weight_vals[unsplit_var] = reweight_hists[unsplit_var].h2d->GetBinContent(feature_bins[0],
+                    feature_bins[1]);
             //float gamma_var_truncated = rw_branches[unsplit_var];
             //if(gamma_var_truncated < reweighting_bins[0]) gamma_var_truncated = reweighting_bins[0];
             //if(gamma_var_truncated > reweighting_bins[n_reweighting_bins]) gamma_var_truncated = reweighting_bins[n_reweighting_bins];
