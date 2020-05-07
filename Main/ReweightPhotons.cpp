@@ -262,7 +262,7 @@ void fillReweightingBranches(Options options, TTree* output_tree, map<string, Re
                             rw_feature_vals[reweight_var].float_val) break;
                     }
                     feature_bin++;
-                    if (feature_bin >= bins::n_reweighting_bins.at(reweight_var)) break;
+                    if (feature_bin > bins::n_reweighting_bins.at(reweight_var)) break;
                 }
                 feature_bins.push_back(feature_bin);
             }

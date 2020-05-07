@@ -232,7 +232,6 @@ namespace bins {
         {"nJet30", INT},
         {"Ht30", FLOAT},
     };
-
     const map<string, int> n_reweighting_bins = {
         {"Ptll", 22},
         {"nBJet20_MV2c10_FixedCutBEff_77", 10},
@@ -241,8 +240,8 @@ namespace bins {
     };
     const map<string, vector<double>> reweighting_bins = {
         {"Ptll", {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600}},
-        {"nBJet20_MV2c10_FixedCutBEff_77", {0,1,2,3,4,5,6,7,8,9,10,100}},
-        {"nJet30", {0,1,2,3,4,5,6,7,8,9,10,100}},
+        {"nBJet20_MV2c10_FixedCutBEff_77", {0,1,2,3,4,5,6,7,8,9,10}},
+        {"nJet30", {0,1,2,3,4,5,6,7,8,9,10}},
         {"Ht30", {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600}},
     };
 
