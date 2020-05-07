@@ -221,16 +221,15 @@ namespace bins {
     double smearing_low = -2000;
     double smearing_high = 2000;
 
-    const int n_pt_bins = 23;
-    double pt_bins[] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1000,1e10};
-    double MET_bins[] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
-    double dphi_bin[] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
-
     const map<string, int> reweighting_type = {
         {"Ptll", FLOAT},
         {"nBJet20_MV2c10_FixedCutBEff_77", INT},
         {"nJet30", INT},
         {"Ht30", FLOAT},
+        {"METl", FLOAT},
+        {"met_Et", FLOAT},
+        {"dPhi", FLOAT},
+        {"mll", FLOAT},
     };
 
     const map<string, int> n_reweighting_bins = {
@@ -238,23 +237,38 @@ namespace bins {
         {"nBJet20_MV2c10_FixedCutBEff_77", 10},
         {"nJet30", 10},
         {"Ht30", 22},
+        //{"METl", 25},
+        {"METl", 10},
+        {"met_Et", 23},
+        {"dPhi", 23},
+        {"mll", 43},
     };
     const map<string, vector<double>> reweighting_bins = {
         {"Ptll", {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600}},
         {"nBJet20_MV2c10_FixedCutBEff_77", {0,1,2,3,4,5,6,7,8,9,10,100}},
         {"nJet30", {0,1,2,3,4,5,6,7,8,9,10,100}},
         {"Ht30", {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600}},
+        //{"METl", {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10}},
+        {"METl", {-1000,-700,-500,-300,-100,0,100,300,500,700,1000}},
+        {"met_Et", {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10}},
+        {"dPhi", {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10}},
+        {"mll", {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800}},
     };
-
-    const int n_METl_bins = 25;
-    double METl_bins[] = {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10};
 
     const int n_mll_bins = 43;
     double mll_bin[] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
 
+    const int n_pt_bins = 23;
+    double pt_bins[] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1000,1e10};
+    double MET_bins[] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
+    double dphi_bin[] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
+
+    const int n_METl_bins = 10;
+    double METl_bins[] = {-1000,-700,-500,-300,-100,0,100,300,500,700,1000};
+
     TH1D *hist_METl_bins, *hist_pt_bins, *hist_MET_bins;
     void init_binning_histograms() {
-        hist_METl_bins = new TH1D("hist_METl_bins","",n_METl_bins,METl_bins);
+        hist_METl_bins = new TH1D("hist_METl_bins","",n_pt_bins,METl_bins);
         hist_pt_bins = new TH1D("hist_pt_bins","",n_pt_bins,pt_bins);
         hist_MET_bins = new TH1D("hist_MET_bins","",n_pt_bins,MET_bins); //hist_MET_bins->SetStats(0);
     }
@@ -490,7 +504,7 @@ struct Options {
     //--- filepaths
     string bkg_mc_path, bkg_data_path, photon_mc_path, photon_data_path;
     string my_samples_folder, sampling_method;
-    string reduction_folder, smearing_folder, reweighting_folder, plots_folder, unit_test_folder;
+    string reduction_folder, splitting_folder, smearing_folder, reweighting_folder, plots_folder, unit_test_folder;
 
     //--- run info
     string period, data_period, mc_period;

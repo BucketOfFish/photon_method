@@ -39,16 +39,16 @@ public:
         TH1::SetDefaultSumw2();
 
         if (options.run_vgamma) {
-            this->in_file_name = options.reduction_folder + options.mc_period + "_Vgamma.root";
+            this->in_file_name = options.splitting_folder + options.mc_period + "_Vgamma.root";
             this->out_file_name = options.smearing_folder + options.mc_period + "_Vgamma_" + options.channel + ".root";
         }
         else {
             if (options.is_data) {
-                this->in_file_name = options.reduction_folder + options.data_period + "_data_photon.root";
+                this->in_file_name = options.splitting_folder + options.data_period + "_data_photon.root";
                 this->out_file_name = options.smearing_folder + options.data_period + "_data_photon_" + options.channel + ".root"; 
             }
             else {
-                this->in_file_name = options.reduction_folder + options.mc_period + "_SinglePhoton222.root";
+                this->in_file_name = options.splitting_folder + options.mc_period + "_SinglePhoton222.root";
                 this->out_file_name = options.smearing_folder + options.mc_period + "_SinglePhoton222_" + options.channel + ".root";
             }
         }
@@ -59,8 +59,6 @@ public:
         cout << "smearing output        : " << this->out_file_name   << endl;
 
         // run on MC Vgamma if option is set
-        if (options.run_vgamma) this->in_file_name = options.reduction_folder + options.mc_period + "_Vgamma.root";
-
         this->inputTree = new TChain("BaselineTree");
         this->inputTree->Add(this->in_file_name.c_str());
 
@@ -256,10 +254,10 @@ public:
         //--- open files and create TChains
         TTree *ttree_data, *ttree_tt, *ttree_vv, *ttree_zjets;
 
-        string data_filename = options.reduction_folder + options.data_period + "_data_bkg.root";
-        string tt_filename = options.reduction_folder + options.mc_period + "_ttbar.root";
-        string vv_filename = options.reduction_folder + options.mc_period + "_diboson.root";
-        string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
+        string data_filename = options.splitting_folder + options.data_period + "_data_bkg.root";
+        string tt_filename = options.splitting_folder + options.mc_period + "_ttbar.root";
+        string vv_filename = options.splitting_folder + options.mc_period + "_diboson.root";
+        string zjets_filename = options.splitting_folder + options.mc_period + "_Zjets.root";
 
         cout << "Opening data file      : " << data_filename << endl;
         ttree_data = (TTree*)(new TFile(data_filename.c_str()))->Get("BaselineTree");
@@ -367,10 +365,10 @@ public:
         cout << endl;
 
         //--- set up histograms and input files
-        TFile* data_file = new TFile((this->options.reduction_folder + this->options.data_period + "_data_bkg.root").c_str());
-        TFile* ttbar_mc_file = new TFile((this->options.reduction_folder + this->options.mc_period + "_ttbar.root").c_str());
-        TFile* diboson_mc_file = new TFile((this->options.reduction_folder + this->options.mc_period + "_diboson.root").c_str());
-        TFile* Z_mc_file = new TFile((this->options.reduction_folder + this->options.mc_period + "_Zjets.root").c_str());
+        TFile* data_file = new TFile((this->options.splitting_folder + this->options.data_period + "_data_bkg.root").c_str());
+        TFile* ttbar_mc_file = new TFile((this->options.splitting_folder + this->options.mc_period + "_ttbar.root").c_str());
+        TFile* diboson_mc_file = new TFile((this->options.splitting_folder + this->options.mc_period + "_diboson.root").c_str());
+        TFile* Z_mc_file = new TFile((this->options.splitting_folder + this->options.mc_period + "_Zjets.root").c_str());
         TFile* photon_file = new TFile(this->in_file_name.c_str());
 
         //--- z samples
@@ -735,7 +733,7 @@ public:
 //------------
 
 Options setSmearingUnitTestOptions(Options options) {
-    options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
+    options.splitting_folder = options.unit_test_folder + "SplitNtuples/";
     options.smearing_folder = "./";
 
     options.period = "data15-16";
@@ -774,8 +772,8 @@ void performSmearingUnitTests(Options options) {
 
     //--- open photon files
     string in_file_name;
-    if (options.is_data) in_file_name = options.reduction_folder + options.data_period + "_data_photon.root";
-    else in_file_name = options.reduction_folder + options.mc_period + "_SinglePhoton222.root";
+    if (options.is_data) in_file_name = options.splitting_folder + options.data_period + "_data_photon.root";
+    else in_file_name = options.splitting_folder + options.mc_period + "_SinglePhoton222.root";
     TFile *photon_file = new TFile(in_file_name.c_str());
     TTree *photon_tree = (TTree*)photon_file->Get("BaselineTree");
 
@@ -876,9 +874,6 @@ void performSmearingUnitTests(Options options) {
 //---------------
 
 void SmearPhotons(Options options) {
-    options.turn_off_shifting_and_smearing = false;
-    options.diagnostic_plots = false;
-
     if (options.unit_testing) {
         options = setSmearingUnitTestOptions(options);
         performSmearingUnitTests(options);

@@ -1,5 +1,6 @@
 #include "Settings.cpp"
 #include "ReduceNtuples.cpp"
+#include "SplitPhotons.cpp"
 #include "SmearPhotons.cpp"
 //#include "InProgress/SmearPhotons.cpp"
 #include "ReweightPhotons.cpp"
@@ -311,7 +312,7 @@ void initSmearingFunctions() {
 //---------------
 
 void Main() {
-    //ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
+    ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
     gErrorIgnoreLevel = kWarning; // turn off info dumps
     bins::init_binning_histograms(); // prepare histograms
     TH1::SetDefaultSumw2(); // histogram summing option
@@ -323,13 +324,16 @@ void Main() {
     options.photon_data_path = SUSY_folder + "JETM4/JETM4_Data/";
     options.bkg_mc_path = SUSY_folder + "SUSY2/SUSY2_Bkgs_";
     options.bkg_data_path = SUSY_folder + "SUSY2/SUSY2_Data/SUSY2_Data_v1.7/merged/";
-    //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
-    //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
+    //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/" +
+        //"2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
+    //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/" +
+        //"2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
     options.my_samples_folder = "/public/data/Photon/Samples/";
     //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
+    options.splitting_folder = options.my_samples_folder + "SplitNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
     options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
     options.plots_folder = options.my_samples_folder + "DiagnosticPlots/";
@@ -341,13 +345,15 @@ void Main() {
 
     options.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = true;
+    bool do_splitting = true;
+    bool do_smearing = false;
     bool do_reweighting = false;
     bool do_plotting = false;
 
     //--- unit testing
     if (options.unit_testing) {
         if (do_reduction) ReductionStep(options);
+        if (do_splitting) SplitPhotons(options);
         if (do_smearing) SmearPhotons(options);
         if (do_reweighting) ReweightPhotons(options);
         if (do_plotting) MakePlots(options);
@@ -391,10 +397,29 @@ void Main() {
         }
     }
 
+    //--- split photons
+    if (do_splitting) {
+        vector<string> periods{"data15-16", "data17", "data18"};
+        for (auto period : periods) {
+            options.period = period;
+            options.data_period = DataPeriod(options.period);
+            options.mc_period = getMCPeriod(options.period);
+
+            vector<string> channels{"ee", "mm"};
+            //vector<string> channels{"mm"};
+            for (auto channel : channels) {
+                options.channel = channel;
+                SplitPhotons(options);
+            }
+        }
+    }
+
     //--- smear photons
     if (do_smearing) {
-        initSmearingFunctions();
+        options.turn_off_shifting_and_smearing = false;
+        options.diagnostic_plots = false;
 
+        //initSmearingFunctions();
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
             options.period = period;

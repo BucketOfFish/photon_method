@@ -34,7 +34,7 @@ struct resultsMap {
 // HELPER FUNCTIONS
 //------------------
 
- vector<string> splitStringBy(string input, string splitter) {
+vector<string> splitStringBy(string input, string splitter) {
     vector<string> output;
     boost::algorithm::split(output, input, boost::is_any_of(splitter));
     return output;
