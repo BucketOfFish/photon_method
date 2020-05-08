@@ -444,26 +444,20 @@ void Main() {
 
     //--- make plots
     if (do_plotting) {
-        options.reweight_branch = "reweight_Ptll";
+        //options.reweight_branch = "reweight_Ptll";
 
-        //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLow23", "SRMed23", "SRHigh23",
-                                         //"SRLow4", "SRMed4", "SRHigh4", "SRLowZ4", "SRMedZ4", "SRHighZ4", "SRLowZ6",
-                                         //"SRMedZ6", "SRHighZ6",
-                                         ////"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLow23", "VRMed23", "VRHigh23",
-                                         ////"VRLow4", "VRMed4", "VRHigh4", "VRLowZ4", "VRMedZ4", "VRHighZ4", "VRLowZ6",
-                                         ////"VRMedZ6", "VRHighZ6",
-                                         //"VRDPhiLow2", "VRDPhiMed2", "VRDPhiHigh2",
-                                         //"VRDPhiLow6", "VRDPhiMed6", "VRDPhiHigh6"};
-        options.plot_regions = vector<string>{"reweight"};
-        options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
-            "bjet_n", "jet_eta", "jet_phi", "lepEta", "lepPhi", "lepPt", "mt2leplsp_0"};
-        //options.plot_features = vector<string>{"met_Et"};
+        //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
+                                        //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
+        options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow};
+        //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
+            //"bjet_n", "jet_eta", "jet_phi", [>"lepEta",<] "lepPhi", "lepPt", "mt2leplsp_0"};
+        options.plot_features = vector<string>{"dPhiPllMet"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
-        options.plot_channels = vector<string>{"SF"};
+        options.plot_channels = vector<string>{"ee", "mm"};
 
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
-        options.processes = {"data_bkg", "photon", "ttbar", "diboson"};
+        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
         options.process_colors = {{"data_bkg", kBlack},
                                  {"photon_raw", kYellow+2},
                                  {"photon_reweighted", kGreen-1},
@@ -503,7 +497,10 @@ void Main() {
             options.mc_period = getMCPeriod(options.period);
             for (auto is_data : is_datas) {
                 options.is_data = is_data;
-                MakePlots(options);
+                for (auto reweight_branch : {"reweight_Ptll", "reweight_Ptll__Ht30"}) {
+                    options.reweight_branch = reweight_branch;
+                    MakePlots(options);
+                }
             }
         }
     }

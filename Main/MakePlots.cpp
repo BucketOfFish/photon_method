@@ -102,6 +102,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["dPhiMetJet1"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet2"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet12Min"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{min(1,2)},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["dPhiPllMet"] = ROOT::RDF::TH1DModel("", "#Delta#phi(p_{T},E_{T}^{miss})", 20, 0, 3.14);
 
     ROOT::RDF::TH1DModel hist_model = plot_settings[plot_feature];
     return hist_model;
@@ -807,10 +808,10 @@ void run_quickDraw(Options options) {
     TString plot_name = getPlotSaveName(options.data_period, "yields", "allFeatures", options.reweight_branch,
                             options.is_data, "allRegions", options.plots_folder);
     string type = options.is_data ? "Data" : "MC";
-    printPhotonYieldTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                            type + "_yields_" + options.reweight_branch + ".txt", options.blinded);
-    printPhotonScaleFactorTables(options, results_map, options.plots_folder + options.data_period + "_" +
-                            type + "_scale_factors_" + options.reweight_branch + ".txt");
+    printPhotonYieldTables(options, results_map, options.plots_folder + options.reweight_branch + "_" +
+            options.data_period + "_" + type + "_yields.txt", options.blinded);
+    printPhotonScaleFactorTables(options, results_map, options.plots_folder + options.reweight_branch + "_" +
+            options.data_period + "_" + type + "_scale_factors.txt");
 
     //--- draw and save plot
     if (!options.print_photon_yield_only)
