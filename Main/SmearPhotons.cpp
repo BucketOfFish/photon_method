@@ -254,22 +254,9 @@ public:
         gStyle->SetOptStat(0);
 
         //--- open files and create TChains
-        TTree *ttree_data, *ttree_tt, *ttree_vv, *ttree_zjets;
-
-        string data_filename = options.reduction_folder + options.data_period + "_data_bkg.root";
-        string tt_filename = options.reduction_folder + options.mc_period + "_ttbar.root";
-        string vv_filename = options.reduction_folder + options.mc_period + "_diboson.root";
+        TTree *ttree_zjets;
         string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
 
-        cout << "Opening data file      : " << data_filename << endl;
-        ttree_data = (TTree*)(new TFile(data_filename.c_str()))->Get("BaselineTree");
-        cout << "data entries           : " << ttree_data->GetEntries() << endl;
-        cout << "Opening ttbar file     : " << tt_filename << endl;
-        ttree_tt = (TTree*)(new TFile(tt_filename.c_str()))->Get("BaselineTree");
-        cout << "ttbar entries          : " << ttree_tt->GetEntries() << endl;
-        cout << "Opening diboson file   : " << vv_filename << endl;
-        ttree_vv = (TTree*)(new TFile(vv_filename.c_str()))->Get("BaselineTree");
-        cout << "diboson entries        : " << ttree_vv->GetEntries() << endl;
         cout << "Opening Z+jets file    : " << zjets_filename << endl;
         ttree_zjets = (TTree*)(new TFile(zjets_filename.c_str()))->Get("BaselineTree");
         cout << "Z+jets entries         : " << ttree_zjets->GetEntries() << endl;
