@@ -137,6 +137,10 @@ dataFrameMap getRDataFrames(Options options) {
                     filenames = {photon_path + getMCPeriod(period) + "_SinglePhoton222_ee.root",
                                  photon_path + getMCPeriod(period) + "_SinglePhoton222_mm.root"};
             }
+            else if (process == "Vgamma") {
+                filenames = {photon_path + getMCPeriod(period) + "_Vgamma_ee.root",
+                             photon_path + getMCPeriod(period) + "_Vgamma_mm.root"};
+            }
             for (auto filename : filenames) {
                 cout << "\t" << filename << endl;
                 tchains[process]->Add(filename.c_str());
@@ -166,7 +170,7 @@ weightedDataFrameMap weightRDataFrames(dataFrameMap dataframes, Options options)
 
     weightedDataFrameMap weighted_dataframes;
     for (auto process : options.processes) {
-        if (process == "photon") {
+        if (process == "photon" || process == "Vgamma") {
             auto weighted_dataframe = dataframes[process]->Define("plot_raw_weight", plot_weights["photon_raw"])
                                                 .Define("plot_reweighted_weight", plot_weights["photon_reweighted"]);
             using DFType = decltype(weighted_dataframe);
@@ -227,17 +231,17 @@ tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, O
             for (auto plot_feature : options.plot_features) {
                 for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
                     ROOT::RDF::TH1DModel hist_model = getHistogramInfo(plot_feature);
-                    if (process == "photon") {
-                        plot_region_histograms[region_name][plot_feature]["photon_raw"] =
+                    if (process == "photon" || process == "Vgamma") {
+                        plot_region_histograms[region_name][plot_feature][process+"_raw"] =
                                             weighted_dataframe->Filter(plot_region)
                                             .Histo1D(hist_model, plot_feature, "plot_raw_weight");
-                        plot_region_histograms[region_name][plot_feature]["photon_reweighted"] =
+                        plot_region_histograms[region_name][plot_feature][process+"_reweighted"] =
                                             weighted_dataframe->Filter(plot_region)
                                             .Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
-                        control_region_histograms[region_name][plot_feature]["photon_raw"] =
+                        control_region_histograms[region_name][plot_feature][process+"_raw"] =
                                             weighted_dataframe->Filter(plot_CR)
                                             .Histo1D(hist_model, plot_feature, "plot_raw_weight");
-                        control_region_histograms[region_name][plot_feature]["photon_reweighted"] =
+                        control_region_histograms[region_name][plot_feature][process+"_reweighted"] =
                                             weighted_dataframe->Filter(plot_CR)
                                             .Histo1D(hist_model, plot_feature, "plot_reweighted_weight");
                     }
@@ -281,6 +285,15 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
             int nbins = getHistogramInfo(first_feature).fNbinsX;
             auto fullInt = [nbins](TH1D* hist) {return hist->Integral(0, nbins+1);};
 
+            //--- Vgamma subtraction
+            if (options.do_vgamma_subtraction) {
+                prh[plot_feature]["photon_raw"]->Add(prh[plot_feature]["Vgamma_raw"], -1.0);
+                crh[plot_feature]["photon_raw"]->Add(crh[plot_feature]["Vgamma_raw"], -1.0);
+                prh[plot_feature]["photon_reweighted"]->Add(prh[plot_feature]["Vgamma_reweighted"], -1.0);
+                crh[plot_feature]["photon_reweighted"]->Add(crh[plot_feature]["Vgamma_reweighted"], -1.0);
+            }
+
+            //--- scaling
             map<string, float> CR_integrals;
             map<string, float> PR_integrals;
             float mc_bkg_CR_integral = 0.0;

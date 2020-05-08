@@ -555,6 +555,7 @@ struct Options {
     bool blinded;
     bool print_photon_yield_only;
 
+    bool do_vgamma_subtraction;
     bool plot_unreweighted_photons;
 };
 

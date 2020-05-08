@@ -420,6 +420,7 @@ void Main() {
         options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
             "Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow",
             "Ptll__Ht30__Zwindow"};
+
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
             options.period = period;
@@ -458,7 +459,7 @@ void Main() {
 
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
-        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
+        options.processes = {"data_bkg", "photon", "Vgamma", "Zjets", "ttbar", "diboson"};
         options.process_colors = {{"data_bkg", kBlack},
                                  {"photon_raw", kYellow+2},
                                  {"photon_reweighted", kGreen-1},
@@ -487,6 +488,7 @@ void Main() {
         options.blinded = true;
         options.print_photon_yield_only = false;
         options.plot_unreweighted_photons = true;
+        options.do_vgamma_subtraction = true;
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
