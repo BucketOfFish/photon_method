@@ -98,6 +98,8 @@ namespace cuts {
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
 
         {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
+        {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && (mll>81 && mll<101)" + is_SF},
+        {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0" + is_SF},
 
         {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
@@ -157,11 +159,15 @@ namespace cuts {
 
     TCut CR("met_Et<100.0");
 
+    //std::unordered_map<std::string, TCut> plot_region_met_portions = {};
     std::unordered_map<std::string, TCut> plot_region_met_portions = {
         {"Inclusive", "1"},
         {"SRTest", "1"},
         {"VRTest", "1"},
         {"VRcom", "(met_Et>100 && met_Et<200)"},
+
+        {"VRZjets", "(met_Et>100 && met_Et<200)"},
+        {"VRZjets_noZwindow", "(met_Et>100 && met_Et<200)"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
         {"SRZ2016", "met_Et>225"},
