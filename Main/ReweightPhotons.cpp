@@ -186,20 +186,20 @@ ReweightHist getReweightingRatioHist(Options options, map<string, ReweightHist> 
     }
 
     if (hratio.dim == 1) {
-        float photon_integral = hists["photon"].h1d->Integral(0, hists["photon"].h1d->GetNbinsX()+1);
-        float bkg_integral = hratio.h1d->Integral(0, hratio.h1d->GetNbinsX()+1);
-        cout << "\t" << padString("photon integral") << photon_integral << endl;
-        cout << "\t" << padString("bkg integral") << bkg_integral << endl;
-        hratio.h1d->Scale(photon_integral/bkg_integral);
+        //float photon_integral = hists["photon"].h1d->Integral(0, hists["photon"].h1d->GetNbinsX()+1);
+        //float bkg_integral = hratio.h1d->Integral(0, hratio.h1d->GetNbinsX()+1);
+        //cout << "\t" << padString("photon integral") << photon_integral << endl;
+        //cout << "\t" << padString("bkg integral") << bkg_integral << endl;
+        //hratio.h1d->Scale(photon_integral/bkg_integral);
         hratio.h1d->Divide(hists["photon"].h1d);
         hratio.h1d->Write(("ratio_" + reweight_var).c_str());
     }
     else if (hratio.dim == 2) {
-        float photon_integral = hists["photon"].h2d->Integral(0, hists["photon"].h2d->GetNbinsX()+1, 0, hists["photon"].h2d->GetNbinsY()+1);
-        float bkg_integral = hratio.h2d->Integral(0, hratio.h2d->GetNbinsX()+1, 0, hratio.h2d->GetNbinsY()+1);
-        cout << "\t" << padString("photon integral") << photon_integral << endl;
-        cout << "\t" << padString("bkg integral") << bkg_integral << endl;
-        hratio.h2d->Scale(photon_integral/bkg_integral);
+        //float photon_integral = hists["photon"].h2d->Integral(0, hists["photon"].h2d->GetNbinsX()+1, 0, hists["photon"].h2d->GetNbinsY()+1);
+        //float bkg_integral = hratio.h2d->Integral(0, hratio.h2d->GetNbinsX()+1, 0, hratio.h2d->GetNbinsY()+1);
+        //cout << "\t" << padString("photon integral") << photon_integral << endl;
+        //cout << "\t" << padString("bkg integral") << bkg_integral << endl;
+        //hratio.h2d->Scale(photon_integral/bkg_integral);
         hratio.h2d->Divide(hists["photon"].h2d);
         hratio.h2d->Write(("ratio_" + reweight_var).c_str());
     }
