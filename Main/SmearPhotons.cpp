@@ -600,6 +600,7 @@ public:
         float DR_2Lep; outputTree->Branch("DR_2Lep", &DR_2Lep, "DR_2Lep/F");
         int photon_conversion_type; CopyBranch(inputTree, outputTree, "PhotonConversionType", "PhotonConversionType", &photon_conversion_type, "I");
         float lep_theta_cm; outputTree->Branch("Z_cm_lep_theta", &lep_theta_cm, "Z_cm_lep_theta/F");
+        float dPhiPllMet; outputTree->Branch("dPhiPllMet", &dPhiPllMet, "dPhiPllMet/F");
 
         //--- HistFitter branches
         vector<string> histFitterBranches {"DatasetNumber/I", "H2PP/D", "H5PP/D", "H5PP_VR/D",
@@ -712,6 +713,7 @@ public:
             DPhi_METLepLeading_smeared = fabs(MET_smeared_4vec.DeltaPhi(l0_lab_4vec));
             DPhi_METLepSecond_smeared = fabs(MET_smeared_4vec.DeltaPhi(l1_lab_4vec));
             DR_2Lep = l0_lab_4vec.DeltaR(l1_lab_4vec);
+            dPhiPllMet = fabs(MET_smeared_4vec.DeltaPhi(l0_lab_4vec + l1_lab_4vec));
 
             outputTree->Fill();
         }
