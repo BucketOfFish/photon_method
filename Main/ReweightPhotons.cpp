@@ -164,18 +164,21 @@ ReweightHist getReweightingRatioHist(Options options, map<string, ReweightHist> 
     if (options.is_data) {
         if (hratio.dim == 1) {
             hratio.h1d = (TH1F*) hists["data"].h1d->Clone(("hratio_" + reweight_var).c_str());
-            hratio.h1d->Add(hists["tt"].h1d, -1.0);
-            hratio.h1d->Add(hists["vv"].h1d, -1.0);
-            //hists["data"].h1d->Write("data_2D.png");
-            //hists["tt"].h1d->Write("tt_2D.png");
-            //hists["vv"].h1d->Write("vv_2D.png");
-            //hratio.h1d->Write("total_2D.png");
-            //hists["photon"].h1d->Write("photon_2D.png");
+            for (auto process : options.processes) {
+                //hists[process].h1d->Write((process+"_1D.png").c_str());
+                if (process != "data" && process != "photon")
+                    hratio.h1d->Add(hists[process].h1d, -1.0);
+            }
+            //hratio.h1d->Write("total_1D.png");
         }
         else if (hratio.dim == 2) {
             hratio.h2d = (TH2F*) hists["data"].h2d->Clone(("hratio_" + reweight_var).c_str());
-            hratio.h2d->Add(hists["tt"].h2d, -1.0);
-            hratio.h2d->Add(hists["vv"].h2d, -1.0);
+            for (auto process : options.processes) {
+                //hists[process].h2d->Write((process+"_2D.png").c_str());
+                if (process != "data" && process != "photon")
+                    hratio.h2d->Add(hists[process].h2d, -1.0);
+            }
+            //hratio.h2d->Write("total_2D.png");
         }
     }
     else {

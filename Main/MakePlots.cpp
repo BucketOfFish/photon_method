@@ -48,6 +48,7 @@ tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
     TCut plot_region = cuts::selections[region];
 
     plot_region += cuts::selections[channel];
+    plot_region += options.additional_plot_cut;
 
     TCut plot_CR = plot_region + cuts::CR;
     if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
@@ -186,7 +187,7 @@ filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, Op
     for (auto const& [process, weighted_dataframe] : *WRDataFramesPtr) {
         for (string region : options.plot_regions) {
             for (string channel : options.plot_channels) {
-                auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
+                auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(options, channel, region);
                 auto filtered_df_plot = weighted_dataframe->Filter(plot_region);
                 auto filtered_df_CR = weighted_dataframe->Filter(plot_CR);
                 using DFType = decltype(filtered_df_plot);
@@ -217,7 +218,7 @@ tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, O
 
     for (string region : options.plot_regions) {
         for (string channel : options.plot_channels) {
-            auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
+            auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(options, channel, region);
             cout << "\t" << padString("region name") << region_name << endl;
             cout << "\t" << padString("plot region") << plot_region << endl;
             cout << "\t" << padString("normalization reg.") << plot_CR << endl;
@@ -268,7 +269,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
 
     for (string region : options.plot_regions) {
         for (string channel : options.plot_channels) {
-            auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(channel, region);
+            auto [region_name, plot_region, plot_CR] = getPlotRegionInfo(options, channel, region);
             cout << "\t" << padString("region name") << region_name << endl;
 
             auto prh = plot_region_histograms[region_name];

@@ -547,6 +547,8 @@ struct Options {
     vector<string> plot_features;
     vector<string> plot_channels;
 
+    TCut additional_plot_cut = "1";
+
     map<string, int> process_colors;
     map<string, string> process_latex;
 

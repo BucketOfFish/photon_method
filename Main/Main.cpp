@@ -435,7 +435,6 @@ void Main() {
                     options.is_data = is_data;
                     if (options.is_data) options.processes = {"data", "tt", "vv", "photon"};
                     else options.processes = {"zjets", "photon"};
-                    //ReweightingStep(options, options.unit_testing); 
                     ReweightPhotons(options);
                 }
             }
@@ -448,12 +447,14 @@ void Main() {
 
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
-        options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow};
+        options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow"};
         //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
             //"bjet_n", "jet_eta", "jet_phi", [>"lepEta",<] "lepPhi", "lepPt", "mt2leplsp_0"};
-        options.plot_features = vector<string>{"dPhiPllMet"};
-        //options.plot_channels = vector<string>{"ee", "mm", "SF"};
-        options.plot_channels = vector<string>{"ee", "mm"};
+        options.plot_features = vector<string>{"met_Et", "dPhiPllMet"};
+        options.plot_channels = vector<string>{"ee", "mm", "SF"};
+        //options.plot_channels = vector<string>{"ee", "mm"};
+
+        options.additional_plot_cut = "Ht30>250";
 
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
