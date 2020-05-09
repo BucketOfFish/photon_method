@@ -40,7 +40,7 @@ struct resultsMap {
     return output;
 }
 
-tuple<string, string, string> getPlotRegionInfo(string channel, string region) {
+tuple<string, string, string> getPlotRegionInfo(Options options, string channel, string region) {
     if (cuts::selections.count(region) == 0) {
         cout << "Unrecognized region! Exiting." << endl;
         exit(0);
@@ -287,10 +287,10 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
 
             //--- Vgamma subtraction
             if (options.do_vgamma_subtraction) {
-                prh[plot_feature]["photon_raw"]->Add(prh[plot_feature]["Vgamma_raw"], -1.0);
-                crh[plot_feature]["photon_raw"]->Add(crh[plot_feature]["Vgamma_raw"], -1.0);
-                prh[plot_feature]["photon_reweighted"]->Add(prh[plot_feature]["Vgamma_reweighted"], -1.0);
-                crh[plot_feature]["photon_reweighted"]->Add(crh[plot_feature]["Vgamma_reweighted"], -1.0);
+                //prh0["photon_raw"]->Add(prh0["Vgamma_raw"], -1.0);
+                //crh0["photon_raw"]->Add(crh0["Vgamma_raw"], -1.0);
+                //prh0["photon_reweighted"]->Add(prh0["Vgamma_reweighted"], -1.0);
+                //crh0["photon_reweighted"]->Add(crh0["Vgamma_reweighted"], -1.0);
             }
 
             //--- scaling

@@ -451,7 +451,7 @@ void Main() {
         options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow"};
         //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
             //"bjet_n", "jet_eta", "jet_phi", [>"lepEta",<] "lepPhi", "lepPt", "mt2leplsp_0"};
-        options.plot_features = vector<string>{"met_Et", "dPhiPllMet"};
+        options.plot_features = vector<string>{"met_Et"};
         options.plot_channels = vector<string>{"ee", "mm", "SF"};
         //options.plot_channels = vector<string>{"ee", "mm"};
 
@@ -459,7 +459,7 @@ void Main() {
 
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
-        options.processes = {"data_bkg", "photon", "Vgamma", "Zjets", "ttbar", "diboson"};
+        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
         options.process_colors = {{"data_bkg", kBlack},
                                  {"photon_raw", kYellow+2},
                                  {"photon_reweighted", kGreen-1},
@@ -488,7 +488,7 @@ void Main() {
         options.blinded = true;
         options.print_photon_yield_only = false;
         options.plot_unreweighted_photons = true;
-        options.do_vgamma_subtraction = true;
+        options.do_vgamma_subtraction = false;
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
