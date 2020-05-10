@@ -30,25 +30,23 @@ void add_branch() {
         oldtree->SetBranchStatus("dPhiPllMet", 0);
         TTree *newtree = oldtree->CloneTree(0);
 
-        vector<float> *lepEta = 0; oldtree->SetBranchAddress("lepEta", &lepEta);
-        vector<float> *lepPhi = 0; oldtree->SetBranchAddress("lepPhi", &lepPhi);
-        vector<float> *lepPt = 0; oldtree->SetBranchAddress("lepPt", &lepPt);
-        vector<float> *lepM = 0; oldtree->SetBranchAddress("lepM", &lepM);
+        float gamma_pt; oldtree->SetBranchAddress("gamma_pt", &gamma_pt);
+        float Z_eta; oldtree->SetBranchAddress("Z_eta", &Z_eta);
+        float Z_phi; oldtree->SetBranchAddress("Z_phi", &Z_phi);
         float MET; oldtree->SetBranchAddress("met_Et", &MET);
         float MET_phi; oldtree->SetBranchAddress("met_Phi", &MET_phi);
+        float mll = 91.188;
 
         float dPhiPllMet; newtree->Branch("dPhiPllMet", &dPhiPllMet, "dPhiPllMet/F");
 
         for (int i=0; i<oldtree->GetEntries(); i++) {
             oldtree->GetEntry(i);
 
-            TLorentzVector lep1_4vec, lep2_4vec, met_4vec;
-            lep1_4vec.SetPtEtaPhiM(lepPt->at(0),lepEta->at(0),lepPhi->at(0),lepM->at(0));
-            lep2_4vec.SetPtEtaPhiM(lepPt->at(1),lepEta->at(1),lepPhi->at(1),lepM->at(1));
+            TLorentzVector z_4vec, met_4vec;
+            z_4vec.SetPtEtaPhiM(gamma_pt, Z_eta, Z_phi, mll);
             met_4vec.SetPtEtaPhiM(MET,0,MET_phi,0);
             
-            TLorentzVector boson_4vec = lep1_4vec + lep2_4vec;
-            dPhiPllMet = fabs(met_4vec.DeltaPhi(boson_4vec));
+            dPhiPllMet = fabs(met_4vec.DeltaPhi(z_4vec));
 
             newtree->Fill();
         }
