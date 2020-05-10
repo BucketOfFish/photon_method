@@ -479,7 +479,7 @@ public:
         return smearing_gaussians;
     }
 
-    tuple<float, float> smearMETlAndMll(float METl, float gamma_pt) {
+    tuple<float, float, float> smearMETlAndMll(float METl, float gamma_pt) {
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
         auto smearing_gaussian = this->smearing_gaussians[pt_bin];
             
@@ -499,7 +499,10 @@ public:
         if (this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->Integral()>0)
             mll = this->hist_z_mll_bin_pt_metl[pt_bin][METl_bin]->GetRandom();
 
-        return make_tuple(METl_smeared, mll);
+        //float gamma_pt_smeared = gamma_pt - (METl_smeared-METl);
+        float gamma_pt_smeared = gamma_pt;
+
+        return make_tuple(METl_smeared, mll, gamma_pt_smeared);
     }
 
     //------------------
@@ -612,9 +615,10 @@ public:
 
             METt_smeared = METt;
             try {
-                auto [METl_smeared_return, mll_return] = this->smearMETlAndMll(METl, gamma_pt);
+                auto [METl_smeared_return, mll_return, gamma_pt_return] = this->smearMETlAndMll(METl, gamma_pt);
                 METl_smeared = METl_smeared_return;
                 mll = mll_return;
+                gamma_pt = gamma_pt_return;
             }
             catch(...) {
                 cout << PRED("Problem in event ") << i << endl;
@@ -677,7 +681,7 @@ public:
 //------------
 
 Options setSmearingUnitTestOptions(Options options) {
-    options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
+    //options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.smearing_folder = "./";
 
     options.period = "data15-16";
@@ -732,6 +736,8 @@ void performSmearingUnitTests(Options options) {
     float Z_m = 91;
     for (int i=0; i<photon_tree->GetEntries(); i++) {
         photon_tree->GetEntry(i);
+        auto [METl, mll, gamma_pt_return] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
+        gamma_pt = gamma_pt_return;
         int pt_bin = bins::hist_pt_bins->FindBin(gamma_pt);
 
         photon_plots["lep_cm_theta"][pt_bin]->Fill(converter.getRandomLepTheta());
@@ -744,7 +750,6 @@ void performSmearingUnitTests(Options options) {
             photon_plots["lepEta"][pt_bin]->Fill(l0_lab_4vec.Eta(), totalWeight);
         }
 
-        auto [METl, mll] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
         photon_plots["METl_raw"][pt_bin]->Fill(METl_unsmeared, totalWeight);
         photon_plots["METl"][pt_bin]->Fill(METl, totalWeight);
         photon_plots["mll"][pt_bin]->Fill(mll, totalWeight);
