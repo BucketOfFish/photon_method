@@ -3,6 +3,23 @@
 
 using namespace std;
 
+//------------------
+// HELPER FUNCTIONS
+//------------------
+
+void initFeatureHists(map<string, map<int, TH1D*>> &plots) {
+    //options.diagnostic_plots = vector<string>{"lepEta", "METl", "mll"};
+    //for (auto feature : options.diagnostic_plots) {
+    for (int i=0; i<bins::n_pt_bins+2; i++) {
+        plots["lep_cm_theta"][i] = new TH1D("", "", 100, 0, 3);
+        plots["lepEta"][i] = new TH1D("", "", 100, -3, 3);
+        plots["METl_raw"][i] = new TH1D("", "", 100, -100, 100);
+        plots["METl"][i] = new TH1D("", "", 100, -100, 100);
+        plots["mll"][i] = new TH1D("", "", 100, 0, 150);
+    }
+//------------------
+}
+
 //-----------------
 // CONVERTOR CLASS
 //-----------------
@@ -26,7 +43,7 @@ public:
     TH1D* hist_g_smeared_metl_bin_pt[bins::n_pt_bins+2];
     vector<vector<TH1D*>> hist_z_mll_bin_pt_metl;
 
-    TH1F* h_lep_cm_theta;
+    TH1D* h_lep_cm_theta;
     std::vector<float> lep_cm_theta_bin_bounds;
     std::discrete_distribution<int> *lep_cm_theta_distribution;
     map<int, normal_distribution<float>> smearing_gaussians;
@@ -144,23 +161,14 @@ public:
     // Z MC FEATURES
     //---------------
 
-    map<string, map<int, TH1F*>> zmc_hists;
+    map<string, map<int, TH1D*>> zmc_hists;
 
-    void fillZMCFeatureHists(TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
+    void fillZMCFeatureHists(Options options, TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
         /// Compare lep eta, METl, and mll for photon vs. Z MC
-        vector<string> features{"lepEta", "METl", "mll"};
 
         //--- initialize histograms
-        for (auto feature : features) {
-            for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
-                TString hist_name = "hz_" + feature + "_pt_bin_" + pt_bin;
-                TH1F* h_temp;
-                if (feature == "lepEta") h_temp = new TH1F(hist_name, "", 100, -3, 3);
-                else if (feature == "METl") h_temp = new TH1F(hist_name, "", 100, -100, 100);
-                else if (feature == "mll") h_temp = new TH1F(hist_name, "", 100, 0, 150);
-                this->zmc_hists[feature][pt_bin] = h_temp;
-            }
-        }
+        initFeatureHists(zmc_hists);
+        zmc_hists.erase("METl_raw");
 
         //--- fill histograms
         ttree_zjets->Draw(">>event_list", bkg_baseline_with_channel);
@@ -188,7 +196,7 @@ public:
             this->zmc_hists["lep_cm_theta"][pt_bin] = this->h_lep_cm_theta;
     }
 
-    map<string, map<int, TH1F*>> getZMCFeatureHists() {
+    map<string, map<int, TH1D*>> getZMCFeatureHists() {
         return this->zmc_hists;
     };
 
@@ -263,15 +271,16 @@ public:
         cout << endl;
 
         //--- fill lep theta histogram
-        TH1F* hz = new TH1F("hz", "", 1, 0, 1);
+        TH1D* hz = new TH1D("hz", "", 1, 0, 1);
 
         ttree_zjets->Draw("Z_cm_lep_theta>>hz", options.bkg_smearing_selection*cuts::bkg_weight, "goff");
         cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
+        cout << endl;
 
-        this->h_lep_cm_theta = (TH1F*) hz->Clone("h_lep_cm_theta");
+        this->h_lep_cm_theta = (TH1D*) hz->Clone("h_lep_cm_theta");
 
-        if (options.diagnostic_plots || options.unit_testing) {
-            this->fillZMCFeatureHists(ttree_zjets, options.bkg_smearing_selection);
+        if (options.make_diagnostic_plots || options.unit_testing) {
+            this->fillZMCFeatureHists(options, ttree_zjets, options.bkg_smearing_selection);
         }
 
         //--- get lep theta histogram bin boundaries
@@ -421,42 +430,6 @@ public:
         photon_file->Close();
     };
 
-    void makeSmearingDiagnosticPlots(map<int, normal_distribution<float>> smearing_gaussians) {
-        for (auto const& [pt_bin, _] : smearing_gaussians) {
-            TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
-            canvas->cd();
-            canvas->SetLogy();
-
-            TH1D* z_hist = this->hist_z_metl_bin_pt[pt_bin];
-            TString z_plot_name = Form("Diagnostics/Smearing/z_ptbin_%d.eps", pt_bin);
-            z_hist->SetLineColor(1); z_hist->SetFillColor(42); z_hist->SetLineStyle(1);
-            z_hist->GetXaxis()->SetTitle("METl");
-            z_hist->GetYaxis()->SetTitle("entries / bin");
-            z_hist->Draw("hist");
-            canvas->Print(z_plot_name);
-
-            TH1D* g_hist = this->hist_g_metl_bin_pt[pt_bin];
-            TString g_plot_name = Form("Diagnostics/Smearing/g_ptbin_%d.eps", pt_bin);
-            g_hist->SetLineColor(1); g_hist->SetFillColor(42); g_hist->SetLineStyle(1);
-            g_hist->GetXaxis()->SetTitle("METl");
-            g_hist->GetYaxis()->SetTitle("entries / bin");
-            g_hist->Draw("hist");
-            canvas->Print(g_plot_name);
-
-            for (int metl_bin=0; metl_bin<bins::n_METl_bins+2; metl_bin++) {
-                TH1D* z_mll_hist = this->hist_z_mll_bin_pt_metl[pt_bin][metl_bin];
-                TString z_mll_plot_name = Form("Diagnostics/Smearing/z_mll_ptbin_%d_%d.eps", pt_bin, metl_bin);
-                z_mll_hist->SetLineColor(1); z_mll_hist->SetFillColor(42); z_mll_hist->SetLineStyle(1);
-                z_mll_hist->GetXaxis()->SetTitle("mll");
-                z_mll_hist->GetYaxis()->SetTitle("entries / bin");
-                z_mll_hist->Draw("hist");
-                canvas->Print(z_mll_plot_name);
-            }
-
-            delete canvas;
-        }
-    }
-
     map<int, normal_distribution<float>> getSmearingGaussians(Options options) {
         /**
          * Returns map with key = photon pt bin, value = (mean, std).
@@ -493,16 +466,13 @@ public:
                 TF1 *g_fit = (TF1*)this->hist_g_metl_bin_pt[pt_bin]->GetFunction("gaus");
                 smear_mean = z_fit->GetParameter(1) - g_fit->GetParameter(1);
                 smear_rms = sqrt(pow(z_fit->GetParameter(2),2) - pow(g_fit->GetParameter(2),2));
+                //smear_mean = z_fit->GetParameter(1);
+                //smear_rms = z_fit->GetParameter(2);
                 if (isnan(smear_rms)) smear_rms = 0;
             }
             
             if (options.channel=="ee") smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, 0.0);
             else smearing_gaussians[pt_bin] = normal_distribution<float>(smear_mean, smear_rms);
-        }
-
-        if (options.diagnostic_plots) {
-            cout << PBLU("Saving diagnostic smearing plots") << endl;
-            this->makeSmearingDiagnosticPlots(smearing_gaussians);
         }
         cout << endl;
 
@@ -518,6 +488,7 @@ public:
             METl_smeared = METl;
         else {
             METl_smeared = METl + smearing_gaussian(*random_generator);
+            //METl_smeared = smearing_gaussian(*random_generator);
         }
         this->hist_g_smeared_metl_bin_pt[pt_bin]->Fill(METl_smeared);
 
@@ -534,24 +505,6 @@ public:
     //------------------
     // EVENT CONVERSION
     //------------------
-
-    void drawMETlDistributions() {
-        for (int pt_bin=0; pt_bin<bins::n_pt_bins+2; pt_bin++) {
-            TCanvas *canvas = new TCanvas("canvas","canvas",600,600);
-            canvas->cd();
-            canvas->SetLogy();
-
-            TH1D* g_smeared_hist = this->hist_g_smeared_metl_bin_pt[pt_bin];
-            TString g_smeared_plot_name = Form("Diagnostics/Smearing/g_smeared_ptbin_%d.eps", pt_bin);
-            g_smeared_hist->SetLineColor(1); g_smeared_hist->SetFillColor(42); g_smeared_hist->SetLineStyle(1);
-            g_smeared_hist->GetXaxis()->SetTitle("METl");
-            g_smeared_hist->GetYaxis()->SetTitle("entries / bin");
-            g_smeared_hist->Draw("hist");
-            canvas->Print(g_smeared_plot_name);
-
-            delete canvas, g_smeared_hist;
-        }
-    }
 
     void convertEvents() {
         TTree *inputTree = this->inputTree;
@@ -734,7 +687,7 @@ Options setSmearingUnitTestOptions(Options options) {
     options.channel = "mm";
 
     options.turn_off_shifting_and_smearing = false;
-    options.diagnostic_plots = false;
+    options.make_diagnostic_plots = false;
 
     options.unit_testing = true;
     options.run_vgamma = false;
@@ -748,18 +701,19 @@ void performSmearingUnitTests(Options options) {
 
     //--- get Z MC feature plots and set up photon feature plots for comparison
     PhotonToZConverter converter(options);
-    map<string, map<int, TH1F*>> zmc_plots = converter.getZMCFeatureHists();
+    map<string, map<int, TH1D*>> zmc_plots = converter.getZMCFeatureHists();
 
     TCanvas *can = new TCanvas("can","can",600,600);
-    map<string, map<int, TH1F*>> photon_plots;
+    map<string, map<int, TH1D*>> photon_plots;
 
-    for (int i=0; i<bins::n_pt_bins+2; i++) {
-        photon_plots["lep_cm_theta"][i] = new TH1F("", "", 100, 0, 3);
-        photon_plots["lepEta"][i] = new TH1F("", "", 100, -3, 3);
-        photon_plots["METl_raw"][i] = new TH1F("", "", 100, -100, 100);
-        photon_plots["METl"][i] = new TH1F("", "", 100, -100, 100);
-        photon_plots["mll"][i] = new TH1F("", "", 100, 0, 150);
-    }
+    TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
+    mainpad->Draw();
+
+    TPad* ratio_pad = new TPad("ratio_pad","ratio_pad",0.0,0.75,1.0,0.905);
+    ratio_pad->Draw();
+    ratio_pad->SetGridy();
+
+    initFeatureHists(photon_plots);
 
     //--- open photon files
     string in_file_name;
@@ -802,58 +756,127 @@ void performSmearingUnitTests(Options options) {
         THStack *photon_stack = new THStack("gmc_stack","");;
 
         for (int i=0; i<bins::n_pt_bins+2; i++) {
+            //--- add to stack
+            zmc_stack->Add(zmc_plots[key][i]);
+            photon_stack->Add(photon_plots[key][i]);
+
+            //--- draw Z MC
+            mainpad->cd();
             zmc_plots[key][i]->Draw("hist");
+
+            //--- scale and draw photons
             float z_yield = zmc_plots[key][i]->Integral(0, zmc_plots[key][i]->GetNbinsX()+1);
             float g_yield = photon_plots[key][i]->Integral(0, photon_plots[key][i]->GetNbinsX()+1);
-            //cout << z_yield << " " << g_yield << endl;
+
+            cout << key << " " << i << " " << z_yield << " " << g_yield << endl;
             float scale = g_yield != 0 ? z_yield/g_yield : 0;
 
             if (key == "METl") {
-                float g_yield_raw = photon_plots[key][i]->Integral(0, photon_plots[key][i]->GetNbinsX()+1);
+                float g_yield_raw = photon_plots["METl_raw"][i]->Integral(0, photon_plots["METl_raw"][i]->GetNbinsX()+1);
                 float scale_raw = g_yield_raw != 0 ? z_yield/g_yield_raw : 0;
 
                 photon_plots["METl_raw"][i]->Scale(scale_raw);
-                photon_plots["METl_raw"][i]->SetLineColor(kBlue);
+                photon_plots["METl_raw"][i]->SetLineColor(kGreen);
                 photon_plots["METl_raw"][i]->Draw("hist same");
             }
 
-            photon_plots[key][i]->Scale(scale);
-            photon_plots[key][i]->SetLineColor(kRed);
-            photon_plots[key][i]->Draw("hist same");
+            TH1D *photon_plot_scaled = (TH1D*)photon_plots[key][i]->Clone();
+            photon_plot_scaled->Scale(scale);
 
+            //--- draw comparison
+            photon_plot_scaled->SetLineColor(kRed);
+            photon_plot_scaled->Draw("hist same");
+
+            //--- draw legend
             TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
             leg->AddEntry(zmc_plots[key][i], "Zjets", "f");
             if (key == "METl")
                 leg->AddEntry(photon_plots["METl_raw"][i], "photon raw", "f");
-            leg->AddEntry(photon_plots[key][i], "photon corrected", "f");
+            leg->AddEntry(photon_plot_scaled, "photon corrected", "f");
             leg->SetBorderSize(0);
             leg->SetFillColor(0);
             leg->Draw();
 
-            can->Print("Diagnostics/Smearing/" + key + "_pt_bin_" + i + ".eps");
+            //--- draw ratio
+            TH1D *hratio = (TH1D*) zmc_plots[key][i]->Clone(("hratio_"+to_string(i)).c_str());
+            hratio->Divide(photon_plot_scaled);
 
-            if (z_yield > 0) zmc_stack->Add(zmc_plots[key][i]);
-            if (g_yield > 0) photon_stack->Add(photon_plots[key][i]);
+            hratio->SetMarkerStyle(20);
+            hratio->SetMarkerColor(kRed);
+            hratio->SetLineColor(kRed);
+            hratio->GetXaxis()->SetTitle("");
+            hratio->GetXaxis()->SetLabelSize(0.);
+            hratio->GetYaxis()->SetNdivisions(5);
+            hratio->GetYaxis()->SetTitle("");
+            hratio->GetYaxis()->SetTitleSize(0.15);
+            hratio->GetYaxis()->SetTitleOffset(0.3);
+            hratio->GetYaxis()->SetLabelSize(0.15);
+            hratio->SetMinimum(0.0);
+            hratio->SetMaximum(2.0);
+            hratio->GetYaxis()->SetRangeUser(0.0,2.0);
+            hratio->SetTitle("");
+
+            ratio_pad->cd();
+            hratio->Draw();
+
+            //--- save
+            converter.outputFile->cd();
+            can->Write(key + "_pt_bin_" + i + ".eps");
         }
 
-        zmc_stack->GetStack()->Last()->Draw("hist");
-        photon_stack->GetStack()->Last()->Draw("hist same");
-        //photon_stack->GetStack()->Last()->Draw("hist");
-        //photon_stack->SetLineColor(kRed);
+        //--- scale photons for plotting
+        TH1D *zmc_total = (TH1D*)zmc_stack->GetStack()->Last();
+        TH1D *photon_total = (TH1D*)photon_stack->GetStack()->Last();
 
+        float z_yield = zmc_total->Integral(0, zmc_total->GetNbinsX()+1);
+        float g_yield = photon_total->Integral(0, photon_total->GetNbinsX()+1);
+        float scale = g_yield != 0 ? z_yield/g_yield : 0;
+        photon_total->Scale(scale);
+
+        //--- draw total plot
+        mainpad->cd();
+        zmc_total->Draw("hist");
+        photon_total->SetLineColor(kRed);
+        photon_total->Draw("hist same");
+
+        //--- draw total legend
         TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-        leg->AddEntry(zmc_plots[key][0], "Zjets", "f");
-        leg->AddEntry(photon_plots[key][0], "photon corrected", "f");
+        leg->AddEntry(zmc_total, "Zjets", "f");
+        leg->AddEntry(photon_total, "photon corrected", "f");
         leg->SetBorderSize(0);
         leg->SetFillColor(0);
         leg->Draw();
 
-        can->Print(("Diagnostics/Smearing/" + key + ".eps").c_str());
+        //--- draw total ratio
+        TH1D *hratio = (TH1D*) zmc_total->Clone("hratio_total");
+        hratio->Divide((TH1D*) photon_total);
+
+        hratio->SetMarkerStyle(20);
+        hratio->SetMarkerColor(kRed);
+        hratio->SetLineColor(kRed);
+        hratio->GetXaxis()->SetTitle("");
+        hratio->GetXaxis()->SetLabelSize(0.);
+        hratio->GetYaxis()->SetNdivisions(5);
+        hratio->GetYaxis()->SetTitle("");
+        hratio->GetYaxis()->SetTitleSize(0.15);
+        hratio->GetYaxis()->SetTitleOffset(0.3);
+        hratio->GetYaxis()->SetLabelSize(0.15);
+        hratio->SetMinimum(0.0);
+        hratio->SetMaximum(2.0);
+        hratio->GetYaxis()->SetRangeUser(0.0,2.0);
+        hratio->SetTitle("");
+
+        ratio_pad->cd();
+        hratio->Draw();
+
+        //--- save
+        converter.outputFile->cd();
+        can->Write((key + ".eps").c_str());
 
         passTest("Comparison plots for " + key + " produced");
     }
 
-    remove(converter.out_file_name.c_str());
+    //remove(converter.out_file_name.c_str());
     delete can;
 
     passTest("Passed all unit tests");
@@ -865,9 +888,6 @@ void performSmearingUnitTests(Options options) {
 //---------------
 
 void SmearPhotons(Options options) {
-    options.turn_off_shifting_and_smearing = false;
-    options.diagnostic_plots = false;
-
     if (options.unit_testing) {
         options = setSmearingUnitTestOptions(options);
         performSmearingUnitTests(options);
@@ -880,14 +900,12 @@ void SmearPhotons(Options options) {
         options.run_vgamma = false;
         PhotonToZConverter photon_converter(options);
         photon_converter.convertEvents();
-        if (options.diagnostic_plots) photon_converter.drawMETlDistributions();
 
         //--- smear Vgamma - this MC component must be subtracted from photon data
         if (options.is_data) {
             options.run_vgamma = true;
             PhotonToZConverter vgamma_converter(options);
             vgamma_converter.convertEvents();
-            if (options.diagnostic_plots) vgamma_converter.drawMETlDistributions();
         }
     }
 }

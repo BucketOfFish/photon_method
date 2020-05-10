@@ -339,11 +339,11 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = false;
+    options.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (options.unit_testing) {
@@ -457,6 +457,9 @@ void Main() {
 
         options.additional_plot_cut = "Ht30>250";
 
+        options.make_diagnostic_plots = true;
+        //options.diagnostic_plots = vector<string>{"lepEta", "METl", "mll"};
+
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
         options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
@@ -489,6 +492,7 @@ void Main() {
         options.print_photon_yield_only = false;
         options.plot_unreweighted_photons = true;
         options.do_vgamma_subtraction = false;
+        options.turn_off_shifting_and_smearing = false;
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};

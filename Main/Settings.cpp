@@ -91,8 +91,8 @@ namespace cuts {
         {"SF", "channel==0 || channel==1"},
         {"DF", "channel==2 || channel==3"},
 
-        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && (lepCharge[0]!=lepCharge[1]) && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR" + not_diboson_2L},
-        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0"},
+        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR && Ptll>25" + not_diboson_2L},
+        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0 && Ptll>25"},
         {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
         {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
@@ -222,16 +222,29 @@ namespace cuts {
 
 enum branch_type {INT, FLOAT};
 namespace bins {
+    //--- smearing
+    const int n_smearing_bins = 200;
+    double smearing_low = -500;
+    double smearing_high = 500;
 
-    const int n_smearing_bins = 1000;
-    double smearing_low = -2000;
-    double smearing_high = 2000;
+    const int n_pt_bins = 18;
+    double pt_bins[] = {25,26,27,28,30,32,35,40,45,50,55,60,70,80,100,140,180,250,300};
+    double MET_bins[] = {20,30,40,50,60,70,80,90,100,120,140,160,180,200,230,260,300,350,400};
 
-    const int n_pt_bins = 23;
-    double pt_bins[] = {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600,1000,1e10};
-    double MET_bins[] = {0,20,40,60,80,100,120,140,160,180,200,250,300,350,400,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
-    double dphi_bin[] = {0,0.5,1.0,1.5,2.0,2.5,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10,1e10};
+    const int n_METl_bins = 21;
+    double METl_bins[] = {-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700};
 
+    const int n_mll_bins = 43;
+    double mll_bin[] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
+
+    TH1D *hist_METl_bins, *hist_pt_bins, *hist_MET_bins;
+    void init_binning_histograms() {
+        hist_METl_bins = new TH1D("hist_METl_bins","",n_METl_bins,METl_bins);
+        hist_pt_bins = new TH1D("hist_pt_bins","",n_pt_bins,pt_bins);
+        hist_MET_bins = new TH1D("hist_MET_bins","",n_pt_bins,MET_bins); //hist_MET_bins->SetStats(0);
+    }
+
+    //--- reweighting (and plotting)
     const map<string, int> reweighting_type = {
         {"Ptll", FLOAT},
         {"nBJet20_MV2c10_FixedCutBEff_77", INT},
@@ -250,19 +263,61 @@ namespace bins {
         {"nJet30", {0,1,2,3,4,5,6,7,8,9,10}},
         {"Ht30", {0,30,35,40,45,50,55,60,70,80,100,120,140,160,180,200,220,260,280,300,350,400,600}},
     };
+}
 
-    const int n_METl_bins = 25;
-    double METl_bins[] = {-1e10,-1000,-700,-500,-400,-300,-250,-200,-150,-100,-60,-40,-20,20,40,60,100,150,200,250,300,400,500,700,1000,1e10};
+//----------
+// PLOTTING
+//----------
 
-    const int n_mll_bins = 43;
-    double mll_bin[] = {12,20,30,40,50,60,70,80,82,84,86,88,90,92,94,96,98,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,320,340,360,380,400,440,480,520,560,600,800};
+ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
+    map<string, ROOT::RDF::TH1DModel> plot_settings;
+    plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 20, 0, 300);
+    plot_settings["METl"] = ROOT::RDF::TH1DModel("", "E_{T,||}^{miss} [GeV]", 30, -150, 150);
+    plot_settings["METt"] = ROOT::RDF::TH1DModel("", "E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
+    plot_settings["met_Sign"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} significance", 20, 0, 50);
+    plot_settings["MET_loose"] = ROOT::RDF::TH1DModel("", "E_{T,loose}^{miss} [GeV]", 20, 0, 200);
+    plot_settings["MET_tight"] = ROOT::RDF::TH1DModel("", "E_{T,tight}^{miss} [GeV]", 20, 0, 200);
+    plot_settings["MET_tighter"] = ROOT::RDF::TH1DModel("", "E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
+    plot_settings["MET_tenacious"] = ROOT::RDF::TH1DModel("", "E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
+    plot_settings["mt2leplsp_0"] = ROOT::RDF::TH1DModel("", "m_{T2}^{0} [GeV]", 20, 0, 500);
+    //plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 25, 0, 1000);
+    //plot_settings["Ptll_reweight"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", bins::n_reweighting_bins.at("Ptll"),
+        //&bins::reweighting_bins.at("Ptll")[0]);
+    plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", bins::n_reweighting_bins.at("Ptll"),
+        &bins::reweighting_bins.at("Ptll")[0]);
+    plot_settings["Z_pt"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 20, 0, 100);
+    plot_settings["nJet30"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
+    plot_settings["jet_n"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
+    plot_settings["jet_eta"] = ROOT::RDF::TH1DModel("", "jet_{#eta}", 30, -3, 3);
+    plot_settings["jet_phi"] = ROOT::RDF::TH1DModel("", "jet_{#phi}", 20, 0, 3.14);
+    plot_settings["jetPt"] = ROOT::RDF::TH1DModel("", "jet_{p_{T}} [GeV]", 20, 0, 300);
+    plot_settings["jetPt[0]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},1} [GeV]", 20, 0, 300);
+    plot_settings["jetPt[1]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},2} [GeV]", 20, 0, 300);
+    plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
+    //plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 15, 0, 1500);
+    //plot_settings["Ht30_reweight"] = ROOT::RDF::TH1DModel("", "H_{T} [GeV]", bins::n_reweighting_bins.at("Ht30"),
+        //&bins::reweighting_bins.at("Ht30")[0]);
+    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T} [GeV]", bins::n_reweighting_bins.at("Ht30"),
+        &bins::reweighting_bins.at("Ht30")[0]);
+    plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
+    plot_settings["MT2"] = ROOT::RDF::TH1DModel("", "m_{T2} [GeV]", 20, 0, 200);
+    plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);
+    plot_settings["lepEta"] = ROOT::RDF::TH1DModel("", "lep_{#eta}", 30, -3, 3);
+    plot_settings["lepPhi"] = ROOT::RDF::TH1DModel("", "lep_{#phi}", 20, 0, 3.14);
+    plot_settings["lepPt"] = ROOT::RDF::TH1DModel("", "lep_{p_{T}} [GeV]", 20, 0, 300);
+    plot_settings["lepPt[0]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},1} [GeV]", 20, 0, 300);
+    plot_settings["lepPt[1]"] = ROOT::RDF::TH1DModel("", "lep_{p_{T},2} [GeV]", 20, 0, 200);
+    plot_settings["lepEta[0]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,1}", 30, -3, 3);
+    plot_settings["lepEta[1]"] = ROOT::RDF::TH1DModel("", "lep_{#eta,2}", 30, -3, 3);
+    plot_settings["DPhi_METLepLeading"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{1},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["DPhi_METLepSecond"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["dPhiMetJet1"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["dPhiMetJet2"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["dPhiMetJet12Min"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{min(1,2)},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["dPhiPllMet"] = ROOT::RDF::TH1DModel("", "#Delta#phi(p_{T},E_{T}^{miss})", 20, 0, 3.14);
 
-    TH1D *hist_METl_bins, *hist_pt_bins, *hist_MET_bins;
-    void init_binning_histograms() {
-        hist_METl_bins = new TH1D("hist_METl_bins","",n_METl_bins,METl_bins);
-        hist_pt_bins = new TH1D("hist_pt_bins","",n_pt_bins,pt_bins);
-        hist_MET_bins = new TH1D("hist_MET_bins","",n_pt_bins,MET_bins); //hist_MET_bins->SetStats(0);
-    }
+    ROOT::RDF::TH1DModel hist_model = plot_settings[plot_feature];
+    return hist_model;
 }
 
 //-----------
@@ -528,7 +583,7 @@ struct Options {
     TCut photon_smearing_selection;
 
     bool turn_off_shifting_and_smearing;
-    bool diagnostic_plots;
+    bool make_diagnostic_plots;
     bool run_vgamma;
 
     //--- reweighting options
@@ -554,6 +609,7 @@ struct Options {
 
     bool blinded;
     bool print_photon_yield_only;
+    vector<string> diagnostic_plots;
 
     bool do_vgamma_subtraction;
     bool plot_unreweighted_photons;
