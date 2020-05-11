@@ -114,7 +114,7 @@ namespace cuts {
         {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && Ht30>700"},
 
         // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
-        {"SRC", strong_preselection + "mt2leplsp_0>90 && met_Sign>10 && Ptll<100 && mll<81"},
+        {"SRC", strong_preselection + "mt2leplsp_0>90 && met_Sign>10 && Ptll<100"},
         {"SRLow2", strong_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
         {"SRMed2", strong_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
         {"SRHigh2", strong_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},

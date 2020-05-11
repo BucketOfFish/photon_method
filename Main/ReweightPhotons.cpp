@@ -206,8 +206,7 @@ ReweightHist getReweightingRatioHist(Options options, map<string, ReweightHist> 
         hratio.h2d->Divide(hists["photon"].h2d);
         hratio.h2d->Write(("ratio_" + reweight_var).c_str());
     }
-    cout << endl;
-
+    //cout << endl;
 
     return hratio;
 }

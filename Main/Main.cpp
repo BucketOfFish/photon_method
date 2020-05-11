@@ -417,9 +417,11 @@ void Main() {
 
     //--- reweight photons
     if (do_reweighting) {
-        options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
-            "Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow",
-            "Ptll__Ht30__Zwindow"};
+        //options.reweight_vars = {"Ptll", "nBJet20_MV2c10_FixedCutBEff_77", "nJet30", "Ht30", "Ptll__Ht30",
+            //"Ptll__Zwindow", "nBJet20_MV2c10_FixedCutBEff_77__Zwindow", "nJet30__Zwindow", "Ht30__Zwindow",
+            //"Ptll__Ht30__Zwindow"};
+        options.reweight_vars = {"Ptll", "Ht30", "Ptll__Ht30",
+            "Ptll__Zwindow", "Ht30__Zwindow", "Ptll__Ht30__Zwindow"};
 
         vector<string> periods{"data15-16", "data17", "data18"};
         for (auto period : periods) {
@@ -449,13 +451,13 @@ void Main() {
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
         options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow"};
-        //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
-            //"bjet_n", "jet_eta", "jet_phi", [>"lepEta",<] "lepPhi", "lepPt", "mt2leplsp_0"};
-        options.plot_features = vector<string>{"met_Et"};
+        options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
+            "bjet_n", "jet_eta", "jet_phi", "lepEta", "lepPhi", "lepPt", "mt2leplsp_0"};
+        //options.plot_features = vector<string>{"dPhiPllMet"};
         options.plot_channels = vector<string>{"ee", "mm", "SF"};
-        //options.plot_channels = vector<string>{"ee", "mm"};
+        //options.plot_channels = vector<string>{"SF"};
 
-        options.additional_plot_cut = "Ht30>250";
+        //options.additional_plot_cut = "Ht30>250";
 
         options.make_diagnostic_plots = true;
         //options.diagnostic_plots = vector<string>{"lepEta", "METl", "mll"};

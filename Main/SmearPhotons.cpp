@@ -163,7 +163,7 @@ public:
 
     map<string, map<int, TH1D*>> zmc_hists;
 
-    void fillZMCFeatureHists(Options options, TTree* ttree_zjets, TCut bkg_baseline_with_channel) {
+    void fillZMCFeatureHists(Options options, TTree* ttree_zjets) {
         /// Compare lep eta, METl, and mll for photon vs. Z MC
 
         //--- initialize histograms
@@ -171,7 +171,7 @@ public:
         zmc_hists.erase("METl_raw");
 
         //--- fill histograms
-        ttree_zjets->Draw(">>event_list", bkg_baseline_with_channel);
+        ttree_zjets->Draw(">>event_list", options.bkg_smearing_selection);
         auto event_list = (TEventList*) gDirectory->Get("event_list");
 
         ttree_zjets->SetBranchStatus("*", 0);
@@ -182,8 +182,9 @@ public:
         double totalWeight; SetInputBranch(ttree_zjets, "totalWeight", &totalWeight);
 
         for (int i=0; i<event_list->GetN(); i++) {
-            ttree_zjets->GetEntry(i);
+            ttree_zjets->GetEntry(event_list->GetEntry(i));
             int pt_bin = bins::hist_pt_bins->FindBin(Ptll);
+            if (pt_bin == 0) cout << Ptll << endl;
 
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(0), totalWeight);
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(1), totalWeight);
@@ -265,22 +266,20 @@ public:
         TTree *ttree_zjets;
         string zjets_filename = options.reduction_folder + options.mc_period + "_Zjets.root";
 
-        cout << "Opening Z+jets file    : " << zjets_filename << endl;
+        cout << padString("Opening Z+jets file") << zjets_filename << endl;
         ttree_zjets = (TTree*)(new TFile(zjets_filename.c_str()))->Get("BaselineTree");
-        cout << "Z+jets entries         : " << ttree_zjets->GetEntries() << endl;
+        cout << padString("Z+jets entries") << ttree_zjets->GetEntries() << endl;
         cout << endl;
 
         //--- fill lep theta histogram
-        TH1D* hz = new TH1D("hz", "", 1, 0, 1);
+        this->h_lep_cm_theta = new TH1D("h_lep_cm_theta", "", 100, 0, 3.2);
 
-        ttree_zjets->Draw("Z_cm_lep_theta>>hz", options.bkg_smearing_selection*cuts::bkg_weight, "goff");
-        cout << "Z+jets integral        : " << hz->Integral(0, 2) << endl;
+        ttree_zjets->Draw("Z_cm_lep_theta>>h_lep_cm_theta", options.bkg_smearing_selection*cuts::bkg_weight, "goff");
+        cout << padString("Z+jets integral") << h_lep_cm_theta->Integral(0, h_lep_cm_theta->GetNbinsX()+2) << endl;
         cout << endl;
 
-        this->h_lep_cm_theta = (TH1D*) hz->Clone("h_lep_cm_theta");
-
         if (options.make_diagnostic_plots || options.unit_testing) {
-            this->fillZMCFeatureHists(options, ttree_zjets, options.bkg_smearing_selection);
+            this->fillZMCFeatureHists(options, ttree_zjets);
         }
 
         //--- get lep theta histogram bin boundaries
@@ -310,11 +309,12 @@ public:
         myRandom.SetSeed(0);
 
         TLorentzVector l0_lab_4vec, l1_lab_4vec;
-        //int n_tries = 0;
-        //while (n_tries++ < 10) {
-
+        int n_tries = 0;
+        bool good_event = false;
+        while (n_tries++ < 10) {
             double lep_phi_cm = myRandom.Rndm()*2.*TMath::Pi();
-            float lep_theta_cm = this->getRandomLepTheta(); // Histogram sampling
+            //float lep_theta_cm = this->getRandomLepTheta(); // Histogram sampling
+            float lep_theta_cm = acos(1 - 2*myRandom.Rndm()); // uniform sampling on a sphere
 
             // Split leptons in Z rest frame
             TLorentzVector l0_cm_4vec, l1_cm_4vec;
@@ -342,10 +342,13 @@ public:
             l1_lab_4vec.RotateY(z_4vec.Theta());
             l1_lab_4vec.RotateZ(z_4vec.Phi());
 
-            bool good_event = abs(l0_lab_4vec.Eta()) < 2.5 && abs(l1_lab_4vec.Eta()) < 2.5 &&
-                              l0_lab_4vec.Pt() > cuts::leading_lep_pt_cut && l1_lab_4vec.Pt() > cuts::second_lep_pt_cut;
-        //}
-        //if (n_tries==11) continue;
+            l0_lab_4vec += z_4vec;
+            l1_lab_4vec += z_4vec;
+
+            good_event = abs(l0_lab_4vec.Eta()) < 2.5 && abs(l1_lab_4vec.Eta()) < 2.5 &&
+                  l0_lab_4vec.Pt() > cuts::leading_lep_pt_cut && l1_lab_4vec.Pt() > cuts::second_lep_pt_cut;
+            if (good_event) break;
+        }
 
         return make_tuple(good_event, l0_lab_4vec, l1_lab_4vec);
     }
@@ -733,7 +736,7 @@ void performSmearingUnitTests(Options options) {
     float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
 
     //--- perform photon splitting and smearing
-    float Z_m = 91;
+    float Z_m = 91.188;
     for (int i=0; i<photon_tree->GetEntries(); i++) {
         photon_tree->GetEntry(i);
         auto [METl, mll, gamma_pt_return] = converter.smearMETlAndMll(METl_unsmeared, gamma_pt);
