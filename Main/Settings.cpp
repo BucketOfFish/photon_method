@@ -100,6 +100,7 @@ namespace cuts {
         {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
         {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
         {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_noBveto", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40" + is_SF},
         {"strong_preselection", strong_preselection},
 
         {"Inclusive", "1"},
@@ -169,6 +170,7 @@ namespace cuts {
 
         {"VRZjets", "(met_Et>100 && met_Et<200)"},
         {"VRZjets_noZwindow", "(met_Et>100 && met_Et<200)"},
+        {"VRZjets_noZwindow_noBveto", "(met_Et>100 && met_Et<200)"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
         {"SRZ2016", "met_Et>225"},

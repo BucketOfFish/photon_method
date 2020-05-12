@@ -744,8 +744,16 @@ void performPlottingUnitTests(Options options) {
     options.reweighting_folder = options.unit_test_folder + "ReweightedNtuples/";
     options.plots_folder = "Diagnostics/Plots/";
 
+    options.make_diagnostic_plots = true;
     options.plot_regions = vector<string>{"VRDPhiLow6"};
+    options.plot_channels = vector<string>{"SF"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
+    options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
+
+    options.blinded = true;
+    options.print_photon_yield_only = false;
+    options.plot_unreweighted_photons = true;
+    options.do_vgamma_subtraction = false;
 
     run_quickDraw(options);
 
