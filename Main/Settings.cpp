@@ -98,8 +98,9 @@ namespace cuts {
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
 
         {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
-        {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && (mll>81 && mll<101)" + is_SF},
-        {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0" + is_SF},
+        {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
+        {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"strong_preselection", strong_preselection},
 
         {"Inclusive", "1"},
         {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
@@ -274,17 +275,17 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["met_Et"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} [GeV]", 20, 0, 300);
     plot_settings["METl"] = ROOT::RDF::TH1DModel("", "E_{T,||}^{miss} [GeV]", 30, -150, 150);
     plot_settings["METt"] = ROOT::RDF::TH1DModel("", "E_{T,#perp}^{miss} [GeV]", 30, -150, 150);
-    plot_settings["met_Sign"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} significance", 20, 0, 50);
+    plot_settings["met_Sign"] = ROOT::RDF::TH1DModel("", "E_{T}^{miss} significance", 20, 0, 20);
     plot_settings["MET_loose"] = ROOT::RDF::TH1DModel("", "E_{T,loose}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tight"] = ROOT::RDF::TH1DModel("", "E_{T,tight}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tighter"] = ROOT::RDF::TH1DModel("", "E_{T,tighter}^{miss} [GeV]", 20, 0, 200);
     plot_settings["MET_tenacious"] = ROOT::RDF::TH1DModel("", "E_{T,tenacious}^{miss} [GeV]", 20, 0, 200);
     plot_settings["mt2leplsp_0"] = ROOT::RDF::TH1DModel("", "m_{T2}^{0} [GeV]", 20, 0, 500);
-    //plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 25, 0, 1000);
+    plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 25, 0, 1000);
     //plot_settings["Ptll_reweight"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", bins::n_reweighting_bins.at("Ptll"),
         //&bins::reweighting_bins.at("Ptll")[0]);
-    plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", bins::n_reweighting_bins.at("Ptll"),
-        &bins::reweighting_bins.at("Ptll")[0]);
+    //plot_settings["Ptll"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", bins::n_reweighting_bins.at("Ptll"),
+        //&bins::reweighting_bins.at("Ptll")[0]);
     plot_settings["Z_pt"] = ROOT::RDF::TH1DModel("", "p_{T} [GeV]", 20, 0, 100);
     plot_settings["nJet30"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
     plot_settings["jet_n"] = ROOT::RDF::TH1DModel("", "n_{jets}", 6, 2, 8);
@@ -294,11 +295,11 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["jetPt[0]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},1} [GeV]", 20, 0, 300);
     plot_settings["jetPt[1]"] = ROOT::RDF::TH1DModel("", "jet_{p_{T},2} [GeV]", 20, 0, 300);
     plot_settings["bjet_n"] = ROOT::RDF::TH1DModel("", "n_{b-jets}", 4, 0, 4);
-    //plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 15, 0, 1500);
+    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T}", 15, 0, 1500);
     //plot_settings["Ht30_reweight"] = ROOT::RDF::TH1DModel("", "H_{T} [GeV]", bins::n_reweighting_bins.at("Ht30"),
         //&bins::reweighting_bins.at("Ht30")[0]);
-    plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T} [GeV]", bins::n_reweighting_bins.at("Ht30"),
-        &bins::reweighting_bins.at("Ht30")[0]);
+    //plot_settings["Ht30"] = ROOT::RDF::TH1DModel("", "H_{T} [GeV]", bins::n_reweighting_bins.at("Ht30"),
+        //&bins::reweighting_bins.at("Ht30")[0]);
     plot_settings["mll"] = ROOT::RDF::TH1DModel("", "m_{ll} [GeV]", 30, 0, 300);
     plot_settings["MT2"] = ROOT::RDF::TH1DModel("", "m_{T2} [GeV]", 20, 0, 200);
     plot_settings["MT2W"] = ROOT::RDF::TH1DModel("", "m_{T2}^{W} [GeV]", 20, 0, 200);

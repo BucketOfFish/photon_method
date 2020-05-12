@@ -610,6 +610,10 @@ tuple<TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms
     hratio->SetTitle("");
     hratio_unreweighted->SetTitle("");
 
+    //--- don't plot underflow and overflow
+    hratio->GetXaxis()->SetRange(1, hratio->GetNbinsX()-1);
+    hratio_unreweighted->GetXaxis()->SetRange(1, hratio_unreweighted->GetNbinsX()-1);
+
     return make_tuple(hratio, hratio_unreweighted);
 }
 
@@ -646,7 +650,8 @@ void makePlot(resultsMap results_map, Options options) {
                 if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
                     mainpad->SetLogy();
                     float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 50;
-                    min_y = pow(10.0, -2);
+                    //min_y = pow(10.0, -2);
+                    min_y = max_y / pow(10, 5);
                 }
 
                 bool applicable_blinded = (options.is_data)

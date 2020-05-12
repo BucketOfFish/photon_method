@@ -70,10 +70,10 @@ public:
             }
         }
 
-        cout << "channel                : " << options.channel         << endl;
-        cout << "period                 : " << options.period          << endl;
-        cout << "data-based photons?    : " << options.is_data          << endl;
-        cout << "smearing output        : " << this->out_file_name   << endl;
+        cout << padString("channel") << options.channel         << endl;
+        cout << padString("period") << options.period          << endl;
+        cout << padString("data-based photons?") << options.is_data          << endl;
+        cout << padString("smearing output") << this->out_file_name   << endl;
 
         // run on MC Vgamma if option is set
         if (options.run_vgamma) this->in_file_name = options.reduction_folder + options.mc_period + "_Vgamma.root";
@@ -82,8 +82,8 @@ public:
         this->inputTree->Add(this->in_file_name.c_str());
 
         cout << endl;
-        cout << "Opening read file      : " << this->in_file_name << endl;
-        cout << "Events in ntuple       : " << inputTree->GetEntries() << endl;
+        cout << padString("Opening read file") << this->in_file_name << endl;
+        cout << padString("Events in ntuple") << inputTree->GetEntries() << endl;
     }
 
     void openOutputFile(Options options) {
@@ -91,7 +91,7 @@ public:
         this->outputTree = new TTree("BaselineTree", "baseline tree");
         this->outputTree->SetDirectory(outputFile);
 
-        cout << "Opening write file     : " << this->out_file_name << endl;
+        cout << padString("Opening write file") << this->out_file_name << endl;
         cout << endl;
     }
 
@@ -184,7 +184,7 @@ public:
         for (int i=0; i<event_list->GetN(); i++) {
             ttree_zjets->GetEntry(event_list->GetEntry(i));
             int pt_bin = bins::hist_pt_bins->FindBin(Ptll);
-            if (pt_bin == 0) cout << Ptll << endl;
+            //if (pt_bin == 0) cout << Ptll << endl;
 
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(0), totalWeight);
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(1), totalWeight);

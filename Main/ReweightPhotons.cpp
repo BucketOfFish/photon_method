@@ -26,10 +26,8 @@ TCut getReweightRegion(Options options) {
     TCut reweight_region = cuts::selections["reweight"];
     reweight_region += cuts::selections[options.channel];
 
-    cout << "bkg selection          : " << reweight_region.GetTitle() << endl;
-    cout << "bkg weight             : " << cuts::bkg_weight.GetTitle() << endl;
-    //cout << "photon selection       : " << reweight_region.GetTitle() << endl;
-    //cout << "photon weight          : " << cuts::photon_weight.GetTitle() << endl;
+    cout << padString("bkg selection") << reweight_region.GetTitle() << endl;
+    cout << padString("bkg weight") << cuts::bkg_weight.GetTitle() << endl;
     cout << endl;
 
     return reweight_region;
