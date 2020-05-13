@@ -278,9 +278,9 @@ void ReductionStep(Options options) {
 
     //--- set selection cut
     if (options.is_photon)
-        options.cut = cuts::selections["photon_baseline_ntuples"];
+        options.cut = cuts::selections["photon_baseline_ntuples"] + "totalWeight < 1000000";
     else
-        options.cut = cuts::selections["bkg_baseline"];
+        options.cut = cuts::selections["bkg_baseline"] + "totalWeight < 1000000";
     options.final_cut = "totalWeight!=0";
 
     //--- make reduced ntuples
@@ -342,9 +342,9 @@ void Main() {
 
     options.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = false;
+    bool do_smearing = true;
     bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (options.unit_testing) {
@@ -452,10 +452,10 @@ void Main() {
 
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
-        options.plot_regions = vector<string>{"VRZjets_noZwindow", "VRZjets_noZwindow_noBveto"};
-        options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
-            "lepPt", "mt2leplsp_0"};
-        //options.plot_features = vector<string>{"met_Et"};
+        options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow", "VRZjets_noZwindow_noBveto"};
+        //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
+            //"lepPt", "mt2leplsp_0"};
+        options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
 
