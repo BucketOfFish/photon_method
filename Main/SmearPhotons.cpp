@@ -13,8 +13,12 @@ void initFeatureHists(map<string, map<int, TH1D*>> &plots) {
     for (int i=0; i<bins::n_pt_bins+2; i++) {
         plots["lep_cm_theta"][i] = new TH1D("", "", 100, 0, 3);
         plots["lepEta"][i] = new TH1D("", "", 100, -3, 3);
+        plots["lepPt"][i] = new TH1D("", "", 100, 0, 300);
+        plots["met_Et_raw"][i] = new TH1D("", "", 100, 0, 300);
+        plots["met_Et"][i] = new TH1D("", "", 100, 0, 300);
         plots["METl_raw"][i] = new TH1D("", "", 100, -100, 100);
-        plots["METl"][i] = new TH1D("", "", 100, -100, 100);
+        plots["METl"][i] = new TH1D("", "", 100, -150, 150);
+        plots["METt"][i] = new TH1D("", "", 100, -150, 150);
         plots["mll"][i] = new TH1D("", "", 100, 0, 150);
     }
 //------------------
@@ -169,6 +173,7 @@ public:
         //--- initialize histograms
         initFeatureHists(zmc_hists);
         zmc_hists.erase("METl_raw");
+        zmc_hists.erase("met_Et_raw");
 
         //--- fill histograms
         ttree_zjets->Draw(">>event_list", options.bkg_smearing_selection);
@@ -176,7 +181,10 @@ public:
 
         ttree_zjets->SetBranchStatus("*", 0);
         vector<float> *lepEta = new vector<float>(10); SetInputBranch(ttree_zjets, "lepEta", &lepEta);
+        vector<float> *lepPt = new vector<float>(10); SetInputBranch(ttree_zjets, "lepPt", &lepPt);
         float METl; SetInputBranch(ttree_zjets, "METl", &METl);
+        float METt; SetInputBranch(ttree_zjets, "METt", &METt);
+        float met_Et; SetInputBranch(ttree_zjets, "met_Et", &met_Et);
         float mll; SetInputBranch(ttree_zjets, "mll", &mll);
         float Ptll; SetInputBranch(ttree_zjets, "Ptll", &Ptll);
         double totalWeight; SetInputBranch(ttree_zjets, "totalWeight", &totalWeight);
@@ -188,7 +196,11 @@ public:
 
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(0), totalWeight);
             this->zmc_hists["lepEta"][pt_bin]->Fill(lepEta->at(1), totalWeight);
+            this->zmc_hists["lepPt"][pt_bin]->Fill(lepPt->at(0), totalWeight);
+            this->zmc_hists["lepPt"][pt_bin]->Fill(lepPt->at(1), totalWeight);
+            this->zmc_hists["met_Et"][pt_bin]->Fill(met_Et, totalWeight);
             this->zmc_hists["METl"][pt_bin]->Fill(METl, totalWeight);
+            this->zmc_hists["METt"][pt_bin]->Fill(METt, totalWeight);
             this->zmc_hists["mll"][pt_bin]->Fill(mll, totalWeight);
         }
 
@@ -301,12 +313,18 @@ public:
         return lep_theta_cm;
     }
 
-    tuple<bool, TLorentzVector, TLorentzVector> splitLeptons(TLorentzVector z_4vec) {
+    tuple<bool, TLorentzVector, TLorentzVector> splitLeptons(TLorentzVector z_4vec, Options options) {
         // boost along z axis (since we measure angles in CM relative to boost direction)
-        TVector3 boost_vec(0, 0, z_4vec.BoostVector().Mag());
+        //TVector3 boost_vec(0, 0, z_4vec.BoostVector().Mag());
+        TVector3 boost_vec = z_4vec.BoostVector();
 
         TRandom1 myRandom;
         myRandom.SetSeed(0);
+
+        //float lep_M = 0;
+        //if (options.channel == "mm") lep_M = 0.1056583;
+        //else if (options.channel == "ee") lep_M = 0.0005109;
+        //else failTest("Cannot split in this channel");
 
         TLorentzVector l0_lab_4vec, l1_lab_4vec;
         int n_tries = 0;
@@ -324,26 +342,29 @@ public:
             double lep_pz_cm = lep_E_cm*TMath::Cos(lep_theta_cm);
             l0_cm_4vec.SetPxPyPzE(lep_px_cm, lep_py_cm, lep_pz_cm, lep_E_cm);
             l1_cm_4vec.SetPxPyPzE(-lep_px_cm, -lep_py_cm, -lep_pz_cm, lep_E_cm);
+            //l0_cm_4vec.SetPtEtaPhiM(lep_E_cm, convertThetaToEta(lep_theta_cm), lep_phi_cm, lep_M);
+            //l1_cm_4vec.SetPtEtaPhiM(lep_E_cm, convertThetaToEta(M_PI-lep_theta_cm), M_PI+lep_phi_cm, lep_M);
 
             // Boost to lab frame using smeared photon pT, eta, and phi
             l0_lab_4vec = l0_cm_4vec;
             l1_lab_4vec = l1_cm_4vec;
             l0_lab_4vec.Boost(boost_vec);
             l1_lab_4vec.Boost(boost_vec);
+
+            // Rotate to lab coordinates
+            //l0_lab_4vec.RotateZ(z_4vec.Phi());
+            //l0_lab_4vec.RotateY(z_4vec.Theta());
+            //l1_lab_4vec.RotateZ(z_4vec.Phi());
+            //l1_lab_4vec.RotateY(z_4vec.Theta());
+
             if (l0_lab_4vec.Pt() < l1_lab_4vec.Pt()) {
                 TLorentzVector lep_placeholder = l1_lab_4vec;
                 l1_lab_4vec = l0_lab_4vec;
                 l0_lab_4vec = lep_placeholder;
             }
 
-            // Rotate to lab coordinates
-            l0_lab_4vec.RotateY(z_4vec.Theta());
-            l0_lab_4vec.RotateZ(z_4vec.Phi());
-            l1_lab_4vec.RotateY(z_4vec.Theta());
-            l1_lab_4vec.RotateZ(z_4vec.Phi());
-
-            l0_lab_4vec += z_4vec;
-            l1_lab_4vec += z_4vec;
+            //cout << z_4vec.E() << " " << (l0_lab_4vec + l1_lab_4vec).E() << " " << l0_lab_4vec.E() << " " << l1_lab_4vec.E() << endl;
+            //cout << z_4vec.Eta() << " " << (l0_lab_4vec + l1_lab_4vec).Eta() << " " << l0_lab_4vec.Eta() << " " << l1_lab_4vec.Eta() << endl;
 
             good_event = abs(l0_lab_4vec.Eta()) < 2.5 && abs(l1_lab_4vec.Eta()) < 2.5 &&
                   l0_lab_4vec.Pt() > cuts::leading_lep_pt_cut && l1_lab_4vec.Pt() > cuts::second_lep_pt_cut;
@@ -638,7 +659,7 @@ public:
             TLorentzVector z_4vec;
             z_4vec.SetPtEtaPhiM(gamma_pt_smeared, gamma_eta, gamma_phi_smeared, mll);
 
-            auto [good_event, l0_lab_4vec, l1_lab_4vec] = splitLeptons(z_4vec);
+            auto [good_event, l0_lab_4vec, l1_lab_4vec] = splitLeptons(z_4vec, options);
             if (!good_event) continue;
 
             lep_pT->clear();
@@ -684,7 +705,7 @@ public:
 //------------
 
 Options setSmearingUnitTestOptions(Options options) {
-    //options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
+    options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.smearing_folder = "./";
 
     options.period = "data15-16";
@@ -734,6 +755,7 @@ void performSmearingUnitTests(Options options) {
     float gamma_phi; photon_tree->SetBranchAddress("gamma_phi", &gamma_phi);
     double totalWeight; photon_tree->SetBranchAddress("totalWeight", &totalWeight);
     float METl_unsmeared; photon_tree->SetBranchAddress("METl_unsmeared", &METl_unsmeared);
+    float METt; photon_tree->SetBranchAddress("METt_unsmeared", &METt);
 
     //--- perform photon splitting and smearing
     float Z_m = 91.188;
@@ -747,14 +769,19 @@ void performSmearingUnitTests(Options options) {
 
         TLorentzVector z_4vec;
         z_4vec.SetPtEtaPhiM(gamma_pt, gamma_eta, gamma_phi, Z_m);
-        auto [good_event, l0_lab_4vec, l1_lab_4vec] = converter.splitLeptons(z_4vec);
+        auto [good_event, l0_lab_4vec, l1_lab_4vec] = converter.splitLeptons(z_4vec, options);
         if (good_event) {
             photon_plots["lepEta"][pt_bin]->Fill(l0_lab_4vec.Eta(), totalWeight);
-            photon_plots["lepEta"][pt_bin]->Fill(l0_lab_4vec.Eta(), totalWeight);
+            photon_plots["lepEta"][pt_bin]->Fill(l1_lab_4vec.Eta(), totalWeight);
+            photon_plots["lepPt"][pt_bin]->Fill(l0_lab_4vec.Pt(), totalWeight);
+            photon_plots["lepPt"][pt_bin]->Fill(l1_lab_4vec.Pt(), totalWeight);
         }
 
         photon_plots["METl_raw"][pt_bin]->Fill(METl_unsmeared, totalWeight);
         photon_plots["METl"][pt_bin]->Fill(METl, totalWeight);
+        photon_plots["METt"][pt_bin]->Fill(METt, totalWeight);
+        photon_plots["met_Et_raw"][pt_bin]->Fill(sqrt(pow(METt,2) + pow(METl_unsmeared,2)), totalWeight);
+        photon_plots["met_Et"][pt_bin]->Fill(sqrt(pow(METt,2) + pow(METl,2)), totalWeight);
         photon_plots["mll"][pt_bin]->Fill(mll, totalWeight);
     }
 
@@ -776,7 +803,7 @@ void performSmearingUnitTests(Options options) {
             float z_yield = zmc_plots[key][i]->Integral(0, zmc_plots[key][i]->GetNbinsX()+1);
             float g_yield = photon_plots[key][i]->Integral(0, photon_plots[key][i]->GetNbinsX()+1);
 
-            cout << key << " " << i << " " << z_yield << " " << g_yield << endl;
+            //cout << key << " " << i << " " << z_yield << " " << g_yield << endl;
             float scale = g_yield != 0 ? z_yield/g_yield : 0;
 
             if (key == "METl") {
@@ -786,6 +813,14 @@ void performSmearingUnitTests(Options options) {
                 photon_plots["METl_raw"][i]->Scale(scale_raw);
                 photon_plots["METl_raw"][i]->SetLineColor(kGreen);
                 photon_plots["METl_raw"][i]->Draw("hist same");
+            }
+            else if (key == "met_Et") {
+                float g_yield_raw = photon_plots["met_Et_raw"][i]->Integral(0, photon_plots["met_Et_raw"][i]->GetNbinsX()+1);
+                float scale_raw = g_yield_raw != 0 ? z_yield/g_yield_raw : 0;
+
+                photon_plots["met_Et_raw"][i]->Scale(scale_raw);
+                photon_plots["met_Et_raw"][i]->SetLineColor(kGreen);
+                photon_plots["met_Et_raw"][i]->Draw("hist same");
             }
 
             TH1D *photon_plot_scaled = (TH1D*)photon_plots[key][i]->Clone();

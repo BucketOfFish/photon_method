@@ -451,6 +451,10 @@ string padString(string unpadded_string) {
     return (padded_string + ": ");
 }
 
+float convertThetaToEta(float theta) {
+    return -log(tan(theta/2));
+}
+
 //-------------------------
 // TREE MANIPULATION CLASS
 //-------------------------

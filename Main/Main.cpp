@@ -340,10 +340,10 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = true;
+    options.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = true;
-    bool do_reweighting = false;
+    bool do_reweighting = true;
     bool do_plotting = false;
 
     //--- unit testing
