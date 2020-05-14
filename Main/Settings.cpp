@@ -620,6 +620,7 @@ struct Options {
 
     bool do_vgamma_subtraction;
     bool plot_unreweighted_photons;
+    bool plot_zmc;
 };
 
 #endif

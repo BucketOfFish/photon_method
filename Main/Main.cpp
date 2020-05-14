@@ -331,8 +331,7 @@ void Main() {
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
-    //options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
-    options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionSamples/";
+    options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
     options.plots_folder = options.my_samples_folder + "Plots/";
 
     options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
@@ -340,11 +339,11 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = false;
+    options.unit_testing = true;
     bool do_reduction = false;
-    bool do_smearing = true;
-    bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_smearing = false;
+    bool do_reweighting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (options.unit_testing) {
@@ -453,9 +452,9 @@ void Main() {
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
         options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow", "VRZjets_noZwindow_noBveto"};
-        //options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
-            //"lepPt", "mt2leplsp_0"};
-        options.plot_features = vector<string>{"met_Et"};
+        options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
+            "lepPt", "mt2leplsp_0"};
+        //options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
 
@@ -467,34 +466,11 @@ void Main() {
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
                              //"Wjets", "triboson"};
         options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
-        options.process_colors = {{"data_bkg", kBlack},
-                                 {"photon_raw", kYellow+2},
-                                 {"photon_reweighted", kGreen-1},
-                                 {"Zjets", kYellow-1},
-                                 {"Wjets", kSpring+1},
-                                 {"ttbar", kBlue+3},
-                                 {"diboson", kOrange+1},
-                                 {"lowMassDY", kGreen+4},
-                                 {"topOther", kAzure-9},
-                                 {"singleTop", kAzure+2},
-                                 {"triboson", kOrange-9},
-                                 {"higgs", kRed-10}};
-        options.process_latex = {{"data_bkg", "Data"},
-                                 {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
-                                 {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
-                                 {"Zjets", "Z+jets (from MC)"},
-                                 {"Wjets", "W+jets"},
-                                 {"ttbar", "t#bar{t}"},
-                                 {"diboson", "Diboson"},
-                                 {"lowMassDY", "Low mass DY"},
-                                 {"topOther", "Top other"},
-                                 {"singleTop", "Single top"},
-                                 {"triboson", "Triboson"},
-                                 {"higgs", "Higgs"}};
 
         options.blinded = true;
         options.print_photon_yield_only = false;
         options.plot_unreweighted_photons = true;
+        options.plot_zmc = true;
         options.do_vgamma_subtraction = false;
 
         //vector<string> periods{"data15-16", "data17", "data18"};

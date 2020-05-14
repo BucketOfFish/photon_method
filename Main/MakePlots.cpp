@@ -422,10 +422,11 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
 // MAKE PLOTS
 //------------
 
-tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, Options options) {
+tuple<THStack*, THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, TString formatted_feature, Options options) {
     THStack *data_stack = new THStack("data_stack", "");
     THStack *raw_g_stack = new THStack("raw_g_stack", "");
     THStack *reweight_g_stack = new THStack("reweight_g_stack", "");
+    THStack *zmc_stack = new THStack("zmc_stack", "");
 
     for (auto process_ptr = options.processes.rbegin(); process_ptr != options.processes.rend(); ++process_ptr) {
         auto process = *process_ptr;
@@ -447,9 +448,17 @@ tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, 
                 histograms["photon_raw"]->SetFillStyle(0);
             }
         }
-        else if (process=="Zjets" && !options.is_data) {
-            histograms[process]->SetFillColor(42);
-            histograms[process]->SetLineStyle(1);
+        else if (process=="Zjets") {
+            if (options.is_data) {
+                histograms[process]->SetLineColor(kBlue);
+                histograms[process]->SetLineStyle(9);
+                histograms[process]->SetLineWidth(3);
+                histograms[process]->SetFillStyle(0);
+            }
+            if (!options.is_data) {
+                histograms[process]->SetFillColor(42);
+                histograms[process]->SetLineStyle(1);
+            }
         }
         else if (process == "data_bkg")
             histograms[process]->SetMarkerStyle(20);
@@ -471,20 +480,23 @@ tuple<THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> histograms, 
         if (process == "data_bkg") {
             if (options.is_data) data_stack->Add(histograms[process]);
         }
-        else if (process == "Zjets") {
-            if (!options.is_data) data_stack->Add(histograms[process]);
+        else if ((process == "Zjets") && (!options.is_data)) {
+            data_stack->Add(histograms[process]);
         }
         else if (process == "photon") {
             raw_g_stack->Add(histograms["photon_raw"]);
             reweight_g_stack->Add(histograms["photon_reweighted"]);
         }
         else if (options.is_data) {
-            raw_g_stack->Add(histograms[process]);
-            reweight_g_stack->Add(histograms[process]);
+            zmc_stack->Add(histograms[process]);
+            if (process != "Zjets") {
+                raw_g_stack->Add(histograms[process]);
+                reweight_g_stack->Add(histograms[process]);
+            }
         }
     }
 
-    return make_tuple(data_stack, raw_g_stack, reweight_g_stack);
+    return make_tuple(data_stack, raw_g_stack, reweight_g_stack, zmc_stack);
 }
 
 TString getPlotSaveName(string period, string channel, string plot_feature, string reweight_branch, bool is_data, string region, string plots_path) {
@@ -512,6 +524,8 @@ TLegend* getLegend(Options options, map<string, TH1D*> histograms) {
                 else
                     leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
             }
+            else if (process == "Zjets" && options.plot_zmc)
+                leg->AddEntry(histograms["Zjets"], options.process_latex["Zjets"].c_str(), "f");
         }
     }
     else {
@@ -545,18 +559,21 @@ string getPlotTex(Options options) {
     return tex_string;
 }
 
-tuple<TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms) {
-    TH1D *hratio, *hratio_unreweighted, *hmctot, *hmctot_unreweighted;
+tuple<TH1D*, TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms) {
+    TH1D *hratio, *hratio_unreweighted, *hratio_zmc, *hmctot, *hmctot_unreweighted, *hmctot_zmc;
 
     if (options.is_data) {
         hratio = (TH1D*) histograms["data_bkg"]->Clone("hratio");
         hratio_unreweighted = (TH1D*) histograms["data_bkg"]->Clone("hratio");
+        hratio_zmc = (TH1D*) histograms["data_bkg"]->Clone("hratio");
         hmctot = (TH1D*) histograms["photon_reweighted"]->Clone("hmctot");
         hmctot_unreweighted = (TH1D*) histograms["photon_raw"]->Clone("hmctot");
+        hmctot_zmc = (TH1D*) histograms["Zjets"]->Clone("hmctot");
         for (auto process : options.processes) {
             if ((process != "data_bkg") && (process != "Zjets") && (process != "photon")) {
                 hmctot->Add(histograms[process]);
                 hmctot_unreweighted->Add(histograms[process]);
+                hmctot_zmc->Add(histograms[process]);
             }
         }
     }
@@ -587,6 +604,7 @@ tuple<TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms
     hratio_unreweighted->SetMinimum(0.0);
     hratio_unreweighted->SetMaximum(2.0);
     hratio_unreweighted->GetYaxis()->SetRangeUser(0.0,2.0);
+    hratio_unreweighted->SetTitle("");
 
     hratio->Divide(hmctot);
     hratio->SetMarkerStyle(20);
@@ -606,15 +624,33 @@ tuple<TH1D*, TH1D*> getRatioPlots(Options options, map<string, TH1D*> histograms
     hratio->SetMinimum(0.0);
     hratio->SetMaximum(2.0);
     hratio->GetYaxis()->SetRangeUser(0.0,2.0);
-
     hratio->SetTitle("");
-    hratio_unreweighted->SetTitle("");
+
+    if (options.is_data && options.plot_zmc) {
+        hratio_zmc->Divide(hmctot_zmc);
+        hratio_zmc->SetMarkerStyle(20);
+        auto zmc_color = histograms["Zjets"]->GetLineColor();
+        hratio_zmc->SetMarkerColor(zmc_color);
+        hratio_zmc->SetLineColor(zmc_color);
+        hratio_zmc->GetXaxis()->SetTitle("");
+        hratio_zmc->GetXaxis()->SetLabelSize(0.);
+        hratio_zmc->GetYaxis()->SetNdivisions(5);
+        hratio_zmc->GetYaxis()->SetTitle("");
+        hratio_zmc->GetYaxis()->SetTitleSize(0.15);
+        hratio_zmc->GetYaxis()->SetTitleOffset(0.3);
+        hratio_zmc->GetYaxis()->SetLabelSize(0.15);
+        hratio_zmc->SetMinimum(0.0);
+        hratio_zmc->SetMaximum(2.0);
+        hratio_zmc->GetYaxis()->SetRangeUser(0.0,2.0);
+        hratio_zmc->SetTitle("");
+    }
 
     //--- don't plot underflow and overflow
     hratio->GetXaxis()->SetRange(1, hratio->GetNbinsX()-1);
+    hratio_zmc->GetXaxis()->SetRange(1, hratio_zmc->GetNbinsX()-1);
     hratio_unreweighted->GetXaxis()->SetRange(1, hratio_unreweighted->GetNbinsX()-1);
 
-    return make_tuple(hratio, hratio_unreweighted);
+    return make_tuple(hratio, hratio_unreweighted, hratio_zmc);
 }
 
 void makePlot(resultsMap results_map, Options options) {
@@ -637,7 +673,7 @@ void makePlot(resultsMap results_map, Options options) {
 
                 //--- create comparison stacks
                 auto hist_map = results_map.results[region_name].histograms[feature]; // map of histograms by [process]
-                auto [data_stack, raw_g_stack, reweight_g_stack] = createStacks(hist_map, formatted_feature, options);
+                auto [data_stack, raw_g_stack, reweight_g_stack, zmc_stack] = createStacks(hist_map, formatted_feature, options);
 
                 //--- draw plot
                 TPad* mainpad = new TPad("mainpad","mainpad",0.0,0.0,1.0,0.8);
@@ -663,6 +699,8 @@ void makePlot(resultsMap results_map, Options options) {
                     reweight_g_stack->SetMinimum(min_y);
                     if (options.plot_unreweighted_photons)
                         raw_g_stack->GetStack()->Last()->Draw("samehist");
+                    if (options.plot_zmc)
+                        zmc_stack->GetStack()->Last()->Draw("samehist");
                     if (!applicable_blinded)
                         data_stack->Draw("sameE1");
                     reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
@@ -703,7 +741,7 @@ void makePlot(resultsMap results_map, Options options) {
                 ratio_pad->cd();
                 ratio_pad->SetGridy();
 
-                auto [hratio, hratio_unreweighted] = getRatioPlots(options, hist_map);
+                auto [hratio, hratio_unreweighted, hratio_zmc] = getRatioPlots(options, hist_map);
                 if (applicable_blinded) {
                     TH1D *empty_hist = new TH1D("", "", 1, 0, 1);
                     empty_hist->Draw();
@@ -713,6 +751,8 @@ void makePlot(resultsMap results_map, Options options) {
                 else {
                     if (options.plot_unreweighted_photons)
                         hratio_unreweighted->Draw("E1");
+                    if (options.plot_zmc)
+                        hratio_zmc->Draw("sameE1");
                     hratio->Draw("sameE1");
                 }
 
@@ -738,14 +778,17 @@ void performPlottingUnitTests(Options options) {
     cout << BOLD(PBLU("Performing unit testing on plotting step")) << endl;
     cout << endl;
 
-    options.data_period = "data15-16";
+    options.period = "data15-16";
+    options.data_period = DataPeriod(options.period);
+    options.mc_period = getMCPeriod(options.period);
+
     options.is_data = true;
     options.reduction_folder = options.unit_test_folder + "ReducedNtuples/";
     options.reweighting_folder = options.unit_test_folder + "ReweightedNtuples/";
-    options.plots_folder = "Diagnostics/Plots/";
+    options.plots_folder = "DiagnosticPlots/";
 
     options.make_diagnostic_plots = true;
-    options.plot_regions = vector<string>{"VRDPhiLow6"};
+    options.plot_regions = vector<string>{"VRZjets"};
     options.plot_channels = vector<string>{"SF"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
@@ -753,7 +796,10 @@ void performPlottingUnitTests(Options options) {
     options.blinded = true;
     options.print_photon_yield_only = false;
     options.plot_unreweighted_photons = true;
+    options.plot_zmc = true;
     options.do_vgamma_subtraction = false;
+
+    options.reweight_branch = "reweight_Ptll";
 
     run_quickDraw(options);
 
@@ -798,6 +844,31 @@ void MakePlots(Options options) {
     //--- set global options
     //ROOT::EnableImplicitMT();
     gStyle->SetOptStat(0);
+
+    options.process_colors = {{"data_bkg", kBlack},
+                             {"photon_raw", kYellow+2},
+                             {"photon_reweighted", kGreen-1},
+                             {"Zjets", kYellow-1},
+                             {"Wjets", kSpring+1},
+                             {"ttbar", kBlue+3},
+                             {"diboson", kOrange+1},
+                             {"lowMassDY", kGreen+4},
+                             {"topOther", kAzure-9},
+                             {"singleTop", kAzure+2},
+                             {"triboson", kOrange-9},
+                             {"higgs", kRed-10}};
+    options.process_latex = {{"data_bkg", "Data"},
+                             {"photon_raw", "Z+jets (from #gamma+jets, raw)"},
+                             {"photon_reweighted", "Z+jets (from #gamma+jets, reweighted)"},
+                             {"Zjets", "Z+jets (from MC)"},
+                             {"Wjets", "W+jets"},
+                             {"ttbar", "t#bar{t}"},
+                             {"diboson", "Diboson"},
+                             {"lowMassDY", "Low mass DY"},
+                             {"topOther", "Top other"},
+                             {"singleTop", "Single top"},
+                             {"triboson", "Triboson"},
+                             {"higgs", "Higgs"}};
 
     //--- either perform unit tests or run code
     if (options.unit_testing)
