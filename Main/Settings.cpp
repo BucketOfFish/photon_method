@@ -160,7 +160,8 @@ namespace cuts {
         {"VRDPhiHigh6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75"},
     };
 
-    TCut CR("met_Et<100.0");
+    TCut CR_MET("met_Et<100.0");
+    TCut CR_dPhiMetJet12Min("dPhiMetJet12Min<0.4");
 
     //std::unordered_map<std::string, TCut> plot_region_met_portions = {};
     std::unordered_map<std::string, TCut> plot_region_met_portions = {
@@ -625,6 +626,8 @@ struct Options {
     bool plot_zmc;
 
     bool scale_zmc;
+
+    string scaling_method;
 };
 
 #endif

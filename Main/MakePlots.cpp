@@ -50,8 +50,10 @@ tuple<string, string, string> getPlotRegionInfo(Options options, string channel,
     plot_region += cuts::selections[channel];
     plot_region += options.additional_plot_cut;
 
-    TCut plot_CR = plot_region + cuts::CR;
+    TCut plot_CR;
+    if (options.scaling_method == "MET") plot_CR = plot_region + cuts::CR_MET;
     if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
+    if (options.scaling_method == "dPhiMetJet12Min") plot_CR = plot_region + cuts::CR_dPhiMetJet12Min;
 
     string region_name = region + " " + channel;
 
@@ -281,6 +283,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
             if (options.plot_zmc) processes.push_back("Zjets");
 
             map<string, float> scale_factors;
+            cout << "\tScaling via " << options.scaling_method << " method" << endl;
             for (auto process : processes) {
                 float SF = CR_integrals[process] == 0 ? 0.0 : zdata_integral / CR_integrals[process];
                 cout << "\tScaling " << process << " yield by " << SF << endl;
@@ -411,7 +414,8 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
     out_file << "\\begin{table}" << endl;
     map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
     string channel_string = getChannelString(plot_channels, results_map.plot_channels);
-    out_file << "\\caption{Photon Method Scale Factors (" << channel_string << ")}" << endl;
+    out_file << "\\caption{Scale Factors (" << channel_string << "), Scaling by "
+        << options.scaling_method << "}" << endl;
     out_file << "\\begin{center}" << endl;
     out_file << "\\begin{tabular}{c|c}" << endl;
     out_file << "region & photon scale factor \\\\" << endl;
@@ -836,6 +840,8 @@ void performPlottingUnitTests(Options options) {
     options.plot_zmc = true;
 
     options.scale_zmc = true;
+    //options.scaling_method = "MET";
+    options.scaling_method = "dPhiMetJet12Min";
 
     options.reweight_branch = "reweight_Ptll";
 

@@ -476,6 +476,8 @@ void Main() {
         options.plot_zmc = true;
 
         options.scale_zmc = true;
+        options.scaling_method = "MET";
+        //options.scaling_method = "dPhiMetJet12Min";
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
