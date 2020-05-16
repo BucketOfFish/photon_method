@@ -101,6 +101,10 @@ namespace cuts {
         {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
         {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_noMETcut", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_MET100_200", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_MET200_300", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_MET300_400", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_METgt400", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_noBveto", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40" + is_SF},
         {"strong_preselection", strong_preselection},
 
@@ -172,6 +176,10 @@ namespace cuts {
 
         {"VRZjets", "(met_Et>100 && met_Et<200)"},
         {"VRZjets_noZwindow", "(met_Et>100 && met_Et<200)"},
+        {"VRZjets_noZwindow_MET100_200", "(met_Et>100 && met_Et<200)"},
+        {"VRZjets_noZwindow_MET200_300", "(met_Et>200 && met_Et<300)"},
+        {"VRZjets_noZwindow_MET300_400", "(met_Et>300 && met_Et<400)"},
+        {"VRZjets_noZwindow_METgt400", "(met_Et>400)"},
         {"VRZjets_noZwindow_noBveto", "(met_Et>100 && met_Et<200)"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf

@@ -340,7 +340,7 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = true;
+    options.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -452,7 +452,8 @@ void Main() {
 
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
-        options.plot_regions = vector<string>{"VRZjets_noZwindow", "VRZjets_noZwindow_noMETcut"};
+        options.plot_regions = vector<string>{"VRZjets_noZwindow_noMETcut", "VRZjets_noZwindow_MET100_200",
+            "VRZjets_noZwindow_MET200_300", "VRZjets_noZwindow_MET300_400", "VRZjets_noZwindow_METgt400"};
         options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "dPhiMetJet12Min", "dPhiPllMet"};
         //options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
@@ -460,7 +461,7 @@ void Main() {
 
         //options.additional_plot_cut = "Ht30>250";
 
-        options.make_diagnostic_plots = true;
+        options.make_diagnostic_plots = false;
         //options.diagnostic_plots = vector<string>{"lepEta", "METl", "mll"};
 
         //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
@@ -476,8 +477,8 @@ void Main() {
         options.plot_zmc = true;
 
         options.scale_zmc = true;
-        options.scaling_method = "MET";
-        //options.scaling_method = "dPhiMetJet12Min";
+        //options.scaling_method = "MET";
+        options.scaling_method = "dPhiMetJet12Min";
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
