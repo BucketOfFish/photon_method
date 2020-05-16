@@ -348,14 +348,28 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     string channel_string = getChannelString(plot_channels, options.plot_channels);
     out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
-    out_file << "\\begin{tabular}{c|gcccgg}" << endl;
-    vector<string> table_processes = {"data_bkg", "bkg MC", "photon", "Zjets", "photon + bkg MC", "Z + bkg MC"};
-    out_file << "region & data & bkg$_{MC}$ & photon & Zjets & photon$_{tot}$ & Zjets$_{tot}$ \\\\" << endl;
+
+    vector<string> processes = {"data_bkg", "bkg MC"};
+    if (options.plot_reweighted_photons) processes.push_back("photon");
+    if (options.plot_zmc) processes.push_back("Zjets");
+    if (options.plot_reweighted_photons) processes.push_back("photon + bkg MC");
+    if (options.plot_zmc) processes.push_back("Z + bkg MC");
+
+    if (processes.size() == 4) {
+        out_file << "\\begin{tabular}{c|gccg}" << endl;
+        if (options.plot_reweighted_photons)
+            out_file << "region & data & bkg$_{MC}$ & photon & photon$_{tot}$ \\\\" << endl;
+        else out_file << "region & data & bkg$_{MC}$ & Z MC & Z MC$_{tot}$ \\\\" << endl;
+    }
+    else {
+        out_file << "\\begin{tabular}{c|gcccgg}" << endl;
+        out_file << "region & data & bkg$_{MC}$ & photon & Z MC & photon$_{tot}$ & Z MC$_{tot}$ \\\\" << endl;
+    }
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.plot_regions) {
         out_file << region;
-        for (auto process : table_processes) {
+        for (auto process : processes) {
             if (process == "photon") process = "photon_reweighted";
             float yield_ee = results_map.results[region + " ee"].process_yields[process];
             float yield_mm = results_map.results[region + " mm"].process_yields[process];
@@ -433,7 +447,7 @@ tuple<THStack*, THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> hi
 
         //--- set plotting options
         if (process == "photon") {
-            histograms["photon_reweighted"]->SetLineColor(1);
+            histograms["photon_reweighted"]->SetLineColor(options.process_colors["photon_reweighted"]);
             histograms["photon_reweighted"]->SetLineWidth(0);
             histograms["photon_reweighted"]->SetFillColor(options.process_colors["photon_reweighted"]);
             if (options.is_data) {
@@ -449,13 +463,13 @@ tuple<THStack*, THStack*, THStack*, THStack*> createStacks(map<string, TH1D*> hi
             }
         }
         else if (process=="Zjets") {
-            if (options.is_data) {
+            if (options.is_data && (options.plot_reweighted_photons || options.plot_unreweighted_photons)) {
                 histograms[process]->SetLineColor(kBlue);
                 histograms[process]->SetLineStyle(9);
                 histograms[process]->SetLineWidth(3);
                 histograms[process]->SetFillStyle(0);
             }
-            if (!options.is_data) {
+            else {
                 histograms[process]->SetFillColor(42);
                 histograms[process]->SetLineStyle(1);
             }
@@ -514,25 +528,28 @@ TLegend* getLegend(Options options, map<string, TH1D*> histograms) {
     if (options.is_data) {
         leg->AddEntry(histograms["data_bkg"], options.process_latex["data_bkg"].c_str(), "lp");
         for (auto process : options.processes) {
-            if ((process != "data_bkg") && (process != "Zjets")) {
-                if (process == "photon") {
+            if (process == "photon") {
+                if (options.plot_reweighted_photons)
                     leg->AddEntry(histograms["photon_reweighted"],
                         options.process_latex["photon_reweighted"].c_str(), "f");
-                    if (options.plot_unreweighted_photons)
-                        leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
-                }
-                else
-                    leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
+                if (options.plot_unreweighted_photons)
+                    leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
             }
-            else if (process == "Zjets" && options.plot_zmc)
-                leg->AddEntry(histograms["Zjets"], options.process_latex["Zjets"].c_str(), "f");
+            else if (process == "Zjets") {
+                if (options.plot_zmc)
+                    leg->AddEntry(histograms["Zjets"], options.process_latex["Zjets"].c_str(), "f");
+            }
+            else if (process != "data_bkg") {
+                leg->AddEntry(histograms[process], options.process_latex[process].c_str(), "f");
+            }
         }
     }
     else {
         leg->AddEntry(histograms["Zjets"], options.process_latex["Zjets"].c_str(), "f");
         if (options.plot_unreweighted_photons)
             leg->AddEntry(histograms["photon_raw"], options.process_latex["photon_raw"].c_str(), "f");
-        leg->AddEntry(histograms["photon_reweighted"], options.process_latex["photon_reweighted"].c_str(), "f");
+        if (options.plot_reweighted_photons)
+            leg->AddEntry(histograms["photon_reweighted"], options.process_latex["photon_reweighted"].c_str(), "f");
     }
 
     leg->SetBorderSize(0);
@@ -686,7 +703,6 @@ void makePlot(resultsMap results_map, Options options) {
                 if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
                     mainpad->SetLogy();
                     float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 50;
-                    //min_y = pow(10.0, -2);
                     min_y = max_y / pow(10, 5);
                 }
 
@@ -694,17 +710,29 @@ void makePlot(resultsMap results_map, Options options) {
                                           && (options.blinded && (region.find("SR") != std::string::npos));
 
                 if (options.is_data) {
-                    reweight_g_stack->Draw("hist");
-                    reweight_g_stack->SetMaximum(max_y);
-                    reweight_g_stack->SetMinimum(min_y);
+                    vector<THStack*> stacks;
+                    if (options.plot_reweighted_photons) stacks.push_back(reweight_g_stack);
                     if (options.plot_unreweighted_photons)
-                        raw_g_stack->GetStack()->Last()->Draw("samehist");
-                    if (options.plot_zmc)
-                        zmc_stack->GetStack()->Last()->Draw("samehist");
+                        stacks.push_back((THStack*)raw_g_stack->GetStack()->Last());
+                    if (options.plot_zmc) {
+                        if (options.plot_reweighted_photons || options.plot_unreweighted_photons)
+                            stacks.push_back((THStack*)zmc_stack->GetStack()->Last());
+                        else stacks.push_back(zmc_stack);
+                    }
+                    bool first_stack = true;
+                    for (auto stack : stacks) {
+                        if (first_stack) {
+                            stack->Draw("hist");
+                            first_stack = false;
+                            stack->SetMaximum(max_y);
+                            stack->SetMinimum(min_y);
+                            stack->GetXaxis()->SetTitle(formatted_feature);
+                            stack->GetYaxis()->SetTitle("entries / bin");
+                        }
+                        else stack->Draw("samehist");
+                    }
                     if (!applicable_blinded)
                         data_stack->Draw("sameE1");
-                    reweight_g_stack->GetXaxis()->SetTitle(formatted_feature);
-                    reweight_g_stack->GetYaxis()->SetTitle("entries / bin");
                 }
                 else {
                     data_stack->Draw("hist");
@@ -712,7 +740,8 @@ void makePlot(resultsMap results_map, Options options) {
                     data_stack->SetMinimum(min_y);
                     if (options.plot_unreweighted_photons)
                         raw_g_stack->GetStack()->Last()->Draw("samehist");
-                    reweight_g_stack->Draw("samehist");
+                    if (options.plot_reweighted_photons)
+                        reweight_g_stack->Draw("samehist");
                     data_stack->GetXaxis()->SetTitle(formatted_feature);
                     data_stack->GetYaxis()->SetTitle("entries / bin");
                 }
@@ -753,7 +782,8 @@ void makePlot(resultsMap results_map, Options options) {
                         hratio_unreweighted->Draw("E1");
                     if (options.plot_zmc)
                         hratio_zmc->Draw("sameE1");
-                    hratio->Draw("sameE1");
+                    if (options.plot_reweighted_photons)
+                        hratio->Draw("sameE1");
                 }
 
                 //--- save plot
@@ -795,6 +825,7 @@ void performPlottingUnitTests(Options options) {
 
     options.blinded = true;
     options.print_photon_yield_only = false;
+    options.plot_reweighted_photons = true;
     options.plot_unreweighted_photons = true;
     options.plot_zmc = true;
     options.do_vgamma_subtraction = false;

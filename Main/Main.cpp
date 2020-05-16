@@ -331,8 +331,9 @@ void Main() {
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
-    options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
-    options.plots_folder = options.my_samples_folder + "Plots/";
+    //options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
+    options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
+    options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
 
     options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
     //options.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
@@ -451,9 +452,8 @@ void Main() {
 
         //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
-        options.plot_regions = vector<string>{"VRZjets", "VRZjets_noZwindow", "VRZjets_noZwindow_noBveto"};
-        options.plot_features = vector<string>{"Ptll", "met_Et", "METl", "METt", "Ht30", "nJet30", "met_Sign",
-            "lepPt", "mt2leplsp_0"};
+        options.plot_regions = vector<string>{"VRZjets_noZwindow", "VRZjets_noZwindow_noMETcut"};
+        options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "dPhiMetJet12Min", "dPhiPllMet"};
         //options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
@@ -469,7 +469,8 @@ void Main() {
 
         options.blinded = true;
         options.print_photon_yield_only = false;
-        options.plot_unreweighted_photons = true;
+        options.plot_reweighted_photons = false;
+        options.plot_unreweighted_photons = false;
         options.plot_zmc = true;
         options.do_vgamma_subtraction = false;
 

@@ -100,6 +100,7 @@ namespace cuts {
         {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
         {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
         {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
+        {"VRZjets_noZwindow_noMETcut", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_noBveto", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40" + is_SF},
         {"strong_preselection", strong_preselection},
 
@@ -619,6 +620,7 @@ struct Options {
     vector<string> diagnostic_plots;
 
     bool do_vgamma_subtraction;
+    bool plot_reweighted_photons;
     bool plot_unreweighted_photons;
     bool plot_zmc;
 };
