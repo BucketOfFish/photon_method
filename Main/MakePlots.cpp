@@ -20,7 +20,7 @@ using histMap = map<string, // region
 struct Result {
     map<string, map<string, TH1D*>> histograms; // [feature][process] histogram
     map<string, float> process_yields;
-    float photon_SF;
+    map<string, float> scale_factors;
 };
 struct resultsMap {
     vector<string> plot_regions;
@@ -270,28 +270,30 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                     mc_bkg_PR_integral += PR_integrals[process];
                 }
             }
+            cout << endl;
 
             float zdata_integral = CR_integrals["data_bkg"] - mc_bkg_CR_integral;
             if (!options.is_data) zdata_integral = CR_integrals["Zjets"];
-            float SF = CR_integrals["photon_raw"] == 0 ? 0.0 : zdata_integral / CR_integrals["photon_raw"];
-            float SFrw = CR_integrals["photon_reweighted"] == 0 ? 0.0 : zdata_integral / CR_integrals["photon_reweighted"];
 
-            cout << "\tScaling raw photon data by " << SF << endl;
-            cout << "\tScaling reweighted photon data by " << SFrw << endl;
+            vector<string> processes;
+            if (options.plot_unreweighted_photons) processes.push_back("photon_raw");
+            if (options.plot_reweighted_photons) processes.push_back("photon_reweighted");
+            if (options.plot_zmc) processes.push_back("Zjets");
 
-            for (auto plot_feature : options.plot_features) {
-                prh[plot_feature]["photon_raw"]->Scale(SF);
-                prh[plot_feature]["photon_reweighted"]->Scale(SFrw);
+            map<string, float> scale_factors;
+            for (auto process : processes) {
+                float SF = CR_integrals[process] == 0 ? 0.0 : zdata_integral / CR_integrals[process];
+                cout << "\tScaling " << process << " yield by " << SF << endl;
+                for (auto plot_feature : options.plot_features) prh[plot_feature][process]->Scale(SF);
+                PR_integrals[process] *= SF;
+                scale_factors[process] = SF;
+                cout << "\tScaled " << process << " yield of " << PR_integrals[process] << endl;
             }
-            PR_integrals["photon_raw"] *= SF;
-            PR_integrals["photon_reweighted"] *= SFrw;
+            cout << endl;
 
             PR_integrals["bkg MC"] = mc_bkg_PR_integral;
             PR_integrals["photon + bkg MC"] = PR_integrals["photon_reweighted"] + mc_bkg_PR_integral;
             PR_integrals["Z + bkg MC"] = PR_integrals["Zjets"] + mc_bkg_PR_integral;
-
-            cout << "\tScaled photon yield of " << PR_integrals["photon_reweighted"] << endl;
-            cout << endl;
 
             map<string, map<string, TH1D*>> region_hists;
             for (auto plot_feature : options.plot_features) {
@@ -301,7 +303,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                     region_hists[plot_feature][process] = new_histogram;
                 }
             }
-            results_map.results[region_name] = Result{region_hists, PR_integrals, SFrw};
+            results_map.results[region_name] = Result{region_hists, PR_integrals, scale_factors};
         }
     }
 
@@ -416,11 +418,13 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.plot_regions) {
-        float photon_ee_sf = results_map.results[region + " ee"].photon_SF;
-        float photon_mm_sf = results_map.results[region + " mm"].photon_SF;
-        float photon_SF_sf = results_map.results[region + " SF"].photon_SF;
-        map<string, string> channel_photons = {{"ee", toString(photon_ee_sf)}, {"mm", toString(photon_mm_sf)}, {"SF", toString(photon_SF_sf)}};
-        out_file << region << " & " << getChannelString(channel_photons, results_map.plot_channels) << " \\\\" << endl;
+        float ee_sf = results_map.results[region + " ee"].scale_factors["photon_reweighted"];
+        float mm_sf = results_map.results[region + " mm"].scale_factors["photon_reweighted"];
+        float SF_sf = results_map.results[region + " SF"].scale_factors["photon_reweighted"];
+        map<string, string> channel_photons =
+            {{"ee", toString(ee_sf)}, {"mm", toString(mm_sf)}, {"SF", toString(SF_sf)}};
+        out_file << region << " & " << getChannelString(channel_photons, results_map.plot_channels)
+            << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -825,10 +829,13 @@ void performPlottingUnitTests(Options options) {
 
     options.blinded = true;
     options.print_photon_yield_only = false;
-    options.plot_reweighted_photons = true;
-    options.plot_unreweighted_photons = true;
-    options.plot_zmc = true;
     options.do_vgamma_subtraction = false;
+
+    options.plot_reweighted_photons = false;
+    options.plot_unreweighted_photons = false;
+    options.plot_zmc = true;
+
+    options.scale_zmc = true;
 
     options.reweight_branch = "reweight_Ptll";
 

@@ -618,11 +618,13 @@ struct Options {
     bool blinded;
     bool print_photon_yield_only;
     vector<string> diagnostic_plots;
-
     bool do_vgamma_subtraction;
+
     bool plot_reweighted_photons;
     bool plot_unreweighted_photons;
     bool plot_zmc;
+
+    bool scale_zmc;
 };
 
 #endif

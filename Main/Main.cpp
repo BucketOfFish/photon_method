@@ -469,10 +469,13 @@ void Main() {
 
         options.blinded = true;
         options.print_photon_yield_only = false;
+        options.do_vgamma_subtraction = false;
+
         options.plot_reweighted_photons = false;
         options.plot_unreweighted_photons = false;
         options.plot_zmc = true;
-        options.do_vgamma_subtraction = false;
+
+        options.scale_zmc = true;
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
