@@ -53,7 +53,7 @@ tuple<string, string, string> getPlotRegionInfo(Options options, string channel,
     TCut plot_CR;
     if (options.scaling_method == "MET") plot_CR = plot_region + cuts::CR_MET;
     if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
-    if (options.scaling_method == "dPhiMetJet12Min") plot_CR = plot_region + cuts::CR_dPhiMetJet12Min;
+    if (options.scaling_method == "minDPhi2JetsMet") plot_CR = plot_region + cuts::CR_minDPhi2JetsMet;
 
     string region_name = region + " " + channel;
 
@@ -889,7 +889,7 @@ void performPlottingUnitTests(Options options) {
 
     options.scale_zmc = true;
     //options.scaling_method = "MET";
-    options.scaling_method = "dPhiMetJet12Min";
+    options.scaling_method = "minDPhi2JetsMet";
 
     options.reweight_branch = "reweight_Ptll";
 

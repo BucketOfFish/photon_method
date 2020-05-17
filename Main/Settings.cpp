@@ -92,15 +92,15 @@ namespace cuts {
         {"DF", "channel==2 || channel==3"},
 
         {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR && Ptll>25" + not_diboson_2L},
-        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>15 && nLep_base==0 && Ptll>25"},
-        {"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
+        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>25 && nLep_base==0 && Ptll>25"},
+        //{"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
+        {"photon_baseline", "nJet30>=1 && gamma_pt>25"},
         {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
         {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
 
         {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
         {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
         {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_noMETcut", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_MET100_200", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_MET200_300", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
         {"VRZjets_noZwindow_MET300_400", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
@@ -115,10 +115,10 @@ namespace cuts {
         {"VRcom", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30"},
 
         // from https://arxiv.org/pdf/1611.05791.pdf
-        {"SRZ2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && (mll>81 && mll<101) && dPhiMetJet12Min>0.4 && Ht30>600"},
-        {"SRlow2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4"},
-        {"SRmed2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && Ht30>400"},
-        {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && dPhiMetJet12Min>0.4 && Ht30>700"},
+        {"SRZ2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && (mll>81 && mll<101) && minDPhi2JetsMet>0.4 && Ht30>600"},
+        {"SRlow2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4"},
+        {"SRmed2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4 && Ht30>400"},
+        {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4 && Ht30>700"},
 
         // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
         {"SRC", strong_preselection + "mt2leplsp_0>90 && met_Sign>10 && Ptll<100"},
@@ -165,7 +165,7 @@ namespace cuts {
     };
 
     TCut CR_MET("met_Et<100.0");
-    TCut CR_dPhiMetJet12Min("dPhiMetJet12Min<0.4");
+    TCut CR_minDPhi2JetsMet("minDPhi2JetsMet<0.4");
 
     //std::unordered_map<std::string, TCut> plot_region_met_portions = {};
     std::unordered_map<std::string, TCut> plot_region_met_portions = {
@@ -175,7 +175,6 @@ namespace cuts {
         {"VRcom", "(met_Et>100 && met_Et<200)"},
 
         {"VRZjets", "(met_Et>100 && met_Et<200)"},
-        {"VRZjets_noZwindow", "(met_Et>100 && met_Et<200)"},
         {"VRZjets_noZwindow_MET100_200", "(met_Et>100 && met_Et<200)"},
         {"VRZjets_noZwindow_MET200_300", "(met_Et>200 && met_Et<300)"},
         {"VRZjets_noZwindow_MET300_400", "(met_Et>300 && met_Et<400)"},
@@ -326,7 +325,7 @@ ROOT::RDF::TH1DModel getHistogramInfo(string plot_feature) {
     plot_settings["DPhi_METLepSecond"] = ROOT::RDF::TH1DModel("", "#Delta#phi(lep_{2},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet1"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{1},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiMetJet2"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{2},E_{T}^{miss})", 20, 0, 3.14);
-    plot_settings["dPhiMetJet12Min"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{min(1,2)},E_{T}^{miss})", 20, 0, 3.14);
+    plot_settings["minDPhi2JetsMet"] = ROOT::RDF::TH1DModel("", "#Delta#phi(jet_{min(1,2)},E_{T}^{miss})", 20, 0, 3.14);
     plot_settings["dPhiPllMet"] = ROOT::RDF::TH1DModel("", "#Delta#phi(p_{T},E_{T}^{miss})", 20, 0, 3.14);
 
     ROOT::RDF::TH1DModel hist_model = plot_settings[plot_feature];

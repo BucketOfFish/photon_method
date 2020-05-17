@@ -210,7 +210,6 @@ void ReductionStep(Options options) {
     options.branches_to_add = BranchAddOptions {
         make_tuple("dPhiMetJet", "getDPhiMetJet(jetPt, jetEta, jetPhi, nJet30, met_Et, met_Phi)"),
         make_tuple("dPhiMetJet2", "dPhiMetJet[1]"),
-        make_tuple("dPhiMetJet12Min", "std::min(dPhiMetJet[0], dPhiMetJet[1])"),
         make_tuple("lumi", to_string(GetLumi(options.period))), //if (TString(options.sampleID).Contains("Vg")) lumi *= -1;
     };
     
@@ -340,7 +339,7 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = true;
+    options.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -454,7 +453,7 @@ void Main() {
                                         //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
         options.plot_regions = vector<string>{"VRZjets_noZwindow_noMETcut", "VRZjets_noZwindow_MET100_200",
             "VRZjets_noZwindow_MET200_300", "VRZjets_noZwindow_MET300_400", "VRZjets_noZwindow_METgt400"};
-        options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "dPhiMetJet12Min", "dPhiPllMet"};
+        options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet", "dPhiPllMet"};
         //options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
@@ -478,7 +477,7 @@ void Main() {
 
         options.scale_zmc = true;
         //options.scaling_method = "MET";
-        options.scaling_method = "dPhiMetJet12Min";
+        options.scaling_method = "minDPhi2JetsMet";
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
