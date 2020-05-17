@@ -331,8 +331,8 @@ void Main() {
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
-    //options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
-    options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
+    options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
+    //options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
     options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
 
     options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
@@ -340,7 +340,7 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = false;
+    options.unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
