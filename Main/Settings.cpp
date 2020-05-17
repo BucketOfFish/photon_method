@@ -85,7 +85,7 @@ namespace cuts {
     TCut jet4 = "nJet30>=4";
     TCut jet6 = "nJet30>=6";
     TCut bjet0 = "bjet_n==0";
-    TCut is_OS = "is_OS";
+    TCut is_OS = "lepCharge[0] == -lepCharge[1]";
     TCut is_SF = "abs(lepFlavor[0])==abs(lepFlavor[1])";
     TCut mll_12 = "mll>12";
     TCut mll_Zwindow = "mll>81 && mll<101";

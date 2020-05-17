@@ -53,7 +53,7 @@ void initFillingFunctions() {
             "if (trigMatch_HLT_g100_loose==1 && gamma_pt>(100+5) && gamma_pt<(140+5)) totalWeight = trigPrescale_HLT_g100_loose;"
             "if (trigMatch_HLT_g140_loose==1 && gamma_pt>(140+5)) totalWeight = trigPrescale_HLT_g140_loose;"
             ""
-            "if (totalWeight > 100000000000) totalWeight=0;" //--- fix for large photon sample spikes
+            "if (totalWeight > 1000000) totalWeight=0;" //--- fix for large photon sample spikes
             ""
             "return totalWeight;"
         "}";
@@ -61,7 +61,7 @@ void initFillingFunctions() {
         "double getPhotonMCWeight(float lumi, float genWeight, float eventWeight, float jvtWeight, float bTagWeight, float pileupWeight) {"
             "double totalWeight = lumi*genWeight*eventWeight*jvtWeight*bTagWeight*pileupWeight;"
             ""
-            "if (totalWeight > 100000000000) totalWeight=0;" //--- fix for large photon sample spikes
+            "if (totalWeight > 1000000) totalWeight=0;" //--- fix for large photon sample spikes
             ""
             "return totalWeight;"
         "}";
@@ -277,9 +277,9 @@ void ReductionStep(Options options) {
 
     //--- set selection cut
     if (options.is_photon)
-        options.cut = cuts::selections["photon_baseline_ntuples"] + "totalWeight < 1000000";
+        options.cut = cuts::selections["photon_baseline_ntuples"];
     else
-        options.cut = cuts::selections["bkg_baseline"] + "totalWeight < 1000000";
+        options.cut = cuts::selections["bkg_baseline"];
     options.final_cut = "totalWeight!=0";
 
     //--- make reduced ntuples
@@ -325,8 +325,8 @@ void Main() {
     //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
     //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
-    options.my_samples_folder = "/public/data/Photon/NewBaselineSelectionSamples/";
-    //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
+    //options.my_samples_folder = "/public/data/Photon/NewBaselineSelectionSamples/";
+    options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewBaselineSelectionSamples/";
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
@@ -342,9 +342,9 @@ void Main() {
 
     options.unit_testing = false;
     bool do_reduction = true;
-    bool do_smearing = true;
-    bool do_reweighting = true;
-    bool do_plotting = true;
+    bool do_smearing = false;
+    bool do_reweighting = false;
+    bool do_plotting = false;
 
     //--- unit testing
     if (options.unit_testing) {
