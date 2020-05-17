@@ -53,7 +53,7 @@ tuple<string, string, string> getPlotRegionInfo(Options options, string channel,
     TCut plot_CR;
     if (options.scaling_method == "MET") plot_CR = plot_region + cuts::CR_MET;
     if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
-    if (options.scaling_method == "minDPhi2JetsMet") plot_CR = plot_region + cuts::CR_minDPhi2JetsMet;
+    if (options.scaling_method == "minDPhi2JetsMet") plot_CR = plot_region + cuts::minDPhi2JetsMet_anti0p4;
 
     string region_name = region + " " + channel;
 

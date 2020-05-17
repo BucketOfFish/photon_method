@@ -325,14 +325,15 @@ void Main() {
     //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
     //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
-    options.my_samples_folder = "/public/data/Photon/Samples/";
+    options.my_samples_folder = "/public/data/Photon/NewBaselineSelectionSamples/";
     //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/Samples/";
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
     options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
     //options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
-    options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
+    options.plots_folder = options.my_samples_folder + "Plots/";
+    //options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
 
     options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
     //options.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
@@ -340,10 +341,10 @@ void Main() {
     options.tree_name = "BaselineTree";
 
     options.unit_testing = false;
-    bool do_reduction = false;
-    bool do_smearing = false;
-    bool do_reweighting = false;
-    bool do_plotting = true;
+    bool do_reduction = true;
+    bool do_smearing = true;
+    bool do_reweighting = true;
+    bool do_plotting = false;
 
     //--- unit testing
     if (options.unit_testing) {

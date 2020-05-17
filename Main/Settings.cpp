@@ -78,10 +78,41 @@ namespace cuts {
     TCut photon_weight("totalWeight");
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
-    TCut strong_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet>0.4";
-    TCut strong_VRDPhi_preselection = "nLep_signal==2 && nLep_base==2 && trigMatch_2LTrigOR && is_OS && mll>12 && Ptll>40 && lepPt[0]>25 && lepPt[1]>25 && nJet30>=2 && jetPt[0]>30 && jetPt[1]>30 && minDPhi2JetsMet<0.4 && Ht30>250 && mt2leplsp_0>75 && (mll>81 && mll<101)";
-    TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
+    TCut lep0 = "Lep_base==0";
+    TCut lep2 = "nLep_signal==2 && nLep_base==2 && lepPt[0]>25 && lepPt[1]>25 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR";
+    TCut jet1 = "nJet30>=1";
+    TCut jet2 = "nJet30>=2";
+    TCut jet4 = "nJet30>=4";
+    TCut jet6 = "nJet30>=6";
+    TCut bjet0 = "bjet_n==0";
+    TCut is_OS = "is_OS";
     TCut is_SF = "abs(lepFlavor[0])==abs(lepFlavor[1])";
+    TCut mll_12 = "mll>12";
+    TCut mll_Zwindow = "mll>81 && mll<101";
+    TCut mll_lt81 = "mll<81";
+    TCut PPtll_25 = "PhotonPt>25";
+    TCut gPtll_25 = "gamma_pt>25";
+    TCut Ptll_25 = "Ptll>25";
+    TCut Ptll_40 = "Ptll>40";
+    TCut Ptll_lt100 = "Ptll<100";
+    TCut Ptll_lt500 = "Ptll<500";
+    TCut Ptll_lt800 = "Ptll<800";
+    TCut MT2_75 = "mt2leplsp_0>75";
+    TCut MT2_90 = "mt2leplsp_0>90";
+    TCut MT2_100 = "mt2leplsp_0>100";
+    TCut METSig_10 = "met_Sign>10";
+    TCut HT_250 = "Ht30>250";
+    TCut HT_500 = "Ht30>500";
+    TCut HT_800 = "Ht30>800";
+    TCut minDPhi2JetsMet_0p4 = "minDPhi2JetsMet>0.4";
+    TCut minDPhi2JetsMet_anti0p4 = "minDPhi2JetsMet<0.4";
+    TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
+
+    TCut strong_preselection_noDPhi = lep2 + is_OS + jet2 + mll_12 + Ptll_40;
+    TCut strong_preselection = strong_preselection_noDPhi + minDPhi2JetsMet_0p4;
+    TCut strong_VRDPhi_preselection = strong_preselection + mll_Zwindow + minDPhi2JetsMet_anti0p4 + HT_250 + MT2_75;
+
+    TCut CR_MET("met_Et<100");
 
     std::unordered_map<std::string, TCut> selections = {
         {"mm", "channel==0"},
@@ -91,137 +122,72 @@ namespace cuts {
         {"SF", "channel==0 || channel==1"},
         {"DF", "channel==2 || channel==3"},
 
-        {"bkg_baseline", "nJet30>=1 && nLep_signal==2 && nLep_base==2 && is_OS && lepPt[0]>25.0 && lepPt[1]>25.0 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR && Ptll>25" + not_diboson_2L},
-        {"photon_baseline_ntuples", "nJet30>=1 && PhotonPt>25 && nLep_base==0 && Ptll>25"},
-        //{"photon_baseline", "nJet30>=1 && gamma_pt>15 && nLep_base==0"},
-        {"photon_baseline", "nJet30>=1 && gamma_pt>25"},
-        {"photon_comparison", "nJet30>=1 && gamma_pt>15"},
-        {"baseline", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0"},
+        {"bkg_baseline", lep2 + jet1 + is_OS + Ptll_25 + not_diboson_2L},
+        {"photon_baseline_ntuples", lep0 + jet1 + PPtll_25},
+        {"photon_baseline", jet1 + gPtll_25},
+        {"reweight", lep2 + jet2 + is_SF},
+        //{"bkg_baseline", lep2 + is_OS + jet2 + Ptll_25 + not_diboson_2L},
+        //{"photon_baseline_ntuples", lep0 + jet2 + PPtll_25},
+        //{"photon_baseline", jet2 + gPtll_25},
+        //{"reweight", lep2 + is_OS + is_SF + jet2 + PPtll_25},
 
-        {"reweight", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2" + is_SF},
-        {"VRZjets", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && bjet_n==0 && Ptll>40 && (mll>81 && mll<101)" + is_SF},
-        {"VRZjets_noZwindow", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_MET100_200", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_MET200_300", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_MET300_400", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_METgt400", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40 && bjet_n==0" + is_SF},
-        {"VRZjets_noZwindow_noBveto", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2 && Ptll>40" + is_SF},
+        {"VRZjets", lep2 + jet2 + bjet0 + Ptll_40 + mll_Zwindow + is_SF},
+        {"VRZjets_noZwindow", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
+        {"VRZjets_noZwindow_MET100_200", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
+        {"VRZjets_noZwindow_MET200_300", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
+        {"VRZjets_noZwindow_MET300_400", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
+        {"VRZjets_noZwindow_METgt400", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
+        {"VRZjets_noZwindow_noBveto", lep2 + jet2 + Ptll_40 + is_SF},
         {"strong_preselection", strong_preselection},
 
-        {"Inclusive", "1"},
-        {"SRTest", "nJet30>=2 && lepPt[0]>25.0 && lepPt[1]>25.0 && nLep_signal==2"},
-        {"VRTest", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && nLep_signal==2 && mll<100"},
-        {"VR", "nJet30>=2 && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>80 && mll<100 && mjj<60 && mjj>100"},
-        {"VRcom", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30"},
+        {"SRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100},
+        {"SRLow", strong_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
+        {"SRMed", strong_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
+        {"SRHigh", strong_preselection + jet2 + HT_800 + MT2_75},
+        {"SRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow},
+        {"SRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow},
+        {"SRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow},
 
-        // from https://arxiv.org/pdf/1611.05791.pdf
-        {"SRZ2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && (mll>81 && mll<101) && minDPhi2JetsMet>0.4 && Ht30>600"},
-        {"SRlow2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4"},
-        {"SRmed2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4 && Ht30>400"},
-        {"SRhigh2016", "nJet30>=2 && lepCharge[0]*lepCharge[1]<0 && abs(lepFlavor[0])==abs(lepFlavor[1]) && lepPt[0]>25 && lepPt[1]>25 && jet_pT[0]>30 && jet_pT[1]>30 && mll>12 && minDPhi2JetsMet>0.4 && Ht30>700"},
-
-        // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
-        {"SRC", strong_preselection + "mt2leplsp_0>90 && met_Sign>10 && Ptll<100"},
-        {"SRLow2", strong_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"SRMed2", strong_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"SRHigh2", strong_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},
-        {"SRLow23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"SRMed23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"SRHigh23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>800 && mt2leplsp_0>75"},
-        {"SRLow4", strong_preselection + "nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"SRMed4", strong_preselection + "nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"SRHigh4", strong_preselection + "nJet30>=4 && Ht30>800 && mt2leplsp_0>75"},
-        {"SRLowZ4", strong_preselection + "nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"SRMedZ4", strong_preselection + "nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"SRHighZ4", strong_preselection + "nJet30>=4 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
-        {"SRLowZ6", strong_preselection + "nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"SRMedZ6", strong_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"SRHighZ6", strong_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
-
-        {"VRC", strong_preselection + "mt2leplsp_0>90 && met_Sign>10 && Ptll<100 && mll<81"},
-        {"VRLow2", strong_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"VRMed2", strong_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"VRHigh2", strong_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},
-        {"VRLow23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"VRMed23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"VRHigh23", strong_preselection + "nJet30>=2 && nJet30<=3 && Ht30>800 && mt2leplsp_0>75"},
-        {"VRLow4", strong_preselection + "nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"VRMed4", strong_preselection + "nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"VRHigh4", strong_preselection + "nJet30>=4 && Ht30>800 && mt2leplsp_0>75"},
-        {"VRLowZ4", strong_preselection + "nJet30>=4 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"VRMedZ4", strong_preselection + "nJet30>=4 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"VRHighZ4", strong_preselection + "nJet30>=4 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
-        {"VRLowZ6", strong_preselection + "nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && Ptll<500 && (mll>81 && mll<101)"},
-        {"VRMedZ6", strong_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800 && (mll>81 && mll<101)"},
-        {"VRHighZ6", strong_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75 && (mll>81 && mll<101)"},
+        {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81},
+        {"VRLow", strong_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
+        {"VRMed", strong_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
+        {"VRHigh", strong_preselection + jet2 + HT_800 + MT2_75},
+        {"VRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow},
+        {"VRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow},
+        {"VRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow},
 
         {"VRDPhi", strong_VRDPhi_preselection},
-        {"VRDPhiLow2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"VRDPhiMed2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"VRDPhiHigh2", strong_VRDPhi_preselection + "nJet30>=2 && Ht30>800 && mt2leplsp_0>75"},
-        {"VRDPhiLow6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>250 && mt2leplsp_0>100 && Ptll<500"},
-        {"VRDPhiMed6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>500 && mt2leplsp_0>75 && Ptll<800"},
-        {"VRDPhiHigh6", strong_VRDPhi_preselection + "nJet30>=6 && Ht30>800 && mt2leplsp_0>75"},
+        {"VRDPhiLow2", strong_VRDPhi_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
+        {"VRDPhiMed2", strong_VRDPhi_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
+        {"VRDPhiHigh2", strong_VRDPhi_preselection + jet2 + HT_800 + MT2_75},
+        {"VRDPhiLow6", strong_VRDPhi_preselection + jet6 + HT_250 + MT2_100 + Ptll_lt500},
+        {"VRDPhiMed6", strong_VRDPhi_preselection + jet6 + HT_500 + MT2_75 + Ptll_lt800},
+        {"VRDPhiHigh6", strong_VRDPhi_preselection + jet6 + HT_800 + MT2_75},
     };
 
-    TCut CR_MET("met_Et<100.0");
-    TCut CR_minDPhi2JetsMet("minDPhi2JetsMet<0.4");
-
-    //std::unordered_map<std::string, TCut> plot_region_met_portions = {};
     std::unordered_map<std::string, TCut> plot_region_met_portions = {
-        {"Inclusive", "1"},
-        {"SRTest", "1"},
-        {"VRTest", "1"},
-        {"VRcom", "(met_Et>100 && met_Et<200)"},
+        {"VRZjets", "met_Et>100 && met_Et<200"},
+        {"VRZjets_noZwindow_MET100_200", "met_Et>100 && met_Et<200"},
+        {"VRZjets_noZwindow_MET200_300", "met_Et>200 && met_Et<300"},
+        {"VRZjets_noZwindow_MET300_400", "met_Et>300 && met_Et<400"},
+        {"VRZjets_noZwindow_METgt400", "met_Et>400"},
+        {"VRZjets_noZwindow_noBveto", "met_Et>100 && met_Et<200"},
 
-        {"VRZjets", "(met_Et>100 && met_Et<200)"},
-        {"VRZjets_noZwindow_MET100_200", "(met_Et>100 && met_Et<200)"},
-        {"VRZjets_noZwindow_MET200_300", "(met_Et>200 && met_Et<300)"},
-        {"VRZjets_noZwindow_MET300_400", "(met_Et>300 && met_Et<400)"},
-        {"VRZjets_noZwindow_METgt400", "(met_Et>400)"},
-        {"VRZjets_noZwindow_noBveto", "(met_Et>100 && met_Et<200)"},
-
-        // from https://arxiv.org/pdf/1611.05791.pdf
-        {"SRZ2016", "met_Et>225"},
-        {"SRlow2016", "met_Et>200"},
-        {"SRmed2016", "met_Et>200"},
-        {"SRhigh2016", "met_Et>200"},
-
-        // from https://indico.cern.ch/event/883484/contributions/3722767/attachments/1984038/3305237/20-02-10-2l.pdf
         {"SRC", "met_Et>250"},
-        //{"SRCZ", "met_Et>250"},
-        {"SRLow2", "met_Et>250"},
-        {"SRMed2", "met_Et>300"},
-        {"SRHigh2", "met_Et>300"},
-        {"SRLow23", "met_Et>250"},
-        {"SRMed23", "met_Et>300"},
-        {"SRHigh23", "met_Et>300"},
-        {"SRLow4", "met_Et>250"},
-        {"SRMed4", "met_Et>300"},
-        {"SRHigh4", "met_Et>300"},
-        {"SRLowZ4", "met_Et>250"},
-        {"SRMedZ4", "met_Et>300"},
-        {"SRHighZ4", "met_Et>300"},
-        {"SRLowZ6", "met_Et>250"},
-        {"SRMedZ6", "met_Et>300"},
-        {"SRHighZ6", "met_Et>300"},
+        {"SRLow", "met_Et>250"},
+        {"SRMed", "met_Et>300"},
+        {"SRHigh", "met_Et>300"},
+        {"SRLowZ", "met_Et>250"},
+        {"SRMedZ", "met_Et>300"},
+        {"SRHighZ", "met_Et>300"},
 
         {"VRC", "(met_Et>150 && met_Et<250)"},
-        {"VRLow2", "(met_Et>150 && met_Et<250)"},
-        {"VRMed2", "(met_Et>150 && met_Et<250)"},
-        {"VRHigh2", "(met_Et>150 && met_Et<250)"},
-        {"VRLow23", "(met_Et>150 && met_Et<250)"},
-        {"VRMed23", "(met_Et>150 && met_Et<250)"},
-        {"VRHigh23", "(met_Et>150 && met_Et<250)"},
-        {"VRLow4", "(met_Et>150 && met_Et<250)"},
-        {"VRMed4", "(met_Et>150 && met_Et<250)"},
-        {"VRHigh4", "(met_Et>150 && met_Et<250)"},
-        {"VRLowZ4", "(met_Et>150 && met_Et<250)"},
-        {"VRMedZ4", "(met_Et>150 && met_Et<250)"},
-        {"VRHighZ4", "(met_Et>150 && met_Et<250)"},
-        {"VRLowZ6", "(met_Et>150 && met_Et<250)"},
-        {"VRMedZ6", "(met_Et>150 && met_Et<250)"},
-        {"VRHighZ6", "(met_Et>150 && met_Et<250)"},
+        {"VRLow", "(met_Et>150 && met_Et<250)"},
+        {"VRMed", "(met_Et>150 && met_Et<250)"},
+        {"VRHigh", "(met_Et>150 && met_Et<250)"},
+        {"VRLowZ", "(met_Et>150 && met_Et<250)"},
+        {"VRMedZ", "(met_Et>150 && met_Et<250)"},
+        {"VRHighZ", "(met_Et>150 && met_Et<250)"},
 
         {"VRDPhiLow2", "met_Et>150"},
         {"VRDPhiMed2", "met_Et>150"},
