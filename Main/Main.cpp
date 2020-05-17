@@ -344,7 +344,7 @@ void Main() {
     bool do_reduction = true;
     bool do_smearing = true;
     bool do_reweighting = true;
-    bool do_plotting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (options.unit_testing) {
@@ -472,13 +472,13 @@ void Main() {
         options.print_photon_yield_only = false;
         options.do_vgamma_subtraction = false;
 
-        options.plot_reweighted_photons = false;
-        options.plot_unreweighted_photons = false;
+        options.plot_reweighted_photons = true;
+        options.plot_unreweighted_photons = true;
         options.plot_zmc = true;
 
         options.scale_zmc = true;
-        //options.scaling_method = "MET";
-        options.scaling_method = "minDPhi2JetsMet";
+        options.scaling_method = "MET";
+        //options.scaling_method = "minDPhi2JetsMet";
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
