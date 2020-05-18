@@ -78,7 +78,7 @@ namespace cuts {
     TCut photon_weight("totalWeight");
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
-    TCut lep0 = "Lep_base==0";
+    TCut lep0 = "nLep_base==0";
     TCut lep2 = "nLep_signal==2 && nLep_base==2 && lepPt[0]>25 && lepPt[1]>25 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR";
     TCut jet1 = "nJet30>=1";
     TCut jet2 = "nJet30>=2";
