@@ -101,6 +101,10 @@ namespace cuts {
     TCut MT2_90 = "mt2leplsp_0>90";
     TCut MT2_100 = "mt2leplsp_0>100";
     TCut METSig_10 = "met_Sign>10";
+    TCut MET_150 = "met_Et>150";
+    TCut MET_250 = "met_Et>250";
+    TCut MET_300 = "met_Et>300";
+    TCut MET_150_250 = "met_Et>150 && met_Et<250";
     TCut HT_250 = "Ht30>250";
     TCut HT_500 = "Ht30>500";
     TCut HT_800 = "Ht30>800";
@@ -108,6 +112,7 @@ namespace cuts {
     TCut minDPhi2JetsMet_anti0p4 = "minDPhi2JetsMet<0.4";
     TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
 
+    TCut VRZjets = lep2 + jet2 + bjet0 + Ptll_40 + is_SF + minDPhi2JetsMet_0p4;
     TCut strong_preselection_noDPhi = lep2 + is_OS + jet2 + mll_12 + Ptll_40;
     TCut strong_preselection = strong_preselection_noDPhi + minDPhi2JetsMet_0p4;
     TCut strong_VRDPhi_preselection = strong_preselection + mll_Zwindow + minDPhi2JetsMet_anti0p4 + HT_250 + MT2_75;
@@ -129,72 +134,36 @@ namespace cuts {
         {"bkg_baseline", lep2 + is_OS + jet2 + Ptll_25 + not_diboson_2L},
         {"photon_baseline_ntuples", lep0 + jet2 + PPtll_25},
         {"photon_baseline", jet2 + gPtll_25},
-        {"reweight", lep2 + is_OS + is_SF + jet2 + PPtll_25},
+        {"reweight", lep2 + is_OS + is_SF + jet2 + Ptll_25},
 
-        {"VRZjets", lep2 + jet2 + bjet0 + Ptll_40 + mll_Zwindow + is_SF},
-        {"VRZjets_noZwindow", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
-        {"VRZjets_noZwindow_MET100_200", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
-        {"VRZjets_noZwindow_MET200_300", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
-        {"VRZjets_noZwindow_MET300_400", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
-        {"VRZjets_noZwindow_METgt400", lep2 + jet2 + bjet0 + Ptll_40 + is_SF},
-        {"VRZjets_noZwindow_noBveto", lep2 + jet2 + Ptll_40 + is_SF},
+        {"VRZ", VRZjets},
+        {"VRZ_MET0_50", VRZjets + TCut("met_Et>0 && met_Et<50")},
+        {"VRZ_MET50_100", VRZjets + TCut("met_Et>50 && met_Et<100")},
+        {"VRZ_MET100_150", VRZjets + TCut("met_Et>100 && met_Et<150")},
+        {"VRZ_MET150_200", VRZjets + TCut("met_Et>150 && met_Et<200")},
+
         {"strong_preselection", strong_preselection},
 
-        {"SRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100},
-        {"SRLow", strong_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
-        {"SRMed", strong_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
-        {"SRHigh", strong_preselection + jet2 + HT_800 + MT2_75},
-        {"SRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow},
-        {"SRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow},
-        {"SRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow},
+        {"SRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + MET_250},
+        {"SRLow", strong_preselection + HT_250 + MT2_100 + Ptll_lt500 + MET_250},
+        {"SRMed", strong_preselection + HT_500 + MT2_75 + Ptll_lt800 + MET_300},
+        {"SRHigh", strong_preselection + HT_800 + MT2_75 + MET_300},
+        {"SRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow + MET_250},
+        {"SRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow + MET_300},
+        {"SRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow + MET_300},
 
-        {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81},
-        {"VRLow", strong_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
-        {"VRMed", strong_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
-        {"VRHigh", strong_preselection + jet2 + HT_800 + MT2_75},
-        {"VRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow},
-        {"VRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow},
-        {"VRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow},
+        {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81 + MET_150_250},
+        {"VRLow", strong_preselection + HT_250 + MT2_100 + Ptll_lt500 + MET_150_250},
+        {"VRMed", strong_preselection + HT_500 + MT2_75 + Ptll_lt800 + MET_150_250},
+        {"VRHigh", strong_preselection + HT_800 + MT2_75 + MET_150_250},
+        {"VRLowZ", strong_preselection + jet4 + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow + MET_150_250},
+        {"VRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow + MET_150_250},
+        {"VRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow + MET_150_250},
 
         {"VRDPhi", strong_VRDPhi_preselection},
-        {"VRDPhiLow2", strong_VRDPhi_preselection + jet2 + HT_250 + MT2_100 + Ptll_lt500},
-        {"VRDPhiMed2", strong_VRDPhi_preselection + jet2 + HT_500 + MT2_75 + Ptll_lt800},
-        {"VRDPhiHigh2", strong_VRDPhi_preselection + jet2 + HT_800 + MT2_75},
-        {"VRDPhiLow6", strong_VRDPhi_preselection + jet6 + HT_250 + MT2_100 + Ptll_lt500},
-        {"VRDPhiMed6", strong_VRDPhi_preselection + jet6 + HT_500 + MT2_75 + Ptll_lt800},
-        {"VRDPhiHigh6", strong_VRDPhi_preselection + jet6 + HT_800 + MT2_75},
-    };
-
-    std::unordered_map<std::string, TCut> plot_region_met_portions = {
-        {"VRZjets", "met_Et>100 && met_Et<200"},
-        {"VRZjets_noZwindow_MET100_200", "met_Et>100 && met_Et<200"},
-        {"VRZjets_noZwindow_MET200_300", "met_Et>200 && met_Et<300"},
-        {"VRZjets_noZwindow_MET300_400", "met_Et>300 && met_Et<400"},
-        {"VRZjets_noZwindow_METgt400", "met_Et>400"},
-        {"VRZjets_noZwindow_noBveto", "met_Et>100 && met_Et<200"},
-
-        {"SRC", "met_Et>250"},
-        {"SRLow", "met_Et>250"},
-        {"SRMed", "met_Et>300"},
-        {"SRHigh", "met_Et>300"},
-        {"SRLowZ", "met_Et>250"},
-        {"SRMedZ", "met_Et>300"},
-        {"SRHighZ", "met_Et>300"},
-
-        {"VRC", "(met_Et>150 && met_Et<250)"},
-        {"VRLow", "(met_Et>150 && met_Et<250)"},
-        {"VRMed", "(met_Et>150 && met_Et<250)"},
-        {"VRHigh", "(met_Et>150 && met_Et<250)"},
-        {"VRLowZ", "(met_Et>150 && met_Et<250)"},
-        {"VRMedZ", "(met_Et>150 && met_Et<250)"},
-        {"VRHighZ", "(met_Et>150 && met_Et<250)"},
-
-        {"VRDPhiLow2", "met_Et>150"},
-        {"VRDPhiMed2", "met_Et>150"},
-        {"VRDPhiHigh2", "met_Et>150"},
-        {"VRDPhiLow6", "met_Et>150"},
-        {"VRDPhiMed6", "met_Et>150"},
-        {"VRDPhiHigh6", "met_Et>150"},
+        {"VRDPhiLow", strong_VRDPhi_preselection + HT_250 + MT2_100 + Ptll_lt500 + mll_Zwindow},
+        {"VRDPhiMed", strong_VRDPhi_preselection + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow},
+        {"VRDPhiHigh", strong_VRDPhi_preselection + HT_800 + MT2_75 + mll_Zwindow},
     };
 }
 
@@ -428,6 +397,99 @@ string padString(string unpadded_string) {
 
 float convertThetaToEta(float theta) {
     return -log(tan(theta/2));
+}
+
+TCut NMinus1Cut(TCut tcut, string variable) {
+    /// Removes instances of selections involving variable from the cut, given that these are simple isolated ANDs.
+    string cut = tcut.GetTitle();
+    cut.erase(remove(cut.begin(), cut.end(), ' '), cut.end());
+
+    int index = cut.find(variable);
+    while (index != std::string::npos) {
+        int left_index = index, right_index = index+variable.length()-1;
+        int n_left_brackets = 0, n_right_brackets = 0;
+        bool search_left = true, search_right = true;
+        bool currently_searching_left = true;
+
+        while (search_left || search_right) {
+            if (currently_searching_left) {
+                left_index--;
+                if (left_index==-1 || cut[left_index]=='&') {
+                    search_left = false;
+                    currently_searching_left = false;
+                    if (n_left_brackets < n_right_brackets) {
+                        search_right = false;
+                        right_index--;
+                    }
+                }
+                if (cut[left_index] == '(') {
+                    n_left_brackets++;
+                    if (!search_right) {
+                        search_left = false;
+                        left_index++;
+                    }
+                    currently_searching_left = false;
+                }
+            }
+            else {
+                right_index++;
+                if (right_index==cut.length() || cut[right_index]=='&') {
+                    search_right = false;
+                    currently_searching_left = true;
+                    if (n_left_brackets > n_right_brackets) {
+                        search_left = false;
+                        left_index++;
+                    }
+                }
+                if (cut[right_index] == ')') {
+                    n_right_brackets++;
+                    if (!search_left) {
+                        search_right = false;
+                        right_index--;
+                    }
+                    currently_searching_left = true;
+                }
+            }
+        }
+        if (left_index==-1) left_index = 0;
+        if (right_index==cut.length()) right_index = cut.length()-1;
+        if (cut[left_index]=='&' && cut[right_index]!='&') left_index--;
+        if (cut[left_index]!='&' && cut[right_index]=='&') right_index++;
+
+        cut.erase(left_index, right_index-left_index+1);
+
+        index = cut.find(variable);
+    }
+
+    return TCut(cut.c_str());
+}
+
+//----------------
+// TEST FUNCTIONS
+//----------------
+
+void NMinus1Cut_UnitTests() {
+    vector<tuple<TCut, string>> cut_examples = {
+        {make_tuple("SDFS>100&&BLAH<100", "SDFS>100")},
+        {make_tuple("SDFS>100&&(BLAH<100)", "SDFS>100")},
+        {make_tuple("SDFS>100&&((BLAH<100))", "SDFS>100")},
+        {make_tuple("SDFS>100&&(BLAH<100&&DSFS<200)", "SDFS>100&&(DSFS<200)")},
+        {make_tuple("SDFS>100&&(BLAH<100&&BLAH<200)", "SDFS>100")},
+        {make_tuple("SDFS>100&&(BLAH<100)&&DSFS>200", "SDFS>100&&DSFS>200")},
+        {make_tuple("SDFS>100&&((BLAH<100))&&DSFS>200", "SDFS>100&&DSFS>200")},
+        {make_tuple("SDFS>100&&(((BLAH<100)))&&DSFS>200", "SDFS>100&&DSFS>200")},
+        {make_tuple("SDFS>100&&((BLAH<100&&BLAH<200&&BLAH!=150))&&DSFS>200", "SDFS>100&&DSFS>200")},
+        {make_tuple("((BLAH<100&&BLAH<200))&&DSFS>200", "DSFS>200")},
+        {make_tuple("BLAH<100&&BLAH<200&&DSFS>200", "DSFS>200")},
+        {make_tuple("SDFS>100&&DSFS>200", "SDFS>100&&DSFS>200")},
+        {make_tuple("(SDFS>100&&(BLAH>200))&&DSFS>200", "(SDFS>100)&&DSFS>200")},
+        {make_tuple("(SDFS >   100  && (BLAH >200 )  ) && DSFS >   200 ", "(SDFS>100)&&DSFS>200")},
+    };
+    for (auto [test, result] : cut_examples) {
+        if (NMinus1Cut(test, "BLAH").GetTitle() == result) continue;
+        else failTest(test.GetTitle());
+    }
+    passTest("Passed all tests!");
 }
 
 //-------------------------

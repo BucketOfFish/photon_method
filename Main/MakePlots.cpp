@@ -51,9 +51,10 @@ tuple<string, string, string> getPlotRegionInfo(Options options, string channel,
     plot_region += options.additional_plot_cut;
 
     TCut plot_CR;
-    if (options.scaling_method == "MET") plot_CR = plot_region + cuts::CR_MET;
-    if (cuts::plot_region_met_portions.count(region) > 0) plot_region += cuts::plot_region_met_portions[region];
-    if (options.scaling_method == "minDPhi2JetsMet") plot_CR = plot_region + cuts::minDPhi2JetsMet_anti0p4;
+    if (options.scaling_method == "MET")
+        plot_CR = NMinus1Cut(plot_region, "met_Et") + cuts::CR_MET;
+    if (options.scaling_method == "minDPhi2JetsMet")
+        plot_CR = NMinus1Cut(plot_region, "minDPhi2JetsMet") + cuts::minDPhi2JetsMet_anti0p4;
 
     string region_name = region + " " + channel;
 
@@ -753,12 +754,16 @@ void makePlot(resultsMap results_map, Options options) {
                 mainpad->Draw();
                 mainpad->cd();
 
-                float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 1.5;
-                float min_y = 0;
+                double max_y = data_stack->GetMaximum() * 1.5;
+                if (options.plot_reweighted_photons) max_y = max(reweight_g_stack->GetMaximum() * 1.5, max_y);
+                if (options.plot_unreweighted_photons) max_y = max(raw_g_stack->GetMaximum() * 1.5, max_y);
+                if (options.plot_zmc) max_y = max(zmc_stack->GetMaximum() * 1.5, max_y);
+                double min_y = 0;
+                //max_y /= 8;
                 vector<string> log_features = {"met_Et", "METl", "METt", "met_Sign", "Ptll", "Ht30"};
                 if (find(log_features.begin(), log_features.end(), feature) != log_features.end()) {
                     mainpad->SetLogy();
-                    float max_y = max(reweight_g_stack->GetMaximum(), data_stack->GetMaximum()) * 50;
+                    max_y = max_y / 1.5 * 50;
                     min_y = max_y / pow(10, 5);
                 }
 

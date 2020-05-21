@@ -1,0 +1,17 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\begin{document}
+
+\begin{table}
+\caption{Scale Factors (SF), Scaling by minDPhi2JetsMet}
+\begin{center}
+\begin{tabular}{c|c}
+region & photon_{reweighted} & Z MC \\
+\hline
+VRZjets & 0.000 & 0.000 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

@@ -1,0 +1,22 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{color, colortbl}
+
+\begin{document}
+
+\definecolor{Gray}{gray}{0.9}
+\newcolumntype{g}{>{\columncolor{Gray}}c}
+
+\begin{table}
+\caption{Photon Method Yields (SF)}
+\begin{center}
+\begin{tabular}{c|gcccgg}
+region & data & bkg$_{MC}$ & photon & Z MC & photon$_{tot}$ & Z MC$_{tot}$ \\
+\hline
+VRZjets & 164.000 & 137.349 & 0.000 & 0.000 & 137.349 & 137.349 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}

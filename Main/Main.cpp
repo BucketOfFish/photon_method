@@ -325,15 +325,16 @@ void Main() {
     //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
     //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
+    options.my_samples_folder = "/public/data/Photon/Samples/";
     //options.my_samples_folder = "/public/data/Photon/NewBaselineSelectionSamples/";
-    options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewBaselineSelectionSamples/";
+    //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewBaselineSelectionSamples/";
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
     options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
     //options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
-    options.plots_folder = options.my_samples_folder + "Plots/";
-    //options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
+    //options.plots_folder = options.my_samples_folder + "Plots/";
+    options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
 
     options.unit_test_folder = "/public/data/Photon/UnitTestSamples/";
     //options.unit_test_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/UnitTestSamples/";
@@ -341,10 +342,10 @@ void Main() {
     options.tree_name = "BaselineTree";
 
     options.unit_testing = false;
-    bool do_reduction = true;
+    bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
-    bool do_plotting = false;
+    bool do_plotting = true;
 
     //--- unit testing
     if (options.unit_testing) {
@@ -450,11 +451,13 @@ void Main() {
     if (do_plotting) {
         options.reweight_branch = "reweight_Ptll";
 
-        //options.plot_regions = vector<string>{"SRC", "SRLow2", "SRMed2", "SRHigh2", "SRLowZ4", "SRMedZ4", "SRHighZ4",
-                                        //"VRC", "VRLow2", "VRMed2", "VRHigh2", "VRLowZ4", "VRMedZ4", "VRHighZ4"};
-        options.plot_regions = vector<string>{"VRZjets_noZwindow_noMETcut", "VRZjets_noZwindow_MET100_200",
-            "VRZjets_noZwindow_MET200_300", "VRZjets_noZwindow_MET300_400", "VRZjets_noZwindow_METgt400"};
-        options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet", "dPhiPllMet"};
+        options.plot_regions = vector<string>{"VRZ", "VRZ_MET0_50",
+            "VRZ_MET50_100", "VRZ_MET100_150", "VRZ_MET150_200"};
+            //"VRZ_METgt200", "VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ"};
+        //options.plot_regions = vector<string>{"VRZ", "VRHigh"};
+        //options.plot_regions = vector<string>{"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ"};
+        //options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet", "dPhiPllMet"};
+        options.plot_features = vector<string>{"dPhiPllMet"};
         //options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
@@ -472,13 +475,13 @@ void Main() {
         options.print_photon_yield_only = false;
         options.do_vgamma_subtraction = false;
 
-        options.plot_reweighted_photons = true;
-        options.plot_unreweighted_photons = true;
+        options.plot_reweighted_photons = false;
+        options.plot_unreweighted_photons = false;
         options.plot_zmc = true;
 
         options.scale_zmc = true;
-        options.scaling_method = "MET";
-        //options.scaling_method = "minDPhi2JetsMet";
+        //options.scaling_method = "MET";
+        options.scaling_method = "minDPhi2JetsMet";
 
         //vector<string> periods{"data15-16", "data17", "data18"};
         vector<string> periods{"all"};
