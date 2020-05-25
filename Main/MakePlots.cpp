@@ -355,8 +355,8 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     out_file << endl;
     out_file << "\\begin{document}" << endl;
     out_file << endl;
-    out_file << "\\definecolor{Gray}{gray}{0.9}" << endl;
-    out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
+    //out_file << "\\definecolor{Gray}{gray}{0.9}" << endl;
+    //out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
     out_file << endl;
     out_file << "\\begin{table}" << endl;
     map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
@@ -364,21 +364,23 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
 
-    vector<string> processes = {"data_bkg", "bkg MC"};
+    vector<string> processes = {};
     if (options.plot_reweighted_photons) processes.push_back("photon");
     if (options.plot_zmc) processes.push_back("Zjets");
+    processes.push_back("bkg MC");
     if (options.plot_reweighted_photons) processes.push_back("photon + bkg MC");
     if (options.plot_zmc) processes.push_back("Z + bkg MC");
+    processes.push_back("data_bkg");
 
     if (processes.size() == 4) {
-        out_file << "\\begin{tabular}{c|gccg}" << endl;
+        out_file << "\\begin{tabular}{l|rr|rr}" << endl;
         if (options.plot_reweighted_photons)
-            out_file << "region & data & bkg$_{MC}$ & photon & photon$_{tot}$ \\\\" << endl;
-        else out_file << "region & data & bkg$_{MC}$ & Z MC & Z MC$_{tot}$ \\\\" << endl;
+            out_file << "region & photon bkg & other bkgs & total bkg & data \\\\" << endl;
+        else out_file << "region & ZMC bkg & other bkgs & total bkg & data \\\\" << endl;
     }
     else {
-        out_file << "\\begin{tabular}{c|gcccgg}" << endl;
-        out_file << "region & data & bkg$_{MC}$ & photon & Z MC & photon$_{tot}$ & Z MC$_{tot}$ \\\\" << endl;
+        out_file << "\\begin{tabular}{l|lll|lll}" << endl;
+        out_file << "region & photon & Z MC & other bkgs & total photon bkg & total Z MC bkg & data \\\\" << endl;
     }
     out_file << "\\hline" << endl;
 
@@ -879,7 +881,7 @@ void performPlottingUnitTests(Options options) {
     options.plots_folder = "DiagnosticPlots/";
 
     options.make_diagnostic_plots = true;
-    options.plot_regions = vector<string>{"VRZjets"};
+    options.plot_regions = vector<string>{"VRZ"};
     options.plot_channels = vector<string>{"SF"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
