@@ -399,13 +399,13 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     processes.push_back("data_bkg");
 
     if (processes.size() == 4) {
-        out_file << "\\begin{tabular}{l|rrr|rrr}" << endl;
+        out_file << "\\begin{tabular}{l|rr|rrr}" << endl;
         if (options.plot_reweighted_photons)
             out_file << "region & photon & other bkgs & photon_{tot} & data & significance \\\\" << endl;
         else out_file << "region & Z MC & other bkgs & Z MC_{tot} & data & significance \\\\" << endl;
     }
     else {
-        out_file << "\\begin{tabular}{l|rrrr|rrrr}" << endl;
+        out_file << "\\begin{tabular}{l|rrr|rrrr}" << endl;
         out_file << "region & photon & Z MC & other bkgs & photon_{tot} & Z MC_{tot} & data & photon significance & Z MC significance \\\\" << endl;
     }
     out_file << "\\hline" << endl;
@@ -436,13 +436,13 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
             out_file << " & " << getChannelString(channel_yields, options.plot_channels);
         }
         if (options.plot_reweighted_photons)
-            out_file << " & " << (results_map.results[region + " SF"].process_yields["photon_reweighted"] -
+            out_file << " & " << (results_map.results[region + " SF"].process_yields["photon + bkg MC"] -
                 results_map.results[region + " SF"].process_yields["data_bkg"]) /
-                results_map.results[region + " SF"].uncertainties["photon_reweighted"];
+                results_map.results[region + " SF"].uncertainties["photon + bkg MC"];
         if (options.plot_zmc)
-            out_file << " & " << (results_map.results[region + " SF"].process_yields["Zjets"] -
+            out_file << " & " << (results_map.results[region + " SF"].process_yields["Z + bkg MC"] -
                 results_map.results[region + " SF"].process_yields["data_bkg"]) /
-                results_map.results[region + " SF"].uncertainties["Zjets"];
+                results_map.results[region + " SF"].uncertainties["Z + bkg MC"];
         out_file << " \\\\" << endl;
     }
 
