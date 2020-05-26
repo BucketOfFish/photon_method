@@ -19,8 +19,9 @@ using histMap = map<string, // region
                 ROOT::RDF::RResultPtr<TH1D>>>>;
 struct Result {
     map<string, map<string, TH1D*>> histograms; // [feature][process] histogram
-    map<string, float> process_yields;
-    map<string, float> scale_factors;
+    map<string, double> process_yields;
+    map<string, double> scale_factors;
+    map<string, double> uncertainties;
 };
 struct resultsMap {
     vector<string> plot_regions;
@@ -166,6 +167,11 @@ filteredDataFrameMap filterRDataFrames(weightedDataFrameMap* WRDataFramesPtr, Op
 //-----------------
 
 tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, Options options) {
+    /*
+     * Use RDataFrames to set up a bunch of plot region histograms and associated control region histograms.
+     * All cuts are applied here, but none of these histograms will be actually filled until the filling function
+     * is called.
+     */
     cout << PBLU("setting up histograms") << endl;
     cout << endl;
 
@@ -219,6 +225,10 @@ tuple<histMap, histMap> setUpHistograms(weightedDataFrameMap* WRDataFramesPtr, O
 };
 
 resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options) {
+    /*
+     * Fill the plot region and control region histograms given in region_hists, then perform data-bkg subtraction
+     * in control regions to get scaling factors. Apply scaling factors to the appropriate process.
+     */
     cout << PBLU("making histograms") << endl;
     cout << endl;
 
@@ -251,40 +261,46 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
             }
 
             //--- scaling
-            map<string, float> CR_integrals;
-            map<string, float> PR_integrals;
-            float mc_bkg_CR_integral = 0.0;
-            float mc_bkg_PR_integral = 0.0;
+            map<string, double> CR_integrals;
+            map<string, double> PR_integrals;
+            map<string, double> uncertainties;
+            double mc_bkg_CR_integral = 0.0;
+            double mc_bkg_PR_integral = 0.0;
+            uncertainties["bkg MC"] = 0;
             for (auto process : options.processes) {
                 if (process == "photon") {
                     if (options.plot_unreweighted_photons) {
                         cout << "\t" << padString("photon raw integral");
                         CR_integrals["photon_raw"] = crh0["photon_raw"]->Integral(0, nbins+1);
-                        PR_integrals["photon_raw"] = prh0["photon_raw"]->Integral(0, nbins+1);
-                        cout << PR_integrals["photon_raw"] << endl;
+                        PR_integrals["photon_raw"] = prh0["photon_raw"]
+                            ->IntegralAndError(0, nbins+1, uncertainties["photon_raw"]);
+                        cout << PR_integrals["photon_raw"] << " +/- " << uncertainties["photon_raw"] << endl;
                     }
                     if (options.plot_reweighted_photons) {
                         cout << "\t" << padString("photon reweight int.");
                         CR_integrals["photon_reweighted"] = crh0["photon_reweighted"]->Integral(0, nbins+1);
-                        PR_integrals["photon_reweighted"] = prh0["photon_reweighted"]->Integral(0, nbins+1);
-                        cout << PR_integrals["photon_reweighted"] << endl;
+                        PR_integrals["photon_reweighted"] = prh0["photon_reweighted"]
+                            ->IntegralAndError(0, nbins+1, uncertainties["photon_reweighted"]);
+                        cout << PR_integrals["photon_reweighted"] << " +/- " <<
+                            uncertainties["photon_reweighted"] << endl;
                     }
                 }
                 else {
                     if (process == "Zjets" && (options.is_data && !options.plot_zmc)) continue;
                     cout << "\t" << padString(process + " integral");
                     CR_integrals[process] = crh0[process]->Integral(0, nbins+1);
-                    PR_integrals[process] = prh0[process]->Integral(0, nbins+1);
-                    cout << PR_integrals[process] << endl;
+                    PR_integrals[process] = prh0[process]->IntegralAndError(0, nbins+1, uncertainties[process]);
+                    cout << PR_integrals[process] << " +/- " << uncertainties[process] << endl;
                 }
                 if (process != "data_bkg" && process != "photon" && process != "Zjets") {
                     mc_bkg_CR_integral += CR_integrals[process];
                     mc_bkg_PR_integral += PR_integrals[process];
+                    uncertainties["bkg MC"] = sqrt(pow(uncertainties["bkg MC"], 2) + pow(PR_integrals[process], 2));
                 }
             }
             cout << endl;
 
-            float zdata_integral = CR_integrals["data_bkg"] - mc_bkg_CR_integral;
+            double zdata_integral = CR_integrals["data_bkg"] - mc_bkg_CR_integral;
             if (!options.is_data) zdata_integral = CR_integrals["Zjets"];
 
             vector<string> processes;
@@ -292,13 +308,14 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
             if (options.plot_reweighted_photons) processes.push_back("photon_reweighted");
             if (options.plot_zmc) processes.push_back("Zjets");
 
-            map<string, float> scale_factors;
+            map<string, double> scale_factors;
             cout << "\tScaling via " << options.scaling_method << " method" << endl;
             for (auto process : processes) {
-                float SF = CR_integrals[process] == 0 ? 0.0 : zdata_integral / CR_integrals[process];
+                double SF = CR_integrals[process] == 0 ? 0.0 : zdata_integral / CR_integrals[process];
                 cout << "\tScaling " << process << " yield by " << SF << endl;
                 for (auto plot_feature : options.plot_features) prh[plot_feature][process]->Scale(SF);
                 PR_integrals[process] *= SF;
+                uncertainties[process] *= SF;
                 scale_factors[process] = SF;
                 cout << "\tScaled " << process << " yield of " << PR_integrals[process] << endl;
             }
@@ -306,7 +323,10 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
 
             PR_integrals["bkg MC"] = mc_bkg_PR_integral;
             PR_integrals["photon + bkg MC"] = PR_integrals["photon_reweighted"] + mc_bkg_PR_integral;
+            uncertainties["photon + bkg MC"] = sqrt(pow(uncertainties["photon_reweighted"], 2)
+                + pow(uncertainties["bkg MC"], 2));
             PR_integrals["Z + bkg MC"] = PR_integrals["Zjets"] + mc_bkg_PR_integral;
+            uncertainties["Z + bkg MC"] = sqrt(pow(uncertainties["Zjets"], 2) + pow(uncertainties["bkg MC"], 2));
 
             map<string, map<string, TH1D*>> region_hists;
             for (auto plot_feature : options.plot_features) {
@@ -316,7 +336,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                     region_hists[plot_feature][process] = new_histogram;
                 }
             }
-            results_map.results[region_name] = Result{region_hists, PR_integrals, scale_factors};
+            results_map.results[region_name] = Result{region_hists, PR_integrals, scale_factors, uncertainties};
         }
     }
 
@@ -327,9 +347,15 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
 // MAKE TABLES
 //-------------
 
-string toString(float val) {
+string toString(double val) {
     std::ostringstream out;
     out << std::setprecision(3) << std::fixed << val; // set printouts to 3 sig figs
+    return out.str();
+}
+
+string toString(int val) {
+    std::ostringstream out;
+    out << val; // set printouts to 3 sig figs
     return out.str();
 }
 
@@ -373,14 +399,14 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     processes.push_back("data_bkg");
 
     if (processes.size() == 4) {
-        out_file << "\\begin{tabular}{l|rr|rr}" << endl;
+        out_file << "\\begin{tabular}{l|rrr|rrr}" << endl;
         if (options.plot_reweighted_photons)
-            out_file << "region & photon bkg & other bkgs & total bkg & data \\\\" << endl;
-        else out_file << "region & ZMC bkg & other bkgs & total bkg & data \\\\" << endl;
+            out_file << "region & photon & other bkgs & photon_{tot} & data & significance \\\\" << endl;
+        else out_file << "region & Z MC & other bkgs & Z MC_{tot} & data & significance \\\\" << endl;
     }
     else {
-        out_file << "\\begin{tabular}{l|lll|lll}" << endl;
-        out_file << "region & photon & Z MC & other bkgs & total photon bkg & total Z MC bkg & data \\\\" << endl;
+        out_file << "\\begin{tabular}{l|rrrr|rrrr}" << endl;
+        out_file << "region & photon & Z MC & other bkgs & photon_{tot} & Z MC_{tot} & data & photon significance & Z MC significance \\\\" << endl;
     }
     out_file << "\\hline" << endl;
 
@@ -388,18 +414,35 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
         out_file << region;
         for (auto process : processes) {
             if (process == "photon") process = "photon_reweighted";
-            float yield_ee = results_map.results[region + " ee"].process_yields[process];
-            float yield_mm = results_map.results[region + " mm"].process_yields[process];
-            float yield_SF = results_map.results[region + " SF"].process_yields[process];
+            double yield_ee = results_map.results[region + " ee"].process_yields[process];
+            double yield_mm = results_map.results[region + " mm"].process_yields[process];
+            double yield_SF = results_map.results[region + " SF"].process_yields[process];
+            double uncertainty_ee = results_map.results[region + " ee"].uncertainties[process];
+            double uncertainty_mm = results_map.results[region + " mm"].uncertainties[process];
+            double uncertainty_SF = results_map.results[region + " SF"].uncertainties[process];
             map<string, string> channel_yields = {
-                {"ee", toString(yield_ee)},
-                {"mm", toString(yield_mm)},
-                {"SF", toString(yield_SF)}
+                {"ee", toString(yield_ee) + "\\pm" + toString(uncertainty_ee)},
+                {"mm", toString(yield_mm) + "\\pm" + toString(uncertainty_mm)},
+                {"SF", toString(yield_SF) + "\\pm" + toString(uncertainty_SF)}
             };
+            if (process == "data_bkg")
+                channel_yields = {
+                    {"ee", toString(int(yield_ee))},
+                    {"mm", toString(int(yield_mm))},
+                    {"SF", toString(int(yield_SF))},
+                };
             if ((process == "data_bkg") && blinded && (region.find("SR") != std::string::npos))
                 channel_yields = {{"ee", "-"}, {"mm", "-"}, {"SF", "-"}};
             out_file << " & " << getChannelString(channel_yields, options.plot_channels);
         }
+        if (options.plot_reweighted_photons)
+            out_file << " & " << (results_map.results[region + " SF"].process_yields["photon_reweighted"] -
+                results_map.results[region + " SF"].process_yields["data_bkg"]) /
+                results_map.results[region + " SF"].uncertainties["photon_reweighted"];
+        if (options.plot_zmc)
+            out_file << " & " << (results_map.results[region + " SF"].process_yields["Zjets"] -
+                results_map.results[region + " SF"].process_yields["data_bkg"]) /
+                results_map.results[region + " SF"].uncertainties["Zjets"];
         out_file << " \\\\" << endl;
     }
 
@@ -448,9 +491,9 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
     for (auto region : results_map.plot_regions) {
         out_file << region;
         for (auto process : processes) {
-            float ee_sf = results_map.results[region + " ee"].scale_factors[process];
-            float mm_sf = results_map.results[region + " mm"].scale_factors[process];
-            float SF_sf = results_map.results[region + " SF"].scale_factors[process];
+            double ee_sf = results_map.results[region + " ee"].scale_factors[process];
+            double mm_sf = results_map.results[region + " mm"].scale_factors[process];
+            double SF_sf = results_map.results[region + " SF"].scale_factors[process];
             map<string, string> channel_names =
                 {{"ee", toString(ee_sf)}, {"mm", toString(mm_sf)}, {"SF", toString(SF_sf)}};
             out_file << " & " << getChannelString(channel_names, results_map.plot_channels);
