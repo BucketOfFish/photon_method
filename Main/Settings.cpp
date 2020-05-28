@@ -8,6 +8,7 @@
 #include <fstream>
 #include <map>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <string>
 #include <iomanip> 
 #include <algorithm>
@@ -152,6 +153,7 @@ namespace cuts {
         {"SRMedZ", strong_preselection + jet4 + HT_500 + MT2_75 + Ptll_lt800 + mll_Zwindow + MET_300},
         {"SRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow + MET_300},
 
+        {"VRC_CR", strong_preselection_noDPhi + minDPhi2JetsMet_anti0p4 + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81 + MET_150_250},
         {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81 + MET_150_250},
         {"VRLow", strong_preselection + HT_250 + MT2_100 + Ptll_lt500 + MET_150_250},
         {"VRMed", strong_preselection + HT_500 + MT2_75 + Ptll_lt800 + MET_150_250},

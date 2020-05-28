@@ -377,15 +377,12 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
 // MAKE TABLES
 //-------------
 
-string toString(double val) {
+string toString(double val, int places) {
     std::ostringstream out;
-    out << std::setprecision(1) << std::fixed << val; // set printouts to 1 number after the decimal place
-    return out.str();
-}
-
-string toString(int val) {
-    std::ostringstream out;
-    out << val; // set printouts to 3 sig figs
+    if (places <= 0)
+        out << int(val); // just return val
+    else
+        out << std::setprecision(places) << std::fixed << val; // set printouts to n numbers after the decimal place
     return out.str();
 }
 
@@ -413,11 +410,11 @@ void printPhotonCRYieldTables(Options options, resultsMap results_map, string sa
     out_file << endl;
     //out_file << "\\definecolor{Gray}{gray}{0.9}" << endl;
     //out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
-    out_file << endl;
+    //out_file << endl;
     out_file << "\\begin{table}" << endl;
     map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
     string channel_string = getChannelString(plot_channels, options.plot_channels);
-    out_file << "\\caption{Photon Method CR Yields (" << channel_string << ")}" << endl;
+    out_file << "\\caption{CR Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
 
     vector<string> processes = {};
@@ -441,7 +438,7 @@ void printPhotonCRYieldTables(Options options, resultsMap results_map, string sa
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.plot_regions) {
-        out_file << region;
+        out_file << boost::replace_all_copy(region, "_", "\\_");
         for (auto process : processes) {
             if (process == "photon") process = "photon_reweighted";
             double yield_ee = results_map.results[region + " ee"].CR_yields[process];
@@ -451,15 +448,21 @@ void printPhotonCRYieldTables(Options options, resultsMap results_map, string sa
             double uncertainty_mm = results_map.results[region + " mm"].CR_uncertainties[process];
             double uncertainty_SF = results_map.results[region + " SF"].CR_uncertainties[process];
             map<string, string> channel_yields = {
-                {"ee", toString(yield_ee) + "\\pm" + toString(uncertainty_ee)},
-                {"mm", toString(yield_mm) + "\\pm" + toString(uncertainty_mm)},
-                {"SF", toString(yield_SF) + "\\pm" + toString(uncertainty_SF)}
+                {"ee", "$" + toString(yield_ee, 1) + "\\pm" + toString(uncertainty_ee, 1) + "$"},
+                {"mm", "$" + toString(yield_mm, 1) + "\\pm" + toString(uncertainty_mm, 1) + "$"},
+                {"SF", "$" + toString(yield_SF, 1) + "\\pm" + toString(uncertainty_SF, 1) + "$"}
             };
+            if (process == "data_bkg")
+                channel_yields = {
+                    {"ee", toString(yield_ee, 0)},
+                    {"mm", toString(yield_mm, 0)},
+                    {"SF", toString(yield_SF, 0)}
+                };
             if ((process == "data_bkg") && blinded && (region.find("SR") != std::string::npos))
                 channel_yields = {{"ee", "-"}, {"mm", "-"}, {"SF", "-"}};
             out_file << " & " << getChannelString(channel_yields, options.plot_channels);
         }
-        cout << " \\\\" << endl;
+        out_file << " \\\\" << endl;
     }
 
     out_file << "\\end{tabular}" << endl;
@@ -486,11 +489,11 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     out_file << endl;
     //out_file << "\\definecolor{Gray}{gray}{0.9}" << endl;
     //out_file << "\\newcolumntype{g}{>{\\columncolor{Gray}}c}" << endl;
-    out_file << endl;
+    //out_file << endl;
     out_file << "\\begin{table}" << endl;
     map<string, string> plot_channels = {{"ee", "ee"}, {"mm", "mm"}, {"SF", "SF"}};
     string channel_string = getChannelString(plot_channels, options.plot_channels);
-    out_file << "\\caption{Photon Method Yields (" << channel_string << ")}" << endl;
+    out_file << "\\caption{Yields (" << channel_string << ")}" << endl;
     out_file << "\\begin{center}" << endl;
 
     vector<string> processes = {};
@@ -514,7 +517,7 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.plot_regions) {
-        out_file << region;
+        out_file << boost::replace_all_copy(region, "_", "\\_");
         for (auto process : processes) {
             if (process == "photon") process = "photon_reweighted";
             double yield_ee = results_map.results[region + " ee"].process_yields[process];
@@ -524,24 +527,38 @@ void printPhotonYieldTables(Options options, resultsMap results_map, string save
             double uncertainty_mm = results_map.results[region + " mm"].uncertainties[process];
             double uncertainty_SF = results_map.results[region + " SF"].uncertainties[process];
             map<string, string> channel_yields = {
-                {"ee", toString(yield_ee) + "\\pm" + toString(uncertainty_ee)},
-                {"mm", toString(yield_mm) + "\\pm" + toString(uncertainty_mm)},
-                {"SF", toString(yield_SF) + "\\pm" + toString(uncertainty_SF)}
+                {"ee", "$" + toString(yield_ee, 1) + "\\pm" + toString(uncertainty_ee, 1) + "$"},
+                {"mm", "$" + toString(yield_mm, 1) + "\\pm" + toString(uncertainty_mm, 1) + "$"},
+                {"SF", "$" + toString(yield_SF, 1) + "\\pm" + toString(uncertainty_SF, 1) + "$"}
             };
+            if (process == "data_bkg")
+                channel_yields = {
+                    {"ee", toString(yield_ee, 0)},
+                    {"mm", toString(yield_mm, 0)},
+                    {"SF", toString(yield_SF, 0)}
+                };
             if ((process == "data_bkg") && blinded && (region.find("SR") != std::string::npos))
                 channel_yields = {{"ee", "-"}, {"mm", "-"}, {"SF", "-"}};
             out_file << " & " << getChannelString(channel_yields, options.plot_channels);
         }
-        if (options.plot_reweighted_photons)
-            out_file << " & " << (results_map.results[region + " SF"].process_yields["data_bkg"] -
-                results_map.results[region + " SF"].process_yields["photon + bkg MC"]) /
-                sqrt(pow(results_map.results[region + " SF"].uncertainties["data_bkg"], 2) +
-                pow(results_map.results[region + " SF"].uncertainties["photon + bkg MC"], 2));
-        if (options.plot_zmc)
-            out_file << " & " << (results_map.results[region + " SF"].process_yields["data_bkg"] -
-                results_map.results[region + " SF"].process_yields["Z + bkg MC"]) /
-                sqrt(pow(results_map.results[region + " SF"].uncertainties["data_bkg"], 2) +
-                pow(results_map.results[region + " SF"].uncertainties["Z + bkg MC"], 2));
+        if (options.plot_reweighted_photons) {
+            if (blinded && (region.find("SR") != std::string::npos))
+                out_file << " & -";
+            else
+                out_file << " & " << toString((results_map.results[region + " SF"].process_yields["data_bkg"] -
+                    results_map.results[region + " SF"].process_yields["photon + bkg MC"]) /
+                    sqrt(pow(results_map.results[region + " SF"].uncertainties["data_bkg"], 2) +
+                    pow(results_map.results[region + " SF"].uncertainties["photon + bkg MC"], 2)), 3);
+        }
+        if (options.plot_zmc) {
+            if (blinded && (region.find("SR") != std::string::npos))
+                out_file << " & -";
+            else
+                out_file << " & " << toString((results_map.results[region + " SF"].process_yields["data_bkg"] -
+                    results_map.results[region + " SF"].process_yields["Z + bkg MC"]) /
+                    sqrt(pow(results_map.results[region + " SF"].uncertainties["data_bkg"], 2) +
+                    pow(results_map.results[region + " SF"].uncertainties["Z + bkg MC"], 2)), 3);
+        }
         out_file << " \\\\" << endl;
     }
 
@@ -589,7 +606,7 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
     out_file << "\\hline" << endl;
 
     for (auto region : results_map.plot_regions) {
-        out_file << region;
+        out_file << boost::replace_all_copy(region, "_", "\\_");
         for (auto process : processes) {
             double ee_sf = results_map.results[region + " ee"].scale_factors[process];
             double mm_sf = results_map.results[region + " mm"].scale_factors[process];
@@ -598,9 +615,9 @@ void printPhotonScaleFactorTables(Options options, resultsMap results_map, strin
             double mm_sf_unc = results_map.results[region + " mm"].sf_uncertainties[process];
             double SF_sf_unc = results_map.results[region + " SF"].sf_uncertainties[process];
             map<string, string> channel_sfs = {
-                {"ee", toString(ee_sf) + "\\pm" + toString(ee_sf_unc)},
-                {"mm", toString(mm_sf) + "\\pm" + toString(mm_sf_unc)},
-                {"SF", toString(SF_sf) + "\\pm" + toString(SF_sf_unc)}
+                {"ee", "$" + toString(ee_sf, 3) + "\\pm" + toString(ee_sf_unc, 3) + "$"},
+                {"mm", "$" + toString(mm_sf, 3) + "\\pm" + toString(mm_sf_unc, 3) + "$"},
+                {"SF", "$" + toString(SF_sf, 3) + "\\pm" + toString(SF_sf_unc, 3) + "$"}
             };
             out_file << " & " << getChannelString(channel_sfs, results_map.plot_channels);
         }
@@ -1030,7 +1047,7 @@ void performPlottingUnitTests(Options options) {
     options.plots_folder = "DiagnosticPlots/";
 
     options.make_diagnostic_plots = true;
-    options.plot_regions = vector<string>{"VRZ"};
+    options.plot_regions = vector<string>{"VRZ", "VRZ_MET0_50"};
     options.plot_channels = vector<string>{"SF"};
     options.plot_features = vector<string>{"mll", "Ptll", "met_Et", "met_Sign", "mt2leplsp_0", "Ht30"};
     options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};

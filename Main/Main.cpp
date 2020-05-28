@@ -313,7 +313,7 @@ void Main() {
     //ROOT::EnableImplicitMT(); // enable parallelization to speed up RDataFrame
     gErrorIgnoreLevel = kWarning; // turn off info dumps
     bins::init_binning_histograms(); // prepare histograms
-    TH1::SetDefaultSumw2(); // histogram summing option
+    TH1::SetDefaultSumw2(); // turn on histogram uncertainties
 
     Options options;
 
@@ -325,14 +325,14 @@ void Main() {
     //options.bkg_mc_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Bkgs_"
     //options.bkg_data_path = "/eos/atlas/user/l/longjon/Ntuples/2L2J_skims/skim_slim_v1.7/2LTrigOR_nBaseLep25-ge-2_nJet30-ge-2_metEt-gt-200_Ht30-gt-200-if-mll-gt-81/SUSY2_Data/"
 
-    options.my_samples_folder = "/public/data/Photon/Samples/";
+    //options.my_samples_folder = "/public/data/Photon/Samples/";
+    options.my_samples_folder = "/public/data/Photon/Samples/SkimmedNtuples/StrongPreselectionNtuplesInclusive/";
     //options.my_samples_folder = "/public/data/Photon/NewBaselineSelectionSamples/";
     //options.my_samples_folder = "/eos/user/m/mazhang/PhotonMethod/v1.7/NewBaselineSelectionSamples/";
 
     options.reduction_folder = options.my_samples_folder + "ReducedNtuples/";
     options.smearing_folder = options.my_samples_folder + "SmearedNtuples/";
     options.reweighting_folder = options.my_samples_folder + "ReweightedNtuples/";
-    //options.reweighting_folder = options.my_samples_folder + "SkimmedNtuples/StrongPreselectionNtuples/";
     //options.plots_folder = options.my_samples_folder + "Plots/";
     options.plots_folder = options.my_samples_folder + "Plots/ZMC/";
 
@@ -341,7 +341,7 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = false;
+    options.unit_testing = true;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -452,13 +452,14 @@ void Main() {
         options.reweight_branch = "reweight_Ptll";
 
         options.plot_regions = vector<string>{"VRZ", "VRZ_MET0_50",
-            "VRZ_MET50_100", "VRZ_MET100_150", "VRZ_MET150_200"};
-            //"VRZ_METgt200", "VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ"};
-        //options.plot_regions = vector<string>{"VRZ", "VRHigh"};
-        //options.plot_regions = vector<string>{"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ"};
-        //options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet", "dPhiPllMet"};
-        options.plot_features = vector<string>{"dPhiPllMet"};
-        //options.plot_features = vector<string>{"met_Et"};
+            "VRZ_MET50_100", "VRZ_MET100_150", "VRZ_MET150_200",
+            "VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
+            "SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ"};
+        //options.plot_regions = vector<string>{"SRC", "VRC"};
+        //options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet",
+            //"dPhiPllMet"};
+        //options.plot_features = vector<string>{"dPhiPllMet"};
+        options.plot_features = vector<string>{"met_Et"};
         //options.plot_channels = vector<string>{"ee", "mm", "SF"};
         options.plot_channels = vector<string>{"SF"};
 
