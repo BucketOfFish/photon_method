@@ -59,7 +59,7 @@ void initFillingFunctions() {
         "}";
     filling_functions["getPhotonMCWeight"] =
         "double getPhotonMCWeight(float lumi, float genWeight, float eventWeight, float jvtWeight, float bTagWeight, float pileupWeight) {"
-            "double totalWeight = lumi*genWeight*eventWeight*jvtWeight*bTagWeight*pileupWeight;"
+            "double totalWeight = (genWeight * eventWeight * leptonWeight * jvtWeight * bTagWeight * pileupWeight * globalDiLepTrigSF ) * (RandomRunNumber < 320000 ? 36200 : ((RandomRunNumber > 320000 && RandomRunNumber < 348000) ? 44300 : 58500 ));"
             ""
             "if (totalWeight > 1000000) totalWeight=0;" //--- fix for large photon sample spikes
             ""
@@ -341,7 +341,7 @@ void Main() {
 
     options.tree_name = "BaselineTree";
 
-    options.unit_testing = true;
+    options.unit_testing = false;
     bool do_reduction = false;
     bool do_smearing = false;
     bool do_reweighting = false;
@@ -451,11 +451,11 @@ void Main() {
     if (do_plotting) {
         options.reweight_branch = "reweight_Ptll";
 
-        options.plot_regions = vector<string>{"VRZ", "VRZ_MET0_50",
-            "VRZ_MET50_100", "VRZ_MET100_150", "VRZ_MET150_200",
-            "VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
-            "SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ"};
-        //options.plot_regions = vector<string>{"SRC", "VRC"};
+        //options.plot_regions = vector<string>{"VRZ", "VRZ_MET0_50",
+            //"VRZ_MET50_100", "VRZ_MET100_150", "VRZ_MET150_200",
+            //"VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
+            //"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ"};
+        options.plot_regions = vector<string>{"VRLow"};
         //options.plot_features = vector<string>{"met_Et", "METl", "METt", "mt2leplsp_0", "minDPhi2JetsMet",
             //"dPhiPllMet"};
         //options.plot_features = vector<string>{"dPhiPllMet"};
@@ -468,9 +468,9 @@ void Main() {
         options.make_diagnostic_plots = false;
         //options.diagnostic_plots = vector<string>{"lepEta", "METl", "mll"};
 
-        //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
-                             //"Wjets", "triboson"};
-        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
+        options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson", "higgs", "singleTop", "topOther",
+                             "Wjets", "triboson"};
+        //options.processes = {"data_bkg", "photon", "Zjets", "ttbar", "diboson"};
 
         options.blinded = true;
         options.print_photon_yield_only = false;
