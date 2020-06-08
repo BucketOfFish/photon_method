@@ -80,7 +80,7 @@ namespace cuts {
     TCut photon_weight_rw("totalWeight*reweight_Ptll");
 
     TCut lep0 = "nLep_base==0";
-    TCut lep2 = "nLep_signal==2 && nLep_base==2 && lepPt[0]>25 && lepPt[1]>25 && lepIsoFCTight[0] && lepIsoFCTight[1] && trigMatch_2LTrigOR";
+    TCut lep2 = "nLep_signal==2 && nLep_base==2 && lepPt[0]>25 && lepPt[1]>25 && lepIsPR[0] && lepIsPR[1] && trigMatch_2LTrigOR";
     TCut jet1 = "nJet30>=1";
     TCut jet2 = "nJet30>=2";
     TCut jet4 = "nJet30>=4";
@@ -114,7 +114,7 @@ namespace cuts {
     TCut not_diboson_2L = "((lepFlavor[0] == lepFlavor[1] && DatasetNumber != 363356 && DatasetNumber != 363358) || (lepFlavor[0] != lepFlavor[1]))";
 
     TCut VRZjets = lep2 + jet2 + bjet0 + Ptll_40 + is_SF + minDPhi2JetsMet_0p4;
-    TCut strong_preselection_noDPhi = lep2 + is_OS + jet2 + mll_12 + Ptll_40;
+    TCut strong_preselection_noDPhi = lep2 + is_SF + is_OS + jet2 + mll_12 + Ptll_40;
     TCut strong_preselection = strong_preselection_noDPhi + minDPhi2JetsMet_0p4;
     TCut strong_VRDPhi_preselection = strong_preselection + mll_Zwindow + minDPhi2JetsMet_anti0p4 + HT_250 + MT2_75;
 
@@ -154,7 +154,7 @@ namespace cuts {
         {"SRHighZ", strong_preselection + jet4 + HT_800 + MT2_75 + mll_Zwindow + MET_300},
 
         {"VRC_CR", strong_preselection_noDPhi + minDPhi2JetsMet_anti0p4 + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81 + MET_150_250},
-        {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + mll_lt81 + MET_150_250},
+        {"VRC", strong_preselection + MT2_90 + METSig_10 + Ptll_lt100 + MET_150_250},
         {"VRLow", strong_preselection + HT_250 + MT2_100 + Ptll_lt500 + MET_150_250},
         {"VRMed", strong_preselection + HT_500 + MT2_75 + Ptll_lt800 + MET_150_250},
         {"VRHigh", strong_preselection + HT_800 + MT2_75 + MET_150_250},
