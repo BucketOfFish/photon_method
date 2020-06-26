@@ -207,6 +207,7 @@ namespace cuts {
         {"DRInt", "(trigMatch_2LTrigOR && nJet30 >= 1 && lepPt[1] > 25. && nLep_signal == 2 && nLep_base == 2 && lepCharge[0] != lepCharge[1] && met_Sign > 6. && 12. < mll && mll < 150. && lepFlavor[0] == lepFlavor[1] && nBJet20_MV2c10_FixedCutBEff_77 == 0 && 81. < mll && mll < 101. && 12. < met_Sign && met_Sign < 18. && met_Et > 100. && mt2leplsp_0 > 80. && jetPt[0] > 60. && nJet30 >= 2 && 60. < mjj && mjj < 110.)"},
         {"DRLow", "(trigMatch_2LTrigOR && nJet30 >= 1 && lepPt[1] > 25. && nLep_signal == 2 && nLep_base == 2 && lepCharge[0] != lepCharge[1] && met_Sign > 6. && 12. < mll && mll < 150. && lepFlavor[0] == lepFlavor[1] && nBJet20_MV2c10_FixedCutBEff_77 == 0 && 81. < mll && mll < 101. && 6. < met_Sign && met_Sign < 12. && met_Et > 100. && mt2leplsp_0 > 80. && nJet30 == 2 && 60. < mjj && mjj < 110. && Rll < 1.)"},
         {"DROffShell", "(trigMatch_2LTrigOR && nJet30 >= 1 && lepPt[1] > 25. && nLep_signal == 2 && nLep_base == 2 && lepCharge[0] != lepCharge[1] && met_Sign > 6. && 12. < mll && mll < 150. && lepFlavor[0] == lepFlavor[1] && nBJet20_MV2c10_FixedCutBEff_77 == 0 && 12. < mll && mll < 71. && met_Sign > 9. && met_Et > 100. && mt2leplsp_0 > 100. && nJet30 >= 2 && jetPt[0] > 100. && abs(dPhiMetJet1) > 2.)"},
+    };
 }
 
 enum branch_type {INT, FLOAT};
