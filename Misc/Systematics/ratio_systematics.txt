@@ -1,0 +1,338 @@
+
+Processing PMG_table.C...
+Finding Systematics for Region SRC
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.25027, CR yield: 1.17554, ratio: 0.212897
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 0.445795, CR yield: 1.74317, ratio: 0.255738
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 0.446033, CR yield: 1.48547, ratio: 0.300264
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 0.25041, CR yield: 1.35298, ratio: 0.18508
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 0.250129, CR yield: 1.00222, ratio: 0.249574
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 0.162796, CR yield: 0.956415, ratio: 0.170215
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 0.162519, CR yield: 0.831155, ratio: 0.195534
+Region SRC scale uncertainty: 0.410368
+Finding Systematics for Region SRLow
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 3.64428, CR yield: 39.0209, ratio: 0.0933931
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 5.36812, CR yield: 54.3234, ratio: 0.0988179
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 5.30632, CR yield: 54.0372, ratio: 0.0981976
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 3.69534, CR yield: 39.3963, ratio: 0.0937992
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 3.59781, CR yield: 38.6838, ratio: 0.0930055
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 2.66073, CR yield: 29.6136, ratio: 0.0898483
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 2.62185, CR yield: 29.248, ratio: 0.0896421
+Region SRLow scale uncertainty: 0.0580861
+Finding Systematics for Region SRMed
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 2.14094, CR yield: 18.1502, ratio: 0.117957
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 3.06001, CR yield: 25.8528, ratio: 0.118363
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 3.04834, CR yield: 25.4819, ratio: 0.119628
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 2.16164, CR yield: 18.5079, ratio: 0.116796
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 2.12348, CR yield: 17.8237, ratio: 0.119138
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 1.58917, CR yield: 13.5705, ratio: 0.117105
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 1.56917, CR yield: 13.2727, ratio: 0.118226
+Region SRMed scale uncertainty: 0.0141612
+Finding Systematics for Region SRHigh
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 2.62402, CR yield: 23.8253, ratio: 0.110136
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 3.58015, CR yield: 31.6892, ratio: 0.112977
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 3.53339, CR yield: 32.5641, ratio: 0.108506
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 2.67961, CR yield: 23.3571, ratio: 0.114724
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 2.57812, CR yield: 23.7169, ratio: 0.108704
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 1.98609, CR yield: 18.1206, ratio: 0.109604
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 1.93965, CR yield: 17.9031, ratio: 0.108342
+Region SRHigh scale uncertainty: 0.0416551
+Finding Systematics for Region SRLowZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 1.32749, CR yield: 11.5055, ratio: 0.115378
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 2.02689, CR yield: 16.9973, ratio: 0.119247
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 2.02183, CR yield: 16.9378, ratio: 0.119368
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 1.33214, CR yield: 11.5855, ratio: 0.114984
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 1.32282, CR yield: 11.441, ratio: 0.115621
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 0.934855, CR yield: 8.20216, ratio: 0.113977
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 0.930637, CR yield: 8.13066, ratio: 0.11446
+Region SRLowZ scale uncertainty: 0.0345776
+Finding Systematics for Region SRMedZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.733226, CR yield: 6.69097, ratio: 0.109584
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 1.09392, CR yield: 9.85072, ratio: 0.11105
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 1.09384, CR yield: 9.81613, ratio: 0.111433
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 0.734898, CR yield: 6.7397, ratio: 0.10904
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 0.731917, CR yield: 6.64959, ratio: 0.110069
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 0.518413, CR yield: 4.78632, ratio: 0.108311
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 0.516563, CR yield: 4.74119, ratio: 0.108952
+Region SRMedZ scale uncertainty: 0.0168677
+Finding Systematics for Region SRHighZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.557655, CR yield: 5.98494, ratio: 0.0931764
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 0.820512, CR yield: 8.78761, ratio: 0.0933715
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 0.819778, CR yield: 8.74643, ratio: 0.0937272
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 0.559942, CR yield: 6.03807, ratio: 0.0927353
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 0.555786, CR yield: 5.93861, ratio: 0.0935885
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 0.400098, CR yield: 4.29583, ratio: 0.0931363
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 0.397771, CR yield: 4.24732, ratio: 0.0936523
+Region SRHighZ scale uncertainty: 0.00591152
+Finding Systematics for Region VRC
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 6.13363, CR yield: 0.367782, ratio: 16.6773
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 7.70949, CR yield: 0.411384, ratio: 18.7404
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 7.68206, CR yield: 0.44847, ratio: 17.1295
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 6.06099, CR yield: 0.341325, ratio: 17.7572
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 6.21394, CR yield: 0.393134, ratio: 15.8062
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 5.08218, CR yield: 0.315564, ratio: 16.1051
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 5.19418, CR yield: 0.334245, ratio: 15.5401
+Region VRC scale uncertainty: 0.123704
+Finding Systematics for Region VRLow
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 51.9042, CR yield: 247.562, ratio: 0.209662
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 74.1744, CR yield: 338.865, ratio: 0.218891
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 73.4393, CR yield: 337.508, ratio: 0.217593
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 52.4212, CR yield: 249.087, ratio: 0.210453
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 51.369, CR yield: 246.203, ratio: 0.208645
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 38.6598, CR yield: 188.965, ratio: 0.204587
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 38.3894, CR yield: 187.22, ratio: 0.205049
+Region VRLow scale uncertainty: 0.0440196
+Finding Systematics for Region VRMed
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 40.9448, CR yield: 218.356, ratio: 0.187514
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 59.2533, CR yield: 304.524, ratio: 0.194577
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 58.74, CR yield: 303.551, ratio: 0.19351
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 41.3689, CR yield: 220.158, ratio: 0.187905
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 40.395, CR yield: 216.683, ratio: 0.186425
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 29.6008, CR yield: 163.983, ratio: 0.180512
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 29.332, CR yield: 161.926, ratio: 0.181144
+Region VRMed scale uncertainty: 0.0376675
+Finding Systematics for Region VRHigh
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 24.4813, CR yield: 121.926, ratio: 0.200789
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 34.9079, CR yield: 172.538, ratio: 0.202321
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 34.5749, CR yield: 171.703, ratio: 0.201365
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 24.7696, CR yield: 123.176, ratio: 0.20109
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 24.1656, CR yield: 120.5, ratio: 0.200544
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 17.9687, CR yield: 90.6958, ratio: 0.19812
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 17.7073, CR yield: 89.2051, ratio: 0.198501
+Region VRHigh scale uncertainty: 0.0132906
+Finding Systematics for Region VRLowZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 20.6614, CR yield: 77.1962, ratio: 0.267648
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 30.5865, CR yield: 114.162, ratio: 0.267921
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 30.3246, CR yield: 113.842, ratio: 0.266374
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 20.7306, CR yield: 77.611, ratio: 0.267109
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 20.4538, CR yield: 76.6973, ratio: 0.266682
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 14.7073, CR yield: 54.9185, ratio: 0.267803
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 14.7597, CR yield: 54.3476, ratio: 0.27158
+Region VRLowZ scale uncertainty: 0.0146911
+Finding Systematics for Region VRMedZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 19.3164, CR yield: 81.0875, ratio: 0.238217
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 28.4222, CR yield: 119.55, ratio: 0.237744
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 28.1173, CR yield: 119.14, ratio: 0.236002
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 19.3868, CR yield: 81.5386, ratio: 0.237762
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 19.0657, CR yield: 80.6242, ratio: 0.236477
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 13.624, CR yield: 57.7808, ratio: 0.235788
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 13.6578, CR yield: 57.1848, ratio: 0.238836
+Region VRMedZ scale uncertainty: 0.0101986
+Finding Systematics for Region VRHighZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 11.7977, CR yield: 49.3227, ratio: 0.239194
+Working on Weight MUR0_5_MUF0_5_PDF261000
+SR yield: 17.0988, CR yield: 72.8011, ratio: 0.23487
+Working on Weight MUR0_5_MUF1_PDF261000
+SR yield: 16.8994, CR yield: 72.5578, ratio: 0.232909
+Working on Weight MUR1_MUF0_5_PDF261000
+SR yield: 11.8922, CR yield: 49.6487, ratio: 0.239528
+Working on Weight MUR1_MUF2_PDF261000
+SR yield: 11.6464, CR yield: 48.9132, ratio: 0.238104
+Working on Weight MUR2_MUF1_PDF261000
+SR yield: 8.47249, CR yield: 35.1166, ratio: 0.241267
+Working on Weight MUR2_MUF2_PDF261000
+SR yield: 8.38711, CR yield: 34.6337, ratio: 0.242166
+Region VRHighZ scale uncertainty: 0.0262728
+Finding Systematics for Region SRC
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.25027, CR yield: 1.17554, ratio: 0.212897
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 0.245366, CR yield: 1.23711, ratio: 0.198338
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 0.254395, CR yield: 1.23569, ratio: 0.205874
+Region SRC PDF uncertainty: 0.0683863
+Finding Systematics for Region SRLow
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 3.64428, CR yield: 39.0209, ratio: 0.0933931
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 3.67463, CR yield: 39.3854, ratio: 0.0932993
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 3.74142, CR yield: 40.0093, ratio: 0.0935138
+Region SRLow PDF uncertainty: 0.00129334
+Finding Systematics for Region SRMed
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 2.14094, CR yield: 18.1502, ratio: 0.117957
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 2.15121, CR yield: 18.3977, ratio: 0.116928
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 2.19445, CR yield: 18.7936, ratio: 0.116766
+Region SRMed PDF uncertainty: 0.0101014
+Finding Systematics for Region SRHigh
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 2.62402, CR yield: 23.8253, ratio: 0.110136
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 2.62952, CR yield: 24.3371, ratio: 0.108046
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 2.70139, CR yield: 24.971, ratio: 0.108181
+Region SRHigh PDF uncertainty: 0.0189806
+Finding Systematics for Region SRLowZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 1.32749, CR yield: 11.5055, ratio: 0.115378
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 1.33923, CR yield: 11.6858, ratio: 0.114603
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 1.3735, CR yield: 11.8387, ratio: 0.116018
+Region SRLowZ PDF uncertainty: 0.00671873
+Finding Systematics for Region SRMedZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.733226, CR yield: 6.69097, ratio: 0.109584
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 0.73639, CR yield: 6.77636, ratio: 0.10867
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 0.760067, CR yield: 6.91432, ratio: 0.109926
+Region SRMedZ PDF uncertainty: 0.0083404
+Finding Systematics for Region SRHighZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 0.557655, CR yield: 5.98494, ratio: 0.0931764
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 0.557631, CR yield: 6.06817, ratio: 0.0918944
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 0.583256, CR yield: 6.22183, ratio: 0.0937434
+Region SRHighZ PDF uncertainty: 0.0137585
+Finding Systematics for Region VRC
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 6.13363, CR yield: 0.367782, ratio: 16.6773
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 6.40546, CR yield: 0.353113, ratio: 18.14
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 6.33625, CR yield: 0.351062, ratio: 18.0488
+Region VRC PDF uncertainty: 0.0877019
+Finding Systematics for Region VRLow
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 51.9042, CR yield: 247.562, ratio: 0.209662
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 52.7813, CR yield: 249.344, ratio: 0.211681
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 53.3232, CR yield: 251.499, ratio: 0.212022
+Region VRLow PDF uncertainty: 0.0112563
+Finding Systematics for Region VRMed
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 40.9448, CR yield: 218.356, ratio: 0.187514
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 41.162, CR yield: 219.495, ratio: 0.18753
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 41.7302, CR yield: 223.154, ratio: 0.187002
+Region VRMed PDF uncertainty: 0.00273184
+Finding Systematics for Region VRHigh
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 24.4813, CR yield: 121.926, ratio: 0.200789
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 24.5965, CR yield: 123.179, ratio: 0.19968
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 25.0892, CR yield: 125.659, ratio: 0.199662
+Region VRHigh PDF uncertainty: 0.00561378
+Finding Systematics for Region VRLowZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 20.6614, CR yield: 77.1962, ratio: 0.267648
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 20.9636, CR yield: 77.9781, ratio: 0.268839
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 21.2558, CR yield: 78.5939, ratio: 0.270451
+Region VRLowZ PDF uncertainty: 0.0104746
+Finding Systematics for Region VRMedZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 19.3164, CR yield: 81.0875, ratio: 0.238217
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 19.4372, CR yield: 81.7999, ratio: 0.237619
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 19.6931, CR yield: 82.9181, ratio: 0.2375
+Region VRMedZ PDF uncertainty: 0.00301029
+Finding Systematics for Region VRHighZ
+Working on Weight MUR1_MUF1_PDF261000
+SR yield: 11.7977, CR yield: 49.3227, ratio: 0.239194
+Working on Weight MUR1_MUF1_PDF13000
+SR yield: 11.7903, CR yield: 50.1417, ratio: 0.235139
+Working on Weight MUR1_MUF1_PDF25300
+SR yield: 12.0374, CR yield: 51.0462, ratio: 0.235814
+Region VRHighZ PDF uncertainty: 0.0169523
