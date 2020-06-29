@@ -32,22 +32,23 @@ void systematics_plots() {
 
         THStack *stack = new THStack("dPhi stack", "");
         TLegend* leg = new TLegend(0.6,0.7,0.88,0.88);
-        int color = 0;
+        int count = 0;
         for (auto LHE3Weight : largest_systematics[region]) {
             TH1F* hist = new TH1F(("hist_" + LHE3Weight).c_str(),"",10,0,3.14159);
             TCut LHE_branch = ("LHE3Weight_" + LHE3Weight).c_str();
             chain.Draw(("minDPhi2JetsMet>>hist_" + LHE3Weight).c_str(), inclusive_cut*lumi*MC_weight*LHE_branch, "goff");
-            hist->SetLineColor(colors[color++]);
+            hist->SetLineColor(colors[count]);
             hist->SetLineWidth(2);
-            hist->GetXaxis()->SetTitle("minDPhi2JetsMet");
-            hist->GetYaxis()->SetTitle("entries / bin");
             stack->Add(hist);
-            leg->AddEntry(hist, LHE_branch.GetTitle(), "lp");
+            leg->AddEntry(hist, systematics[count].c_str(), "lp");
+            count++;
         }
 
         namepad->SetLogy();
         stack->SetTitle(("dPhi Shapes in " + region).c_str());
         stack->Draw("hist nostack");
+        stack->GetXaxis()->SetTitle("minDPhi2JetsMet");
+        stack->GetYaxis()->SetTitle("entries / bin");
         leg->Draw();
 
         TString plot_name = (region + ".png").c_str();
