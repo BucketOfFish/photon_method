@@ -1,20 +1,19 @@
-#include "/home/matt/Projects/PhotonMethod/Main/Settings.cpp"
+#include "../../Main/Settings.cpp"
 
 TCut getDPhiCR(string region) {
     return NMinus1Cut(cuts::selections[region], "minDPhi2JetsMet") + cuts::minDPhi2JetsMet_anti0p4;
 }
 
-void PMG_table() {
+void systematics_table() {
     // Options
     TChain chain("Zjets_NoSys");
     chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16a_Zjets_merged_processed.root");
     chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16cd_Zjets_merged_processed.root");
     chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16e_Zjets_merged_processed.root");
 
-    //vector<string> regions = {"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ",
-                              ////"CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ", 
-                              //"VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ"}; 
-    vector<string> regions = {"VRHighZ"}; 
+    vector<string> regions = {"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ",
+                              //"CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ", 
+                              "VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ"}; 
 
     TCut lumi = "(RandomRunNumber<320000 ? 36200 : (RandomRunNumber>320000 && RandomRunNumber<348000) ? 44300 : 58500)";
     TCut MC_weight = "genWeight*eventWeight*leptonWeight*jvtWeight*bTagWeight*pileupWeight*globalDiLepTrigSF";
