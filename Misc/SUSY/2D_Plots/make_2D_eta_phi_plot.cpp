@@ -25,8 +25,8 @@ void make_plots(string process, vector<string> trees) {
     gStyle->SetOptStat(0);
     for (auto region : regions) {
         for (auto var : vars) {
-            string title = var[2] + " for " + process + " MC";
-            if (process == "data") title = var[2] + " for " + process;
+            string title = var[2] + " for " + process + " MC in " + region;
+            if (process == "data") title = var[2] + " for data in " + region;
             TH2D *hist = new TH2D("hist", title.c_str(), 20, -3.14159, 3.14159, 20, -2.74, 2.74);
             if (process != "data") chain->Draw((var[0]+":"+var[1]+">>hist").c_str(), cuts::selections[region] * TCut(weight.c_str()), "colz");
             else chain->Draw((var[0]+":"+var[1]+">>hist").c_str(), cuts::selections[region], "colz");
@@ -41,7 +41,7 @@ void make_plots(string process, vector<string> trees) {
 void make_2D_eta_phi_plot() {
     string mc_path = "/public/data/Photon/Samples/ReducedNtuples/";
     vector<string> processes = {"diboson", "higgs", "lowMassDY", "singleTop", "topOther", "triboson", "ttbar",
-        "Vgamma", "Wjets", /*"Zjets"*/};
+        "Vgamma", "Wjets", "Zjets"};
     for (auto process : processes) {
         vector<string> trees = {
             mc_path + "mc16a_" + process + ".root",
