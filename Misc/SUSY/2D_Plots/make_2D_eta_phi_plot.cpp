@@ -1,6 +1,6 @@
 #include "../../../Main/Settings.cpp"
 
-void make_plots(string process, vector<string> trees) {
+void make_plots(string process, vector<string> trees, vector<string> regions) {
     // options
     string tree_name = "BaselineTree";
     vector<vector<string>> vars = {
@@ -8,12 +8,6 @@ void make_plots(string process, vector<string> trees) {
         {"jet_eta[0]", "jet_phi[0]", "Leading Jet Eta vs. Phi", "jet_eta_phi"},
     };
     string weight = "totalWeight";
-    vector<string> regions = {"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ", "VRC_CR", "VRC",
-        "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
-        "CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ",
-        "SRHigh4", "SRLow2", "VRHigh4", "EWK_VRHigh", "VRHighR", "VRllbb", "VRInt",
-        "EWK_VRLow", "VRLow2", "VROffShell", "CRZZ", "CRtt", "CRZ", "CRDY", "DRHigh", "DRllbb", "DRInt", "DRLow",
-        "DROffShell", "SRHigh8", "SRHigh16", "SRInt", "SRLow", "SROffShell"};
 
     // plotting
     TChain *chain = new TChain(tree_name.c_str());
@@ -42,13 +36,19 @@ void make_2D_eta_phi_plot() {
     string mc_path = "/public/data/Photon/Samples/ReducedNtuples/";
     vector<string> processes = {"diboson", "higgs", "lowMassDY", "singleTop", "topOther", "triboson", "ttbar",
         "Vgamma", "Wjets", "Zjets"};
+    vector<string> regions = {"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ", "VRC_CR", "VRC",
+        "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
+        "CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ",
+        "SRHigh4", "SRLow2", "VRHigh4", "EWK_VRHigh", "VRHighR", "VRllbb", "VRInt",
+        "EWK_VRLow", "VRLow2", "VROffShell", "CRZZ", "CRtt", "CRZ", "CRDY", "DRHigh", "DRllbb", "DRInt", "DRLow",
+        "DROffShell", "SRHigh8", "SRHigh16", "SRInt", "SRLow", "SROffShell"};
     for (auto process : processes) {
         vector<string> trees = {
             mc_path + "mc16a_" + process + ".root",
             mc_path + "mc16cd_" + process + ".root",
             mc_path + "mc16e_" + process + ".root",
         };
-        make_plots(process, trees);
+        make_plots(process, trees, regions);
     }
 
     string data_path = "/public/data/Photon/Samples/ReducedNtuples/";
@@ -57,5 +57,11 @@ void make_2D_eta_phi_plot() {
         data_path + "data17_data_bkg.root",
         data_path + "data18_data_bkg.root",
     };
-    make_plots("data", trees);
+    regions = {"VRC_CR", "VRC",
+        "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ",
+        "CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ",
+        "VRHigh4", "EWK_VRHigh", "VRHighR", "VRllbb", "VRInt",
+        "EWK_VRLow", "VRLow2", "VROffShell", "CRZZ", "CRtt", "CRZ", "CRDY", "DRHigh", "DRllbb", "DRInt", "DRLow",
+        "DROffShell"};
+    make_plots("data", trees, regions);
 }
