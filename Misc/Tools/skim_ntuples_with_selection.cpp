@@ -59,26 +59,24 @@ map<string, vector<string>> filename_sets {
 string treename = "ttbar_NoSys";
 vector<string> filenames = filename_sets["ttbar"];
 
-vector<string> branches_to_copy = vector<string> {
-    "Ht30", "LHE3Weight_MUR0p5_MUF0p5_PDF261000", "LHE3Weight_MUR0p5_MUF1_PDF261000",
-    "LHE3Weight_MUR1_MUF0p5_PDF261000", "LHE3Weight_MUR1_MUF1_PDF13000", "LHE3Weight_MUR1_MUF1_PDF25300",
-    "LHE3Weight_MUR1_MUF1_PDF261000", "LHE3Weight_MUR1_MUF2_PDF261000", "LHE3Weight_MUR2_MUF1_PDF261000",
-    "LHE3Weight_MUR2_MUF2_PDF261000", "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
+//vector<string> branches_to_copy = vector<string> {
+    //"Ht30", "LHE3Weight_MUR0p5_MUF0p5_PDF261000", "LHE3Weight_MUR0p5_MUF1_PDF261000",
+    //"LHE3Weight_MUR1_MUF0p5_PDF261000", "LHE3Weight_MUR1_MUF1_PDF13000", "LHE3Weight_MUR1_MUF1_PDF25300",
+    //"LHE3Weight_MUR1_MUF1_PDF261000", "LHE3Weight_MUR1_MUF2_PDF261000", "LHE3Weight_MUR2_MUF1_PDF261000",
+    //"LHE3Weight_MUR2_MUF2_PDF261000", "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
+    //"globalDiLepTrigSF", "jvtWeight", "lepCharge", "lepFlavor", "lepPt", "leptonWeight", "met_Et", "met_Sign",
+    //"minDPhi2JetsMet", "mll", "mt2leplsp_0", "nJet30", "nLep_base", "nLep_signal", "pileupWeight",
+    //"trigMatch_2LTrigOR", "nBJet20_MV2c10_FixedCutBEff_77", "mjj", "jetPt", "Rll", "dPhiMetJet1", "dPhiPllMet",
+//};
+vector<string> branches_to_copy = vector<string> { // ttbar
+    "Ht30", "LHE3Weight_muR0p5,muF0p5", "LHE3Weight_muR0p5,muF1", "LHE3Weight_muR1,muF0p5",
+    "LHE3Weight_muR0p5,muF2", "LHE3Weight_muR2,muF0p5", "LHE3Weight_muR1,muF2", "LHE3Weight_muR2,muF1",
+    "LHE3Weight_muR2,muF2", "LHE3Weight_nominal", "LHE3Weight_PDFset265000", "LHE3Weight_PDFset266000",
+    "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
     "globalDiLepTrigSF", "jvtWeight", "lepCharge", "lepFlavor", "lepPt", "leptonWeight", "met_Et", "met_Sign",
     "minDPhi2JetsMet", "mll", "mt2leplsp_0", "nJet30", "nLep_base", "nLep_signal", "pileupWeight",
     "trigMatch_2LTrigOR", "nBJet20_MV2c10_FixedCutBEff_77", "mjj", "jetPt", "Rll", "dPhiMetJet1", "dPhiPllMet",
 };
-if (treename == "ttbar_NoSys") {
-    branches_to_copy = vector<string> {
-        "Ht30", "LHE3Weight_muR0p5,muF0p5", "LHE3Weight_muR0p5,muF1", "LHE3Weight_muR1,muF0p5",
-        "LHE3Weight_muR0p5,muF2", "LHE3Weight_muR2,muF0p5", "LHE3Weight_muR1,muF2", "LHE3Weight_muR2,muF1",
-        "LHE3Weight_muR2,muF2", "LHE3Weight_nominal", "LHE3Weight_PDFset265000", "LHE3Weight_PDFset266000",
-        "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
-        "globalDiLepTrigSF", "jvtWeight", "lepCharge", "lepFlavor", "lepPt", "leptonWeight", "met_Et", "met_Sign",
-        "minDPhi2JetsMet", "mll", "mt2leplsp_0", "nJet30", "nLep_base", "nLep_signal", "pileupWeight",
-        "trigMatch_2LTrigOR", "nBJet20_MV2c10_FixedCutBEff_77", "mjj", "jetPt", "Rll", "dPhiMetJet1", "dPhiPllMet",
-    };
-}
 
 void skim_ntuples_with_selection() {
     TreeCreator *reducer = new TreeCreator();
