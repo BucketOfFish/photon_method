@@ -4,13 +4,15 @@
 #include <string>
 #include "../../Main/Settings.cpp"
 
-string oldpath = "/public/data/SUSY_Systematics/Unskimmed/Diboson/";
-string newpath = "/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/";
-string treename = "diboson_NoSys";
+string oldpath = "/eos/user/r/rtombs/2Ljets/theory_syst_copy/";
+string newpath = "/eos/user/m/mazhang/SUSY_Systematics/";
 
 //string selection = cuts::selections["bkg_baseline"].GetTitle();
 //string selection = cuts::selections["strong_preselection"].GetTitle();
-string selection = cuts::strong_preselection_noDPhi.GetTitle();
+//string selection = cuts::strong_preselection_noDPhi.GetTitle();
+TCut selection_cut = cuts::lep2 + cuts::is_SF + cuts::is_OS + cuts::jet2 + cuts::mll_12 + "met_Sign > 6" +
+    "nBJet20_MV2c10_FixedCutBEff_77 == 0" + "mll < 150" + "met_Et > 100";
+string selection = selection_cut.GetTitle();
 
 map<string, vector<string>> filename_sets {
     {"reweighted",
@@ -45,24 +47,38 @@ map<string, vector<string>> filename_sets {
         }},
     {"diboson",
         {
-        "diboson_merged_processed.root",
+        "SUSY2_Bkgs_mc16a/diboson_merged_processed.root", "SUSY2_Bkgs_mc16cd/diboson_merged_processed.root",
+        "SUSY2_Bkgs_mc16e/diboson_merged_processed.root",
         }},
     {"ttbar",
         {
-        "ttbarDilep_410472_merged_processed.root", "ttbar_merged_processed.root",
+        "SUSY2_Bkgs_mc16a/ttbar_merged_processed.root", "SUSY2_Bkgs_mc16cd/ttbar_merged_processed.root",
+        "SUSY2_Bkgs_mc16e/ttbar_merged_processed.root",
         }},
 };
-vector<string> filenames = filename_sets["Zjets"];
+string treename = "ttbar_NoSys";
+vector<string> filenames = filename_sets["ttbar"];
 
 vector<string> branches_to_copy = vector<string> {
-    "Ht30", "LHE3Weight_MUR0.5_MUF0.5_PDF261000", "LHE3Weight_MUR0.5_MUF1_PDF261000",
-    "LHE3Weight_MUR1_MUF0.5_PDF261000", "LHE3Weight_MUR1_MUF1_PDF13000", "LHE3Weight_MUR1_MUF1_PDF25300",
+    "Ht30", "LHE3Weight_MUR0p5_MUF0p5_PDF261000", "LHE3Weight_MUR0p5_MUF1_PDF261000",
+    "LHE3Weight_MUR1_MUF0p5_PDF261000", "LHE3Weight_MUR1_MUF1_PDF13000", "LHE3Weight_MUR1_MUF1_PDF25300",
     "LHE3Weight_MUR1_MUF1_PDF261000", "LHE3Weight_MUR1_MUF2_PDF261000", "LHE3Weight_MUR2_MUF1_PDF261000",
     "LHE3Weight_MUR2_MUF2_PDF261000", "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
     "globalDiLepTrigSF", "jvtWeight", "lepCharge", "lepFlavor", "lepPt", "leptonWeight", "met_Et", "met_Sign",
     "minDPhi2JetsMet", "mll", "mt2leplsp_0", "nJet30", "nLep_base", "nLep_signal", "pileupWeight",
     "trigMatch_2LTrigOR", "nBJet20_MV2c10_FixedCutBEff_77", "mjj", "jetPt", "Rll", "dPhiMetJet1", "dPhiPllMet",
 };
+if (treename == "ttbar_NoSys") {
+    branches_to_copy = vector<string> {
+        "Ht30", "LHE3Weight_muR0p5,muF0p5", "LHE3Weight_muR0p5,muF1", "LHE3Weight_muR1,muF0p5",
+        "LHE3Weight_muR0p5,muF2", "LHE3Weight_muR2,muF0p5", "LHE3Weight_muR1,muF2", "LHE3Weight_muR2,muF1",
+        "LHE3Weight_muR2,muF2", "LHE3Weight_nominal", "LHE3Weight_PDFset265000", "LHE3Weight_PDFset266000",
+        "Ptll", "RandomRunNumber", "bTagWeight", "eventWeight", "genWeight",
+        "globalDiLepTrigSF", "jvtWeight", "lepCharge", "lepFlavor", "lepPt", "leptonWeight", "met_Et", "met_Sign",
+        "minDPhi2JetsMet", "mll", "mt2leplsp_0", "nJet30", "nLep_base", "nLep_signal", "pileupWeight",
+        "trigMatch_2LTrigOR", "nBJet20_MV2c10_FixedCutBEff_77", "mjj", "jetPt", "Rll", "dPhiMetJet1", "dPhiPllMet",
+    };
+}
 
 void skim_ntuples_with_selection() {
     TreeCreator *reducer = new TreeCreator();
