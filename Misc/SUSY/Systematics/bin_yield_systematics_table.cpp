@@ -1,37 +1,32 @@
 #include "../../../Main/Settings.cpp"
 
-TCut getDPhiCR(string region) {
-    return NMinus1Cut(cuts::selections[region], "minDPhi2JetsMet") + cuts::minDPhi2JetsMet_anti0p4;
-}
-
-void ratio_systematics_table() {
+void process_systematics_table(vector<string> files, string process) {
     // Options
-    TChain chain("Zjets_NoSys");
-    chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16a_Zjets_merged_processed.root");
-    chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16cd_Zjets_merged_processed.root");
-    chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16e_Zjets_merged_processed.root");
+    TChain chain((process + "_NoSys").c_str());
+    for (auto file : files)
+        chain.Add(file.c_str());
 
     //vector<string> regions = {"SRC", "SRLow", "SRMed", "SRHigh", "SRLowZ", "SRMedZ", "SRHighZ",
                               ////"CRC", "CRLow", "CRMed", "CRHigh", "CRLowZ", "CRMedZ", "CRHighZ", 
                               //"VRC", "VRLow", "VRMed", "VRHigh", "VRLowZ", "VRMedZ", "VRHighZ"}; 
-    //vector<string> regions = {"CRZ", "SRLow_1", "SRLow_2", "SRLow2", "SROffShell_2", "EWK_VRLow", "VRLow2",
-                              //"VROffShell"};
-    vector<string> regions = {"SRLow2", "VRLow2"};
+    vector<string> regions = {"CRZ", "SRLow_1", "SRLow_2", "SRLow2", "SROffShell_2", "EWK_VRLow", "VRLow2",
+                              "VROffShell"};
 
     TCut lumi = "(RandomRunNumber<320000 ? 36200 : (RandomRunNumber>320000 && RandomRunNumber<348000) ? 44300 : 58500)";
     TCut MC_weight = "genWeight*eventWeight*leptonWeight*jvtWeight*bTagWeight*pileupWeight*globalDiLepTrigSF";
 
     vector<string> systematics = {"scale", "PDF"};
-    //vector<string> systematics = {"ttbar_scale", "ttbar_PDF"};
+    if (process == "ttbar")
+        systematics = {"ttbar_scale", "ttbar_PDF"};
 
     // Table Production
     for (auto systematic : systematics) {
         vector<string> LHE3Weights;
         if (systematic == "scale") {
             LHE3Weights.push_back("MUR1_MUF1_PDF261000");
-            LHE3Weights.push_back("MUR0_5_MUF0_5_PDF261000");
-            LHE3Weights.push_back("MUR0_5_MUF1_PDF261000");
-            LHE3Weights.push_back("MUR1_MUF0_5_PDF261000");
+            LHE3Weights.push_back("MUR0p5_MUF0p5_PDF261000");
+            LHE3Weights.push_back("MUR0p5_MUF1_PDF261000");
+            LHE3Weights.push_back("MUR1_MUF0p5_PDF261000");
             LHE3Weights.push_back("MUR1_MUF2_PDF261000");
             LHE3Weights.push_back("MUR2_MUF1_PDF261000");
             LHE3Weights.push_back("MUR2_MUF2_PDF261000");
@@ -61,33 +56,46 @@ void ratio_systematics_table() {
             LHE3Weights.push_back("PDFset266000");
         }
 
-        for (auto region : regions) {
-            TCut SR_cut = cuts::selections[region];
-            TCut CR_cut = getDPhiCR(region);
-            cout << "Finding Systematics for Region " << region << endl;
+        ofstream myfile;
+        myfile.open((process + ".txt").c_str());
 
-            vector<float> ratios;
+        for (auto region : regions) {
+            TCut cut = cuts::selections[region];
+            myfile << "Finding Systematics for Region " << region << endl;
+
+            vector<double> yields;
             for (auto LHE3Weight : LHE3Weights) {
-                cout << "Working on Weight " << LHE3Weight << endl;
-                TH1F* SR_hist = new TH1F(("hists_" + LHE3Weight + "_SR").c_str(),"",1,0,1);
-                TH1F* CR_hist = new TH1F(("hists_" + LHE3Weight + "_CR").c_str(),"",1,0,1);
+                myfile << "Working on Weight " << LHE3Weight << endl;
+                TH1F* hist = new TH1F(("hists_" + LHE3Weight).c_str(),"",1,0,1);
                 TCut LHE_branch = ("LHE3Weight_" + LHE3Weight).c_str();
-                chain.Draw(("mll>>hists_" + LHE3Weight + "_SR").c_str(), SR_cut*lumi*MC_weight*LHE_branch, "goff");
-                chain.Draw(("mll>>hists_" + LHE3Weight + "_CR").c_str(), CR_cut*lumi*MC_weight*LHE_branch, "goff");
-                float SR_yield = fabs(SR_hist->Integral(0,2));
-                float CR_yield = fabs(CR_hist->Integral(0,2));
-                ratios.push_back(SR_yield / CR_yield);
-                cout << "SR yield: " << SR_yield << ", CR yield: " << CR_yield << ", ratio: " << ratios.back() << endl;
-                delete SR_hist, CR_hist;
+                chain.Draw(("mll>>hists_" + LHE3Weight).c_str(), cut*lumi*MC_weight*LHE_branch, "goff");
+                float yield = fabs(hist->Integral(0,2));
+                myfile << "region yield: " << yield << endl;
+                yields.push_back(yield);
+                delete hist;
             }
 
             float uncertainty_max = 0;
-            for (int i=0; i<ratios.size(); i++) {
+            for (int i=0; i<yields.size(); i++) {
                 if (i==0) continue;
-                float uncertainty = abs((ratios[i]-ratios[0]) / ratios[0]);
+                float uncertainty = abs((yields[i]-yields[0]) / yields[0]);
                 if (uncertainty>uncertainty_max) uncertainty_max = uncertainty;
             }
-            cout << "Region " << region << " " << systematic << " uncertainty: " << uncertainty_max << endl;
+            myfile << "Region " << region << " " << systematic << " uncertainty: " << uncertainty_max << endl;
         }	
+
+        myfile.close();
+    }
+}
+
+void bin_yield_systematics_table() {
+    vector<string> processes = {"Zjets", "diboson", "ttbar"};
+    string mc_path = "/public/data/SUSY_Systematics/Skimmed/EWKPreselection/";
+    for (auto process : processes) {
+        vector<string> files;
+        files.push_back(mc_path + "SUSY2_Bkgs_mc16a/" + process + "_merged_processed.root");
+        files.push_back(mc_path + "SUSY2_Bkgs_mc16cd/" + process + "_merged_processed.root");
+        files.push_back(mc_path + "SUSY2_Bkgs_mc16e/" + process + "_merged_processed.root");
+        process_systematics_table(files, process);
     }
 }

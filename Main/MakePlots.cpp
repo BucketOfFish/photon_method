@@ -272,6 +272,7 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
             CR_uncertainties["bkg MC"] = 0;
             PR_integrals["bkg MC"] = 0.0;
             uncertainties["bkg MC"] = 0;
+            cout << "\tPrinting region / CR yields" << endl;
             for (auto process : options.processes) {
                 if (process == "photon") {
                     if (options.plot_unreweighted_photons) {
@@ -280,7 +281,8 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                             ->IntegralAndError(0, nbins+1, CR_uncertainties["photon_raw"]);
                         PR_integrals["photon_raw"] = prh0["photon_raw"]
                             ->IntegralAndError(0, nbins+1, uncertainties["photon_raw"]);
-                        cout << PR_integrals["photon_raw"] << " +/- " << uncertainties["photon_raw"] << endl;
+                        cout << PR_integrals["photon_raw"] << " +/- " << uncertainties["photon_raw"] << ", ";
+                        cout << CR_integrals["photon_raw"] << " +/- " << CR_uncertainties["photon_raw"] << endl;
                     }
                     if (options.plot_reweighted_photons) {
                         cout << "\t" << padString("photon reweight int.");
@@ -289,7 +291,9 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                         PR_integrals["photon_reweighted"] = prh0["photon_reweighted"]
                             ->IntegralAndError(0, nbins+1, uncertainties["photon_reweighted"]);
                         cout << PR_integrals["photon_reweighted"] << " +/- " <<
-                            uncertainties["photon_reweighted"] << endl;
+                            uncertainties["photon_reweighted"] << ", ";
+                        cout << CR_integrals["photon_reweighted"] << " +/- " <<
+                            CR_uncertainties["photon_reweighted"] << endl;
                     }
                 }
                 else {
@@ -297,7 +301,8 @@ resultsMap fillHistograms(tuple<histMap, histMap> region_hists, Options options)
                     cout << "\t" << padString(process + " integral");
                     CR_integrals[process] = crh0[process]->IntegralAndError(0, nbins+1, CR_uncertainties[process]);
                     PR_integrals[process] = prh0[process]->IntegralAndError(0, nbins+1, uncertainties[process]);
-                    cout << PR_integrals[process] << " +/- " << uncertainties[process] << endl;
+                    cout << PR_integrals[process] << " +/- " << uncertainties[process] << ", ";
+                    cout << CR_integrals[process] << " +/- " << CR_uncertainties[process] << endl;
                 }
                 if (process != "data_bkg" && process != "photon" && process != "Zjets") {
                     CR_integrals["bkg MC"] += CR_integrals[process];

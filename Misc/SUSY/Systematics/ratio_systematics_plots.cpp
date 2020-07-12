@@ -1,6 +1,6 @@
 #include "../../Main/Settings.cpp"
 
-void systematics_plots() {
+void ratio_systematics_plots() {
     // Options
     TChain chain("Zjets_NoSys");
     chain.Add("/public/data/SUSY_Systematics/Skimmed/StrongPreselectionInclusive/mc16a_Zjets_merged_processed.root");
