@@ -1,0 +1,812 @@
+Finding Systematics for Region CRDY
+Working on Weight nominal
+region yield: 28.8961
+Working on Weight muR0p5,muF0p5
+region yield: 31.9011
+Working on Weight muR0p5,muF1
+region yield: 31.4869
+Working on Weight muR1,muF0p5
+region yield: 29.4778
+Working on Weight muR0p5,muF2
+region yield: 31.31
+Working on Weight muR2,muF0p5
+region yield: 26.9366
+Working on Weight muR1,muF2
+region yield: 28.4854
+Working on Weight muR2,muF1
+region yield: 26.2827
+Working on Weight muR2,muF2
+region yield: 25.7553
+Region CRDY scale uncertainty: 0.108693
+Finding Systematics for Region CRZ
+Working on Weight nominal
+region yield: 0.220232
+Working on Weight muR0p5,muF0p5
+region yield: 0.172196
+Working on Weight muR0p5,muF1
+region yield: 0.15208
+Working on Weight muR1,muF0p5
+region yield: 0.240102
+Working on Weight muR0p5,muF2
+region yield: 0.132733
+Working on Weight muR2,muF0p5
+region yield: 0.269709
+Working on Weight muR1,muF2
+region yield: 0.200752
+Working on Weight muR2,muF1
+region yield: 0.250747
+Working on Weight muR2,muF2
+region yield: 0.231945
+Region CRZ scale uncertainty: 0.397304
+Finding Systematics for Region CRZZ
+Working on Weight nominal
+region yield: 5.47324
+Working on Weight muR0p5,muF0p5
+region yield: 5.98615
+Working on Weight muR0p5,muF1
+region yield: 5.81222
+Working on Weight muR1,muF0p5
+region yield: 5.67554
+Working on Weight muR0p5,muF2
+region yield: 5.68296
+Working on Weight muR2,muF0p5
+region yield: 5.28192
+Working on Weight muR1,muF2
+region yield: 5.30858
+Working on Weight muR2,muF1
+region yield: 5.07038
+Working on Weight muR2,muF2
+region yield: 4.89109
+Region CRZZ scale uncertainty: 0.106363
+Finding Systematics for Region CRtt
+Working on Weight nominal
+region yield: 358.956
+Working on Weight muR0p5,muF0p5
+region yield: 401.26
+Working on Weight muR0p5,muF1
+region yield: 396.794
+Working on Weight muR1,muF0p5
+region yield: 365.958
+Working on Weight muR0p5,muF2
+region yield: 394.901
+Working on Weight muR2,muF0p5
+region yield: 331.703
+Working on Weight muR1,muF2
+region yield: 354.009
+Working on Weight muR2,muF1
+region yield: 323.505
+Working on Weight muR2,muF2
+region yield: 316.989
+Region CRtt scale uncertainty: 0.117854
+Finding Systematics for Region DRHigh
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region DRHigh scale uncertainty: 0
+Finding Systematics for Region DRInt
+Working on Weight nominal
+region yield: 0.851574
+Working on Weight muR0p5,muF0p5
+region yield: 0.97414
+Working on Weight muR0p5,muF1
+region yield: 0.904328
+Working on Weight muR1,muF0p5
+region yield: 0.914334
+Working on Weight muR0p5,muF2
+region yield: 0.86329
+Working on Weight muR2,muF0p5
+region yield: 0.844932
+Working on Weight muR1,muF2
+region yield: 0.810616
+Working on Weight muR2,muF1
+region yield: 0.788605
+Working on Weight muR2,muF2
+region yield: 0.749247
+Region DRInt scale uncertainty: 0.143929
+Finding Systematics for Region DRLow
+Working on Weight nominal
+region yield: 0.302657
+Working on Weight muR0p5,muF0p5
+region yield: 0.386203
+Working on Weight muR0p5,muF1
+region yield: 0.327606
+Working on Weight muR1,muF0p5
+region yield: 0.348196
+Working on Weight muR0p5,muF2
+region yield: 0.270979
+Working on Weight muR2,muF0p5
+region yield: 0.312651
+Working on Weight muR1,muF2
+region yield: 0.258322
+Working on Weight muR2,muF1
+region yield: 0.276318
+Working on Weight muR2,muF2
+region yield: 0.240708
+Region DRLow scale uncertainty: 0.276043
+Finding Systematics for Region DROffShell
+Working on Weight nominal
+region yield: 4.47875
+Working on Weight muR0p5,muF0p5
+region yield: 5.19615
+Working on Weight muR0p5,muF1
+region yield: 5.15838
+Working on Weight muR1,muF0p5
+region yield: 4.52622
+Working on Weight muR0p5,muF2
+region yield: 5.14443
+Working on Weight muR2,muF0p5
+region yield: 3.96765
+Working on Weight muR1,muF2
+region yield: 4.44734
+Working on Weight muR2,muF1
+region yield: 3.91636
+Working on Weight muR2,muF2
+region yield: 3.8761
+Region DROffShell scale uncertainty: 0.160178
+Finding Systematics for Region DRllbb
+Working on Weight nominal
+region yield: 0.0161609
+Working on Weight muR0p5,muF0p5
+region yield: 0.0223551
+Working on Weight muR0p5,muF1
+region yield: 0.0191684
+Working on Weight muR1,muF0p5
+region yield: 0.0186996
+Working on Weight muR0p5,muF2
+region yield: 0.0164809
+Working on Weight muR2,muF0p5
+region yield: 0.0158754
+Working on Weight muR1,muF2
+region yield: 0.0140105
+Working on Weight muR2,muF1
+region yield: 0.0138087
+Working on Weight muR2,muF2
+region yield: 0.012051
+Region DRllbb scale uncertainty: 0.383282
+Finding Systematics for Region EWK_VRHigh
+Working on Weight nominal
+region yield: 0.0370289
+Working on Weight muR0p5,muF0p5
+region yield: 0.0408479
+Working on Weight muR0p5,muF1
+region yield: 0.0417551
+Working on Weight muR1,muF0p5
+region yield: 0.0366639
+Working on Weight muR0p5,muF2
+region yield: 0.0425126
+Working on Weight muR2,muF0p5
+region yield: 0.0329634
+Working on Weight muR1,muF2
+region yield: 0.0373151
+Working on Weight muR2,muF1
+region yield: 0.0329862
+Working on Weight muR2,muF2
+region yield: 0.0329762
+Region EWK_VRHigh scale uncertainty: 0.148091
+Finding Systematics for Region EWK_VRLow
+Working on Weight nominal
+region yield: 2.02341
+Working on Weight muR0p5,muF0p5
+region yield: 2.3701
+Working on Weight muR0p5,muF1
+region yield: 2.46059
+Working on Weight muR1,muF0p5
+region yield: 1.96568
+Working on Weight muR0p5,muF2
+region yield: 2.54005
+Working on Weight muR2,muF0p5
+region yield: 1.65792
+Working on Weight muR1,muF2
+region yield: 2.07272
+Working on Weight muR2,muF1
+region yield: 1.69478
+Working on Weight muR2,muF2
+region yield: 1.72503
+Region EWK_VRLow scale uncertainty: 0.25533
+Finding Systematics for Region SRHigh16_1
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRHigh16_1 scale uncertainty: 0
+Finding Systematics for Region SRHigh16_2
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRHigh16_2 scale uncertainty: 0
+Finding Systematics for Region SRHigh4
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRHigh4 scale uncertainty: 0
+Finding Systematics for Region SRHigh8_1
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRHigh8_1 scale uncertainty: 0
+Finding Systematics for Region SRHigh8_2
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRHigh8_2 scale uncertainty: 0
+Finding Systematics for Region SRInt_1
+Working on Weight nominal
+region yield: 0.851574
+Working on Weight muR0p5,muF0p5
+region yield: 0.97414
+Working on Weight muR0p5,muF1
+region yield: 0.904328
+Working on Weight muR1,muF0p5
+region yield: 0.914334
+Working on Weight muR0p5,muF2
+region yield: 0.86329
+Working on Weight muR2,muF0p5
+region yield: 0.844932
+Working on Weight muR1,muF2
+region yield: 0.810616
+Working on Weight muR2,muF1
+region yield: 0.788605
+Working on Weight muR2,muF2
+region yield: 0.749247
+Region SRInt_1 scale uncertainty: 0.143929
+Finding Systematics for Region SRInt_2
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRInt_2 scale uncertainty: 0
+Finding Systematics for Region SRLow2
+Working on Weight nominal
+region yield: 2.42442
+Working on Weight muR0p5,muF0p5
+region yield: 3.12471
+Working on Weight muR0p5,muF1
+region yield: 2.95602
+Working on Weight muR1,muF0p5
+region yield: 2.55887
+Working on Weight muR0p5,muF2
+region yield: 2.8229
+Working on Weight muR2,muF0p5
+region yield: 2.13628
+Working on Weight muR1,muF2
+region yield: 2.31633
+Working on Weight muR2,muF1
+region yield: 2.02659
+Working on Weight muR2,muF2
+region yield: 1.93698
+Region SRLow2 scale uncertainty: 0.288846
+Finding Systematics for Region SRLow_1
+Working on Weight nominal
+region yield: 0.302657
+Working on Weight muR0p5,muF0p5
+region yield: 0.386203
+Working on Weight muR0p5,muF1
+region yield: 0.327606
+Working on Weight muR1,muF0p5
+region yield: 0.348196
+Working on Weight muR0p5,muF2
+region yield: 0.270979
+Working on Weight muR2,muF0p5
+region yield: 0.312651
+Working on Weight muR1,muF2
+region yield: 0.258322
+Working on Weight muR2,muF1
+region yield: 0.276318
+Working on Weight muR2,muF2
+region yield: 0.240708
+Region SRLow_1 scale uncertainty: 0.276043
+Finding Systematics for Region SRLow_2
+Working on Weight nominal
+region yield: 0
+Working on Weight muR0p5,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF1
+region yield: 0
+Working on Weight muR1,muF0p5
+region yield: 0
+Working on Weight muR0p5,muF2
+region yield: 0
+Working on Weight muR2,muF0p5
+region yield: 0
+Working on Weight muR1,muF2
+region yield: 0
+Working on Weight muR2,muF1
+region yield: 0
+Working on Weight muR2,muF2
+region yield: 0
+Region SRLow_2 scale uncertainty: 0
+Finding Systematics for Region SROffShell_1
+Working on Weight nominal
+region yield: 2.76638
+Working on Weight muR0p5,muF0p5
+region yield: 3.12873
+Working on Weight muR0p5,muF1
+region yield: 3.11416
+Working on Weight muR1,muF0p5
+region yield: 2.78613
+Working on Weight muR0p5,muF2
+region yield: 3.12277
+Working on Weight muR2,muF0p5
+region yield: 2.48166
+Working on Weight muR1,muF2
+region yield: 2.76207
+Working on Weight muR2,muF1
+region yield: 2.4598
+Working on Weight muR2,muF2
+region yield: 2.44835
+Region SROffShell_1 scale uncertainty: 0.130984
+Finding Systematics for Region SROffShell_2
+Working on Weight nominal
+region yield: 1.71237
+Working on Weight muR0p5,muF0p5
+region yield: 2.06742
+Working on Weight muR0p5,muF1
+region yield: 2.04422
+Working on Weight muR1,muF0p5
+region yield: 1.74009
+Working on Weight muR0p5,muF2
+region yield: 2.02166
+Working on Weight muR2,muF0p5
+region yield: 1.48599
+Working on Weight muR1,muF2
+region yield: 1.68527
+Working on Weight muR2,muF1
+region yield: 1.45657
+Working on Weight muR2,muF2
+region yield: 1.42776
+Region SROffShell_2 scale uncertainty: 0.207341
+Finding Systematics for Region VRHigh4
+Working on Weight nominal
+region yield: 5.19347
+Working on Weight muR0p5,muF0p5
+region yield: 5.78232
+Working on Weight muR0p5,muF1
+region yield: 5.86005
+Working on Weight muR1,muF0p5
+region yield: 5.17817
+Working on Weight muR0p5,muF2
+region yield: 5.93849
+Working on Weight muR2,muF0p5
+region yield: 4.63427
+Working on Weight muR1,muF2
+region yield: 5.21099
+Working on Weight muR2,muF1
+region yield: 4.61303
+Working on Weight muR2,muF2
+region yield: 4.59479
+Region VRHigh4 scale uncertainty: 0.143454
+Finding Systematics for Region VRHighR
+Working on Weight nominal
+region yield: 0.154042
+Working on Weight muR0p5,muF0p5
+region yield: 0.180156
+Working on Weight muR0p5,muF1
+region yield: 0.175323
+Working on Weight muR1,muF0p5
+region yield: 0.15893
+Working on Weight muR0p5,muF2
+region yield: 0.172034
+Working on Weight muR2,muF0p5
+region yield: 0.140928
+Working on Weight muR1,muF2
+region yield: 0.150433
+Working on Weight muR2,muF1
+region yield: 0.136166
+Working on Weight muR2,muF2
+region yield: 0.132484
+Region VRHighR scale uncertainty: 0.169524
+Finding Systematics for Region VRInt
+Working on Weight nominal
+region yield: 0.624063
+Working on Weight muR0p5,muF0p5
+region yield: 0.653489
+Working on Weight muR0p5,muF1
+region yield: 0.677378
+Working on Weight muR1,muF0p5
+region yield: 0.614323
+Working on Weight muR0p5,muF2
+region yield: 0.692105
+Working on Weight muR2,muF0p5
+region yield: 0.56859
+Working on Weight muR1,muF2
+region yield: 0.627439
+Working on Weight muR2,muF1
+region yield: 0.569757
+Working on Weight muR2,muF2
+region yield: 0.566423
+Region VRInt scale uncertainty: 0.109031
+Finding Systematics for Region VRLow2
+Working on Weight nominal
+region yield: 13.4669
+Working on Weight muR0p5,muF0p5
+region yield: 16.9717
+Working on Weight muR0p5,muF1
+region yield: 16.2226
+Working on Weight muR1,muF0p5
+region yield: 14.0928
+Working on Weight muR0p5,muF2
+region yield: 15.5773
+Working on Weight muR2,muF0p5
+region yield: 11.901
+Working on Weight muR1,muF2
+region yield: 12.9181
+Working on Weight muR2,muF1
+region yield: 11.3695
+Working on Weight muR2,muF2
+region yield: 10.8968
+Region VRLow2 scale uncertainty: 0.260253
+Finding Systematics for Region VROffShell
+Working on Weight nominal
+region yield: 41.9846
+Working on Weight muR0p5,muF0p5
+region yield: 48.5127
+Working on Weight muR0p5,muF1
+region yield: 47.5367
+Working on Weight muR1,muF0p5
+region yield: 42.9996
+Working on Weight muR0p5,muF2
+region yield: 46.8481
+Working on Weight muR2,muF0p5
+region yield: 38.1849
+Working on Weight muR1,muF2
+region yield: 41.1791
+Working on Weight muR2,muF1
+region yield: 37.1858
+Working on Weight muR2,muF2
+region yield: 36.3437
+Region VROffShell scale uncertainty: 0.155487
+Finding Systematics for Region VRllbb
+Working on Weight nominal
+region yield: 14.1441
+Working on Weight muR0p5,muF0p5
+region yield: 15.843
+Working on Weight muR0p5,muF1
+region yield: 15.7026
+Working on Weight muR1,muF0p5
+region yield: 14.3612
+Working on Weight muR0p5,muF2
+region yield: 15.7128
+Working on Weight muR2,muF0p5
+region yield: 12.9647
+Working on Weight muR1,muF2
+region yield: 14.0412
+Working on Weight muR2,muF1
+region yield: 12.7115
+Working on Weight muR2,muF2
+region yield: 12.5473
+Region VRllbb scale uncertainty: 0.120116
+Finding Systematics for Region CRDY
+Working on Weight nominal
+region yield: 28.8961
+Working on Weight PDFset265000
+region yield: 28.5087
+Working on Weight PDFset266000
+region yield: 29.1105
+Region CRDY PDF uncertainty: 0.0134078
+Finding Systematics for Region CRZ
+Working on Weight nominal
+region yield: 0.220232
+Working on Weight PDFset265000
+region yield: 0.221235
+Working on Weight PDFset266000
+region yield: 0.219176
+Region CRZ PDF uncertainty: 0.00479556
+Finding Systematics for Region CRZZ
+Working on Weight nominal
+region yield: 5.47324
+Working on Weight PDFset265000
+region yield: 5.40847
+Working on Weight PDFset266000
+region yield: 5.51504
+Region CRZZ PDF uncertainty: 0.0118341
+Finding Systematics for Region CRtt
+Working on Weight nominal
+region yield: 358.956
+Working on Weight PDFset265000
+region yield: 354.39
+Working on Weight PDFset266000
+region yield: 361.757
+Region CRtt PDF uncertainty: 0.0127192
+Finding Systematics for Region DRHigh
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region DRHigh PDF uncertainty: 0
+Finding Systematics for Region DRInt
+Working on Weight nominal
+region yield: 0.851574
+Working on Weight PDFset265000
+region yield: 0.840678
+Working on Weight PDFset266000
+region yield: 0.857266
+Region DRInt PDF uncertainty: 0.0127945
+Finding Systematics for Region DRLow
+Working on Weight nominal
+region yield: 0.302657
+Working on Weight PDFset265000
+region yield: 0.299525
+Working on Weight PDFset266000
+region yield: 0.30479
+Region DRLow PDF uncertainty: 0.0103476
+Finding Systematics for Region DROffShell
+Working on Weight nominal
+region yield: 4.47875
+Working on Weight PDFset265000
+region yield: 4.39381
+Working on Weight PDFset266000
+region yield: 4.5335
+Region DROffShell PDF uncertainty: 0.0189665
+Finding Systematics for Region DRllbb
+Working on Weight nominal
+region yield: 0.0161609
+Working on Weight PDFset265000
+region yield: 0.0159286
+Working on Weight PDFset266000
+region yield: 0.0163407
+Region DRllbb PDF uncertainty: 0.0143768
+Finding Systematics for Region EWK_VRHigh
+Working on Weight nominal
+region yield: 0.0370289
+Working on Weight PDFset265000
+region yield: 0.036418
+Working on Weight PDFset266000
+region yield: 0.0374886
+Region EWK_VRHigh PDF uncertainty: 0.0164983
+Finding Systematics for Region EWK_VRLow
+Working on Weight nominal
+region yield: 2.02341
+Working on Weight PDFset265000
+region yield: 1.98897
+Working on Weight PDFset266000
+region yield: 2.04623
+Region EWK_VRLow PDF uncertainty: 0.0170235
+Finding Systematics for Region SRHigh16_1
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRHigh16_1 PDF uncertainty: 0
+Finding Systematics for Region SRHigh16_2
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRHigh16_2 PDF uncertainty: 0
+Finding Systematics for Region SRHigh4
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRHigh4 PDF uncertainty: 0
+Finding Systematics for Region SRHigh8_1
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRHigh8_1 PDF uncertainty: 0
+Finding Systematics for Region SRHigh8_2
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRHigh8_2 PDF uncertainty: 0
+Finding Systematics for Region SRInt_1
+Working on Weight nominal
+region yield: 0.851574
+Working on Weight PDFset265000
+region yield: 0.840678
+Working on Weight PDFset266000
+region yield: 0.857266
+Region SRInt_1 PDF uncertainty: 0.0127945
+Finding Systematics for Region SRInt_2
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRInt_2 PDF uncertainty: 0
+Finding Systematics for Region SRLow2
+Working on Weight nominal
+region yield: 2.42442
+Working on Weight PDFset265000
+region yield: 2.38846
+Working on Weight PDFset266000
+region yield: 2.45439
+Region SRLow2 PDF uncertainty: 0.0148317
+Finding Systematics for Region SRLow_1
+Working on Weight nominal
+region yield: 0.302657
+Working on Weight PDFset265000
+region yield: 0.299525
+Working on Weight PDFset266000
+region yield: 0.30479
+Region SRLow_1 PDF uncertainty: 0.0103476
+Finding Systematics for Region SRLow_2
+Working on Weight nominal
+region yield: 0
+Working on Weight PDFset265000
+region yield: 0
+Working on Weight PDFset266000
+region yield: 0
+Region SRLow_2 PDF uncertainty: 0
+Finding Systematics for Region SROffShell_1
+Working on Weight nominal
+region yield: 2.76638
+Working on Weight PDFset265000
+region yield: 2.70919
+Working on Weight PDFset266000
+region yield: 2.80076
+Region SROffShell_1 PDF uncertainty: 0.0206739
+Finding Systematics for Region SROffShell_2
+Working on Weight nominal
+region yield: 1.71237
+Working on Weight PDFset265000
+region yield: 1.68462
+Working on Weight PDFset266000
+region yield: 1.73275
+Region SROffShell_2 PDF uncertainty: 0.0162082
+Finding Systematics for Region VRHigh4
+Working on Weight nominal
+region yield: 5.19347
+Working on Weight PDFset265000
+region yield: 5.12659
+Working on Weight PDFset266000
+region yield: 5.2368
+Region VRHigh4 PDF uncertainty: 0.0128776
+Finding Systematics for Region VRHighR
+Working on Weight nominal
+region yield: 0.154042
+Working on Weight PDFset265000
+region yield: 0.151711
+Working on Weight PDFset266000
+region yield: 0.155798
+Region VRHighR PDF uncertainty: 0.0151379
+Finding Systematics for Region VRInt
+Working on Weight nominal
+region yield: 0.624063
+Working on Weight PDFset265000
+region yield: 0.614378
+Working on Weight PDFset266000
+region yield: 0.630059
+Region VRInt PDF uncertainty: 0.015519
+Finding Systematics for Region VRLow2
+Working on Weight nominal
+region yield: 13.4669
+Working on Weight PDFset265000
+region yield: 13.2517
+Working on Weight PDFset266000
+region yield: 13.6335
+Region VRLow2 PDF uncertainty: 0.0159786
+Finding Systematics for Region VROffShell
+Working on Weight nominal
+region yield: 41.9846
+Working on Weight PDFset265000
+region yield: 41.3102
+Working on Weight PDFset266000
+region yield: 42.4103
+Region VROffShell PDF uncertainty: 0.0160632
+Finding Systematics for Region VRllbb
+Working on Weight nominal
+region yield: 14.1441
+Working on Weight PDFset265000
+region yield: 13.944
+Working on Weight PDFset266000
+region yield: 14.2848
+Region VRllbb PDF uncertainty: 0.0141432
